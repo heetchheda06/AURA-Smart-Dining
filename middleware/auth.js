@@ -14,55 +14,106 @@ const protect = async (req, res, next) => {
     token = req.cookies.token;
   }
 
+  // ─── No token at all ─────────────────────────────────────────────────────────
   if (!token) {
-    if (req.body && req.body.tableNum) {
+    // Allow anonymous guest orders if tableNum is present in body
+    const tableNum = req.body?.tableNum || req.query?.tableNum;
+    if (tableNum) {
       req.user = {
-        _id: 'guest_table_' + req.body.tableNum,
+        _id: 'anon_table_' + tableNum,
         name: 'Guest Diner',
         role: 'customer',
         isGuest: true,
-        tableNum: parseInt(req.body.tableNum)
+        tableNum: parseInt(tableNum)
       };
       return next();
     }
-    return res.status(401).json({ success: false, message: 'Not authorized to access this route. Token missing.' });
+    return res.status(401).json({ success: false, message: 'Not authorized. Please log in or scan your table QR.' });
   }
 
+  // ─── Token exists – try to decode ────────────────────────────────────────────
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret_key_change_in_production');
-    
+
+    // ── Guest token ──────────────────────────────────────────────────────────
     if (decoded.isGuest) {
-      const guest = await Guest.findById(decoded.id);
-      if (!guest || !guest.sessionActive) {
-        return res.status(401).json({ success: false, message: 'Guest session has expired or is inactive.' });
+      let guest = null;
+      try { guest = await Guest.findById(decoded.id); } catch (e) {}
+
+      if (guest && guest.sessionActive) {
+        req.user = {
+          _id: guest._id,
+          id: guest._id,
+          name: guest.name,
+          role: 'customer',
+          isGuest: true,
+          tableNum: guest.tableNum
+        };
+      } else {
+        // Guest session expired – still allow as anonymous if tableNum available
+        const tableNum = req.body?.tableNum || decoded.tableNum;
+        req.user = {
+          _id: decoded.id || ('anon_table_' + tableNum),
+          name: decoded.name || 'Guest Diner',
+          role: 'customer',
+          isGuest: true,
+          tableNum: tableNum ? parseInt(tableNum) : undefined
+        };
       }
-      
-      // Construct a mock user object for the request
+      return next();
+    }
+
+    // ── Staff / member token ─────────────────────────────────────────────────
+    let userDoc = null;
+    try { userDoc = await User.findById(decoded.id).select('-password'); } catch (e) {}
+
+    if (userDoc) {
+      req.user = userDoc;
+      return next();
+    }
+
+    // User deleted from DB but valid token – reconstruct from JWT claims
+    if (decoded.role) {
       req.user = {
-        _id: guest._id,
-        id: guest._id,
-        name: guest.name,
+        _id: decoded.id,
+        id: decoded.id,
+        role: decoded.role,
+        name: decoded.name || 'Staff Member',
+        email: decoded.email || '',
+        tableNum: decoded.tableNum
+      };
+      return next();
+    }
+
+    // Last resort – still allow if tableNum present (treat as guest order)
+    const tableNum = req.body?.tableNum || req.query?.tableNum;
+    if (tableNum) {
+      req.user = {
+        _id: 'fallback_table_' + tableNum,
+        name: 'Guest Diner',
         role: 'customer',
         isGuest: true,
-        tableNum: guest.tableNum
+        tableNum: parseInt(tableNum)
       };
-    } else {
-      try {
-        req.user = await User.findById(decoded.id).select('-password');
-      } catch (e) {}
-
-      if (!req.user && decoded.role) {
-        req.user = { _id: decoded.id, id: decoded.id, role: decoded.role, name: decoded.name || 'Admin User' };
-      }
-
-      if (!req.user) {
-        return res.status(401).json({ success: false, message: 'User not found with this token.' });
-      }
+      return next();
     }
-    
-    next();
+
+    return res.status(401).json({ success: false, message: 'User account not found. Please sign in again.' });
+
   } catch (error) {
-    return res.status(401).json({ success: false, message: 'Not authorized. Token invalid or expired.' });
+    // Token is corrupted / expired – allow guest order if tableNum present
+    const tableNum = req.body?.tableNum || req.query?.tableNum;
+    if (tableNum) {
+      req.user = {
+        _id: 'expired_table_' + tableNum,
+        name: 'Guest Diner',
+        role: 'customer',
+        isGuest: true,
+        tableNum: parseInt(tableNum)
+      };
+      return next();
+    }
+    return res.status(401).json({ success: false, message: 'Session expired. Please log in again.' });
   }
 };
 
