@@ -1,0 +1,6 @@
+name,email,password,role,provider
+"AURA Admin","admin@auradining.in","AdminPassword123","admin","local"
+"AURA Manager","manager@auradining.in","ManagerPassword123","manager","local"
+"Executive Chef Mario","chef@auradining.in","ChefPassword123","chef","local"
+"Lead Cashier Sarah","cashier@auradining.in","CashierPassword123","cashier","local"
+"AURA Customer","customer@auradining.in","CustomerPassword123","customer","local"

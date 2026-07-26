@@ -1,0 +1,40 @@
+# Task List - AURA Backend Integration
+
+- [x] Create `package.json` with dependencies and start script
+- [x] Create `.env.example` file
+- [x] Configure database connection (`config/db.js`)
+- [x] Implement database models (`models/`)
+  - [x] User Model
+  - [x] Guest Model
+  - [x] Category Model
+  - [x] Menu Model
+  - [x] Table Model
+  - [x] Order Model
+  - [x] Booking Model
+  - [x] Cart Model
+  - [x] WaiterRequest Model
+  - [x] Notification Model
+- [x] Create database seeder script (`seed/seeder.js`) and run seed
+- [x] Implement middleware
+  - [x] Authentication and role checking (`middleware/auth.js`)
+  - [x] Joi request validation (`middleware/validate.js`)
+  - [x] Global error handler (`middleware/errorHandler.js`)
+- [x] Implement controllers
+  - [x] Auth Controller (Register, Login, Google OAuth, Guest Login)
+  - [x] Menu & Category Controller
+  - [x] Cart Controller
+  - [x] Order Controller
+  - [x] Table Controller
+  - [x] Waiter Controller
+  - [x] Admin & Analytics Controller
+- [x] Create route modules (`routes/`)
+- [x] Implement real-time Socket.IO handler (`socket/socketHandler.js`)
+- [x] Setup Express App (`app.js` and `server.js`)
+- [x] Transform frontend (`index.html`)
+  - [x] Move `index.html` to `public/index.html` and delete original
+  - [x] Replace all "$" symbols with "₹" and update calculations
+  - [x] Implement Socket.IO client connection and synchronization
+  - [x] Implement API calls for Auth (Google Identity Services, Guest Auth)
+  - [x] Implement table selection, ordering, and cart sync
+- [x] Write integration tests and verify code
+- [x] Generate documentation (README, API docs, Postman collections)

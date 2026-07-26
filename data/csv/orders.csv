@@ -1,0 +1,4 @@
+orderNumber,tableNum,total,status,paymentStatus,notes
+"ORD-1001",2,7750,"completed","paid","Anniversary celebration table"
+"ORD-1002",4,2200,"preparing","pending","Extra napkin requested"
+"ORD-1003",7,1850,"served","paid","Gluten-free diet"

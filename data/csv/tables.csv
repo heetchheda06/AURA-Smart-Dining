@@ -1,0 +1,11 @@
+num,seats,zone,status
+1,2,"Main Hall","free"
+2,4,"Main Hall","occupied"
+3,2,"Window Lounge","free"
+4,6,"VIP Private Lounge","occupied"
+5,4,"Window Lounge","free"
+6,8,"VIP Private Lounge","reserved"
+7,2,"Outdoor Patio","occupied"
+8,4,"Outdoor Patio","free"
+9,2,"Patio Garden","free"
+10,6,"VIP Grand Room","free"
