@@ -766,13 +766,15 @@ export default function App() {
   }
 
   // 4. Admin UI — Sees ALL Metrics, Total Orders, Revenue Payment Done & Analytics ONLY
-  if (currentRole === 'admin' || isAdmin) {
+  if (currentRole === 'admin') {
     return (
       <>
         <AdminDashboard 
           onLogout={handleLogout} 
           adminName={adminName || staffName || "AURA Admin"} 
           formatPrice={formatPrice} 
+          currentRole={currentRole}
+          onSwitchRole={(r) => setCurrentRole(r)}
         />
         <RoleQuickSwitcher currentRole={currentRole} onSwitchRole={(r) => setCurrentRole(r)} />
         <div className="toast-container" id="toast-box">
@@ -902,6 +904,9 @@ export default function App() {
         customerName={activeCustomerSession.customerName}
         formatPrice={formatPrice}
       />
+
+      {/* Bottom Floating Role Quick Switcher */}
+      <RoleQuickSwitcher currentRole={currentRole} onSwitchRole={(r) => setCurrentRole(r)} />
 
       {/* Toast Notification Container */}
       <div className="toast-container" id="toast-box">
