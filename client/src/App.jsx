@@ -905,8 +905,10 @@ export default function App() {
         formatPrice={formatPrice}
       />
 
-      {/* Bottom Floating Role Quick Switcher */}
-      <RoleQuickSwitcher currentRole={currentRole} onSwitchRole={(r) => setCurrentRole(r)} />
+      {/* Bottom Floating Role Quick Switcher (Hidden when Auth Login Modal is open) */}
+      {!isAuthModalOpen && (
+        <RoleQuickSwitcher currentRole={currentRole} onSwitchRole={(r) => setCurrentRole(r)} />
+      )}
 
       {/* Toast Notification Container */}
       <div className="toast-container" id="toast-box">
