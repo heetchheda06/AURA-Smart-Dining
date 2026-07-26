@@ -71,7 +71,7 @@ export default function AuthModal({
       setStaffError('Please enter both employee email and secret key.');
       return;
     }
-    onAdminLogin(staffEmail, staffPassword);
+    onUserLogin(staffEmail, staffPassword);
   };
 
   const autofillStaff = (email, pass) => {
@@ -310,16 +310,6 @@ export default function AuthModal({
           <div id="auth-tab-staff" className="auth-tab-content">
             <div style={{ background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: 'var(--radius-sm)', padding: '14px', color: '#FCD34D', fontSize: '13px', marginBottom: '16px' }}>
               <i className="fa-solid fa-user-shield"></i> <strong>Staff & Admin Portal Login:</strong> Enter staff credentials. Unauthenticated guests cannot access staff dashboards.
-            </div>
-
-            <div style={{ marginBottom: '16px' }}>
-              <label className="form-label" style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--text-dim)' }}>Autofill Preset Account:</label>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '8px', marginTop: '6px' }}>
-                <button type="button" className="btn-action glass" style={{ padding: '6px', fontSize: '11px', justifyContent: 'center', border: '1px solid rgba(59, 130, 246, 0.4)', color: '#60A5FA' }} onClick={() => autofillStaff('admin@auradining.in', 'AdminPassword123')}>Admin</button>
-                <button type="button" className="btn-action glass" style={{ padding: '6px', fontSize: '11px', justifyContent: 'center', border: '1px solid rgba(139, 92, 246, 0.4)', color: '#C4B5FD' }} onClick={() => autofillStaff('manager@auradining.in', 'ManagerPassword123')}>Manager</button>
-                <button type="button" className="btn-action glass" style={{ padding: '6px', fontSize: '11px', justifyContent: 'center', border: '1px solid rgba(239, 68, 68, 0.4)', color: '#FCA5A5' }} onClick={() => autofillStaff('chef@auradining.in', 'ChefPassword123')}>Chef</button>
-                <button type="button" className="btn-action glass" style={{ padding: '6px', fontSize: '11px', justifyContent: 'center', border: '1px solid rgba(245, 158, 11, 0.4)', color: '#FCD34D' }} onClick={() => autofillStaff('cashier@auradining.in', 'CashierPassword123')}>Cashier</button>
-              </div>
             </div>
 
             {staffError && (
