@@ -19,6 +19,7 @@ import ManagerDashboard from './components/ManagerDashboard';
 import ChefDashboard from './components/ChefDashboard';
 import RoleQuickSwitcher from './components/RoleQuickSwitcher';
 import AIRecommender from './components/AIRecommender';
+import { fallbackMenu } from './data/fallbackMenu';
 
 // Initialize socket connection at module level
 const socket = io();
@@ -34,7 +35,7 @@ export default function App() {
     loginType: "guest"
   });
 
-  const [menuItems, setMenuItems] = useState([]);
+  const [menuItems, setMenuItems] = useState(fallbackMenu);
   const [restaurantTables, setRestaurantTables] = useState([]);
   const [cart, setCart] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -251,8 +252,8 @@ export default function App() {
       const res = await fetch(`/api/menu${queryParam}`);
       if (!res.ok) return;
       const data = await res.json();
-      if (data && data.success) {
-        setMenuItems(data.data || []);
+      if (data && data.success && Array.isArray(data.data) && data.data.length > 0) {
+        setMenuItems(data.data);
       }
     } catch (err) {
       console.error("Error fetching menu:", err);
