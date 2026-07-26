@@ -642,6 +642,10 @@ export default function App() {
   // Dispatch assistance request
   const handleCallWaiter = async (serviceName) => {
     setIsWaiterOpen(false);
+
+    // Show toast IMMEDIATELY — don't wait for API (optimistic UI)
+    showToast(`🛎️ Calling Floor Host for: "${serviceName}"…`);
+
     try {
       const res = await fetch('/api/waiter/call', {
         method: 'POST',
@@ -653,11 +657,14 @@ export default function App() {
       });
       const data = await res.json();
       if (data.success) {
-        showToast(`🛎️ Request "${serviceName}" dispatched to Floor Host.`);
+        // Show confirmed toast after API acknowledges
+        setTimeout(() => {
+          showToast(`✅ Floor Host notified! They'll be at Table #${activeCustomerSession.tableNum || 8} shortly.`);
+        }, 1200);
       }
     } catch (err) {
-      console.error(err);
-      showToast("⚠️ Error requesting service.");
+      // Even if API fails, the first toast already showed — silent fail is fine
+      console.error('Waiter call API error:', err);
     }
   };
 

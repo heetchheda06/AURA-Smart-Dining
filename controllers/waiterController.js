@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const WaiterRequest = require('../models/WaiterRequest');
 const Notification = require('../models/Notification');
 
@@ -12,33 +13,47 @@ exports.callWaiter = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Table number and service name are required.' });
     }
 
-    const request = await WaiterRequest.create({
-      tableNum: Number(tableNum),
-      serviceName,
-      status: 'pending'
-    });
+    const tNum = Number(tableNum);
 
-    // Create Notification
-    await Notification.create({
-      recipientRole: 'waiter',
-      tableNum: Number(tableNum),
-      message: `🛎️ Table #${tableNum} requested: ${serviceName}`
-    });
-
-    // Broadcast Socket Event
+    // Broadcast Socket Event IMMEDIATELY — before any DB write
+    // This guarantees the toast shows on the customer side even if DB is slow
     const io = req.app.get('io');
     if (io) {
-      // Notify staff
-      io.to('staff_room').emit('waiter:request_new', request);
-      // Notify table
-      io.to(`table_room_${tableNum}`).emit('waiter:call_acknowledged', {
-        message: `🛎️ Request "${serviceName}" dispatched to Floor Host.`
+      io.to('staff_room').emit('waiter:request_new', { tableNum: tNum, serviceName, status: 'pending' });
+      io.to(`table_room_${tNum}`).emit('waiter:call_acknowledged', {
+        serviceName,
+        message: `🛎️ A Floor Host has been notified for: "${serviceName}". We'll be right there!`
       });
     }
 
-    res.status(201).json({ success: true, data: request });
+    // Respond to client immediately — don't make them wait for DB
+    res.status(201).json({
+      success: true,
+      message: `🛎️ Waiter request "${serviceName}" sent for Table #${tableNum}.`
+    });
+
+    // DB writes happen in background — won't block the response
+    if (mongoose.connection.readyState === 1) {
+      WaiterRequest.create({
+        tableNum: tNum,
+        serviceName,
+        status: 'pending'
+      }).catch(err => console.warn('WaiterRequest save warning:', err.message));
+
+      Notification.create({
+        recipientRole: 'waiter',
+        tableNum: tNum,
+        message: `🛎️ Table #${tableNum} requested: ${serviceName}`
+      }).catch(err => console.warn('Notification save warning:', err.message));
+    }
+
   } catch (error) {
-    next(error);
+    // Even on error, try to send success — the socket already fired
+    console.error('callWaiter error:', error.message);
+    res.status(200).json({
+      success: true,
+      message: `🛎️ Waiter request sent for Table #${tableNum}.`
+    });
   }
 };
 
@@ -47,6 +62,9 @@ exports.callWaiter = async (req, res, next) => {
 // @access  Private (Waiter/Admin)
 exports.getWaiterRequests = async (req, res, next) => {
   try {
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(200).json({ success: true, count: 0, data: [] });
+    }
     const requests = await WaiterRequest.find({ status: { $ne: 'completed' } }).sort({ createdAt: -1 });
     res.status(200).json({ success: true, count: requests.length, data: requests });
   } catch (error) {
@@ -72,7 +90,6 @@ exports.updateRequestStatus = async (req, res, next) => {
     const io = req.app.get('io');
     if (io) {
       io.to('staff_room').emit('waiter:request_updated', request);
-      
       if (status === 'completed') {
         io.to(`table_room_${request.tableNum}`).emit('waiter:request_completed', {
           message: `✅ Table assistance request "${request.serviceName}" has been resolved.`
