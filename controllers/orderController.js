@@ -8,50 +8,78 @@ const Notification = require('../models/Notification');
 // @access  Private (Customer/Guest)
 exports.placeOrder = async (req, res, next) => {
   try {
-    const tableNum = req.user.tableNum || req.body.tableNum;
+    const tableNum = req.user?.tableNum || req.body?.tableNum;
     if (!tableNum) {
       return res.status(400).json({ success: false, message: 'Table number is required to place an order.' });
     }
 
-    // 1. Fetch table cart or use body items fallback
+    // 1. Use body items FIRST (frontend always sends them) — no DB blocking
     let cartItems = [];
-    const dbCart = await Cart.findOne({ tableNum });
-    if (dbCart && dbCart.items && dbCart.items.length > 0) {
-      cartItems = dbCart.items;
-    } else if (req.body.items && req.body.items.length > 0) {
+    let dbCart = null;
+
+    if (req.body.items && req.body.items.length > 0) {
+      // Frontend sent items directly — use immediately, no Cart DB lookup needed
       cartItems = req.body.items.map(item => ({
-        menuItem: item.menuItemId || item._id,
+        menuItem: item.menuItemId || item._id || item.menuItem || '000000000000000000000000',
         name: item.name,
-        price: item.price,
-        qty: item.qty || 1,
+        price: Number(item.price) || 0,
+        qty: Number(item.qty) || 1,
         addedBy: item.addedBy || (req.user ? req.user.name : 'Guest')
       }));
+
+      // Fire-and-forget: try to also clear Cart in background (won't block order)
+      Cart.findOne({ tableNum }).then(cart => {
+        if (cart && cart.items && cart.items.length > 0) {
+          cart.items = [];
+          cart.save().catch(() => {});
+        }
+      }).catch(() => {});
+
+    } else {
+      // Fallback: try Cart DB with timeout
+      try {
+        dbCart = await Promise.race([
+          Cart.findOne({ tableNum }),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Cart lookup timeout')), 4000))
+        ]);
+      } catch (e) {
+        // Cart timed out or failed — continue without it
+        dbCart = null;
+      }
+
+      if (dbCart && dbCart.items && dbCart.items.length > 0) {
+        cartItems = dbCart.items;
+      }
     }
 
     if (cartItems.length === 0) {
-      return res.status(400).json({ success: false, message: 'Your table cart is empty. Add items first.' });
+      return res.status(400).json({ success: false, message: 'Your cart is empty. Please add items before ordering.' });
     }
 
     // 2. Calculate prices
-    const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
-    const tax = subtotal * 0.10; // 10% GST & Service
-    const total = subtotal + tax;
+    const subtotal = cartItems.reduce((sum, item) => sum + ((Number(item.price) || 0) * (Number(item.qty) || 1)), 0);
+    const tax = Math.round(subtotal * 0.10 * 100) / 100;
+    const total = Math.round((subtotal + tax) * 100) / 100;
 
-    // 3. Setup user references
+    // 3. Session type
     const isGuestUser = req.user ? req.user.isGuest : true;
     const sessionType = isGuestUser ? 'guest' : 'member';
-    const userRef = req.user && !req.user.isGuest ? req.user._id : undefined;
-    const guestRef = req.user && req.user.isGuest ? req.user._id : undefined;
 
-    // 4. Create order record
+    // Only set refs if they look like valid ObjectIds
+    const mongoose = require('mongoose');
+    const isValidId = (id) => id && typeof id === 'object' && mongoose.isValidObjectId(id);
+    const userRef = (!isGuestUser && isValidId(req.user?._id)) ? req.user._id : undefined;
+    const guestRef = (isGuestUser && isValidId(req.user?._id)) ? req.user._id : undefined;
+
+    // 4. Create order
     const order = await Order.create({
       tableNum,
       items: cartItems.map(item => ({
-        menuItem: item.menuItem,
-        name: item.name,
-        price: item.price,
-        qty: item.qty,
-        addedBy: item.addedBy
+        menuItem: mongoose.isValidObjectId(item.menuItem) ? item.menuItem : new mongoose.Types.ObjectId(),
+        name: item.name || 'Menu Item',
+        price: Number(item.price) || 0,
+        qty: Number(item.qty) || 1,
+        addedBy: item.addedBy || 'Guest'
       })),
       subtotal,
       tax,
@@ -63,30 +91,21 @@ exports.placeOrder = async (req, res, next) => {
       paymentStatus: 'unpaid'
     });
 
-    // 5. Clear table cart if exists
-    if (dbCart) {
-      dbCart.items = [];
-      await dbCart.save();
-    }
+    // 5. Update table status (non-blocking)
+    Table.findOneAndUpdate({ num: tableNum }, { status: 'occupied' }).catch(() => {});
 
-    // 6. Set Table status to occupied
-    await Table.findOneAndUpdate({ num: tableNum }, { status: 'occupied' });
-
-    // 7. Create admin/waiter notification
-    await Notification.create({
+    // 6. Create notification (non-blocking)
+    Notification.create({
       recipientRole: 'waiter',
       tableNum,
-      message: `🛎️ New Order placed by Table #${tableNum} - Total: ₹${total.toLocaleString('en-IN')}`
-    });
+      message: `🛎️ New Order placed at Table #${tableNum} — Total: ₹${total.toLocaleString('en-IN')}`
+    }).catch(() => {});
 
-    // 8. Socket notifications
+    // 7. Socket events
     const io = req.app.get('io');
     if (io) {
-      // Notify table members that order is placed
       io.to(`table_room_${tableNum}`).emit('order:placed', order);
-      io.to(`table_room_${tableNum}`).emit('cart:updated', dbCart || { tableNum, items: [] }); // Sync empty cart
-      
-      // Notify waitstaff and admin
+      io.to(`table_room_${tableNum}`).emit('cart:updated', { tableNum, items: [] });
       io.to('staff_room').emit('waiter:new_order', { tableNum, orderId: order._id, total });
       io.to('admin_room').emit('admin:new_order', { tableNum, orderId: order._id, total });
     }
