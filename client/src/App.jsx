@@ -735,7 +735,6 @@ export default function App() {
           cashierName={staffName || "Lead Cashier Sarah"} 
           formatPrice={formatPrice} 
         />
-        <RoleQuickSwitcher currentRole={currentRole} onSwitchRole={(r) => setCurrentRole(r)} />
         <div className="toast-container" id="toast-box">
           {toasts.map(t => (
             <div key={t.id} className="toast-item glass">
@@ -756,7 +755,6 @@ export default function App() {
           managerName={staffName || "AURA Manager"} 
           formatPrice={formatPrice} 
         />
-        <RoleQuickSwitcher currentRole={currentRole} onSwitchRole={(r) => setCurrentRole(r)} />
         <div className="toast-container" id="toast-box">
           {toasts.map(t => (
             <div key={t.id} className="toast-item glass">
@@ -777,7 +775,6 @@ export default function App() {
           chefName={staffName || "Executive Chef Mario"} 
           formatPrice={formatPrice} 
         />
-        <RoleQuickSwitcher currentRole={currentRole} onSwitchRole={(r) => setCurrentRole(r)} />
         <div className="toast-container" id="toast-box">
           {toasts.map(t => (
             <div key={t.id} className="toast-item glass">
@@ -929,11 +926,6 @@ export default function App() {
         customerName={activeCustomerSession.customerName}
         formatPrice={formatPrice}
       />
-
-      {/* Bottom Floating Role Quick Switcher (Hidden when Auth Login Modal is open) */}
-      {!isAuthModalOpen && (
-        <RoleQuickSwitcher currentRole={currentRole} onSwitchRole={(r) => setCurrentRole(r)} />
-      )}
 
       {/* Toast Notification Container */}
       <div className="toast-container" id="toast-box">
