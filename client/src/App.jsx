@@ -379,6 +379,30 @@ export default function App() {
     showToast(`⏳ Table #${tableNum} is busy. Pre-Order Mode Activated! Select items.`);
   };
 
+  // Member user registration api call
+  const handleUserRegister = async (name, email, password, mobile) => {
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password, mobile })
+      });
+      const data = await res.json();
+      if (data.success) {
+        localStorage.setItem('token', data.token);
+        showToast(`🎉 Registration successful! Welcome to AURA, ${data.user.name}!`);
+        setIsAuthModalOpen(false);
+        setCurrentRole('customer');
+        allotTableToCustomer(data.user.name, 8, 4, "Outdoor Patio");
+      } else {
+        showToast(`⚠️ Registration failed: ${data.message}`);
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("⚠️ Registration error.");
+    }
+  };
+
   // Member user login api call
   const handleUserLogin = async (email, password) => {
     try {
@@ -804,6 +828,7 @@ export default function App() {
         isMandatory={!activeCustomerSession.isLoggedIn}
         onGuestLogin={handleGuestLogin}
         onUserLogin={handleUserLogin}
+        onUserRegister={handleUserRegister}
         onAdminLogin={handleAdminLogin}
         onGoogleLogin={(user, token) => {
           localStorage.setItem('token', token);

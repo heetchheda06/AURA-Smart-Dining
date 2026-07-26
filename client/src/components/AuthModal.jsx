@@ -1,59 +1,34 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 
 export default function AuthModal({ 
   isOpen, 
   onClose, 
   onGuestLogin, 
   onUserLogin,
+  onUserRegister,
   onAdminLogin,
-  onGoogleLogin,
   onOpenFloorplan,
   isMandatory
 }) {
   const [activeTab, setActiveTab] = useState('guest'); // 'guest', 'user', 'staff'
+  const [isRegisterMode, setIsRegisterMode] = useState(false); // Sign In vs Sign Up for Member
+  
+  // Guest state
   const [guestName, setGuestName] = useState('');
   const [guestPhone, setGuestPhone] = useState('');
   const [seatCount, setSeatCount] = useState(2);
   const [isWifiInRange, setIsWifiInRange] = useState(true);
   
+  // User Login & Register state
+  const [userName, setUserName] = useState('');
   const [userEmail, setUserEmail] = useState('');
+  const [userPhone, setUserPhone] = useState('');
   const [userPassword, setUserPassword] = useState('');
 
+  // Staff state
   const [staffEmail, setStaffEmail] = useState('');
   const [staffPassword, setStaffPassword] = useState('');
   const [staffError, setStaffError] = useState('');
-
-  const googleBtnRef = useRef(null);
-
-  // Handle Google Button Rendering safely using useRef
-  useEffect(() => {
-    if (isOpen && activeTab === 'user') {
-      const renderGoogle = () => {
-        if (googleBtnRef.current && window.google) {
-          try {
-            googleBtnRef.current.innerHTML = '';
-            window.google.accounts.id.renderButton(
-              googleBtnRef.current,
-              { theme: "outline", size: "large", width: "340", text: "signin_with" }
-            );
-            return true;
-          } catch (err) {
-            console.error("Error rendering Google button inside modal:", err);
-          }
-        }
-        return false;
-      };
-
-      if (!renderGoogle()) {
-        const timer = setInterval(() => {
-          if (renderGoogle()) {
-            clearInterval(timer);
-          }
-        }, 300);
-        return () => clearInterval(timer);
-      }
-    }
-  }, [isOpen, activeTab]);
 
   if (!isOpen) return null;
 
@@ -72,75 +47,36 @@ export default function AuthModal({
 
   const handleUserSubmit = (e) => {
     e.preventDefault();
-    if (!userEmail || !userPassword) {
-      alert("⚠️ Please fill in all fields.");
-      return;
+    if (isRegisterMode) {
+      if (!userName || !userEmail || !userPassword) {
+        alert("⚠️ Please fill in Full Name, Email, and Password.");
+        return;
+      }
+      if (onUserRegister) {
+        onUserRegister(userName, userEmail, userPassword, userPhone);
+      }
+    } else {
+      if (!userEmail || !userPassword) {
+        alert("⚠️ Please fill in Email and Password.");
+        return;
+      }
+      onUserLogin(userEmail, userPassword);
     }
-    onUserLogin(userEmail, userPassword);
   };
 
   const handleStaffSubmit = (e) => {
     e.preventDefault();
     setStaffError('');
     if (!staffEmail || !staffPassword) {
-      setStaffError('Please fill in all fields.');
+      setStaffError('Please enter both employee email and secret key.');
       return;
     }
-    onUserLogin(staffEmail, staffPassword);
+    onAdminLogin(staffEmail, staffPassword);
   };
 
-  const handleAutofillStaff = (email, password) => {
+  const autofillStaff = (email, pass) => {
     setStaffEmail(email);
-    setStaffPassword(password);
-  };
-
-  const handleGoogleDirectAuth = async () => {
-    try {
-      if (window.google && window.google.accounts && window.google.accounts.id) {
-        window.google.accounts.id.prompt((notification) => {
-          if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-            executeGoogleBackendLogin();
-          }
-        });
-      } else {
-        executeGoogleBackendLogin();
-      }
-    } catch (err) {
-      executeGoogleBackendLogin();
-    }
-  };
-
-  const executeGoogleBackendLogin = async () => {
-    try {
-      const res = await fetch('/api/auth/google', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: 'Askheet@gmail.com',
-          name: 'Google Member Diner',
-          googleId: 'google_oauth_102938'
-        })
-      });
-      const data = await res.json();
-      if (data && data.success) {
-        if (onGoogleLogin) {
-          onGoogleLogin(data.user, data.token);
-        }
-      } else {
-        if (onGoogleLogin) {
-          onGoogleLogin({ name: 'Askheet (Google Member)', email: 'Askheet@gmail.com' }, 'demo_token_google_123');
-        }
-      }
-    } catch (err) {
-      console.error("Google login fallback:", err);
-      if (onGoogleLogin) {
-        onGoogleLogin({ name: 'Askheet (Google Member)', email: 'Askheet@gmail.com' }, 'demo_token_google_123');
-      }
-    }
-  };
-
-  const toggleWifi = () => {
-    setIsWifiInRange(!isWifiInRange);
+    setStaffPassword(pass);
   };
 
   return (
@@ -161,7 +97,7 @@ export default function AuthModal({
             RESTRICTED ACCESS PORTAL
           </span>
           <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '26px', color: 'var(--text-main)', margin: '4px 0' }}>
-            Sign In to Continue
+            {activeTab === 'user' ? (isRegisterMode ? 'Create Member Account' : 'Member Sign In') : 'Sign In to Continue'}
           </h2>
           <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginTop: '4px' }}>
             Authenticate as Guest, Member, or Staff Account.
@@ -182,64 +118,31 @@ export default function AuthModal({
             onClick={() => setActiveTab('user')}
           >
             <i className="fa-solid fa-user-shield" style={{ color: 'var(--accent-purple)' }}></i>
-            <span>Member Login</span>
+            <span>Member Portal</span>
           </button>
           <button 
             className={`auth-tab-btn ${activeTab === 'staff' ? 'active' : ''}`} 
             onClick={() => setActiveTab('staff')}
           >
-            <i className="fa-solid fa-lock" style={{ color: '#F59E0B' }}></i>
+            <i className="fa-solid fa-lock" style={{ color: 'var(--accent-amber)' }}></i>
             <span>Staff & Admin</span>
           </button>
         </div>
 
-        {/* ========= TAB 1: GUEST DINER LOGIN ========= */}
+        {/* ========= TAB 1: GUEST DINER ========= */}
         {activeTab === 'guest' && (
           <div id="auth-tab-guest" className="auth-tab-content">
-            
-            {/* Wi-Fi Frequency Radar Card */}
-            <div className={`wifi-detector-card ${!isWifiInRange ? 'out-of-range' : ''}`} id="wifi-card">
-              <div className="wifi-info-left">
-                <div 
-                  className="wifi-pulse-icon" 
-                  id="wifi-icon-box"
-                  style={{
-                    background: isWifiInRange ? 'rgba(16, 185, 129, 0.2)' : 'rgba(230, 57, 70, 0.2)',
-                    color: isWifiInRange ? 'var(--accent-emerald)' : 'var(--secondary)'
-                  }}
-                >
-                  <i className={`fa-solid ${isWifiInRange ? 'fa-wifi' : 'fa-wifi-slash'}`}></i>
-                </div>
-                <div>
-                  <div className="wifi-status-title">
-                    <span>
-                      {isWifiInRange ? 'SSID: AURA_RESTAURANT_5G' : 'SSID: Not Connected to Restaurant Wi-Fi'}
-                    </span>
-                    <span 
-                      style={{ 
-                        fontSize: '10px', 
-                        background: isWifiInRange ? 'rgba(16,185,129,0.2)' : 'rgba(230,57,70,0.2)', 
-                        color: isWifiInRange ? 'var(--accent-emerald)' : 'var(--secondary)',
-                        padding: '2px 6px', 
-                        borderRadius: '4px' 
-                      }}
-                    >
-                      {isWifiInRange ? 'VERIFIED ON-SITE' : 'OUT OF RANGE'}
-                    </span>
-                  </div>
-                  <div className="wifi-status-sub">
-                    {isWifiInRange ? (
-                      <>Frequency: <strong>5.785 GHz (5G Band)</strong> &bull; Proximity: <strong>~4m (In Restaurant)</strong></>
-                    ) : (
-                      <>Frequency: <strong>Unknown / Off-Premises</strong> &bull; Proximity: <strong>&gt; 250m Away</strong></>
-                    )}
-                  </div>
-                </div>
+            <div style={{ background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: 'var(--radius-sm)', padding: '14px', color: '#6EE7B7', fontSize: '13px', marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div>
+                <i className="fa-solid fa-wifi" style={{ marginRight: '8px' }}></i>
+                <strong>Location Check:</strong> Restaurant Wi-Fi Connected
               </div>
-              <button className="wifi-toggle-switch" onClick={toggleWifi}>
-                <i className="fa-solid fa-arrows-rotate"></i> <span>
-                  {isWifiInRange ? 'Simulate Out of Range' : 'Simulate Connected On-Site'}
-                </span>
+              <button 
+                type="button" 
+                onClick={() => setIsWifiInRange(!isWifiInRange)}
+                style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#FFF', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', cursor: 'pointer' }}
+              >
+                Toggle {isWifiInRange ? 'Out-of-Range' : 'In-Range'}
               </button>
             </div>
 
@@ -290,60 +193,114 @@ export default function AuthModal({
           </div>
         )}
 
-        {/* ========= TAB 2: MEMBER LOGIN & GOOGLE AUTH ========= */}
+        {/* ========= TAB 2: MEMBER LOGIN & SIGN UP ========= */}
         {activeTab === 'user' && (
           <div id="auth-tab-user" className="auth-tab-content">
-            <div style={{ background: 'rgba(139, 92, 246, 0.1)', border: '1px solid rgba(139, 92, 246, 0.3)', borderRadius: 'var(--radius-sm)', padding: '14px', color: '#C4B5FD', fontSize: '13px', marginBottom: '20px' }}>
-              <i className="fa-solid fa-info-circle"></i> <strong>Member Login:</strong> Sign in with email or click <strong>Google OAuth</strong> below.
+            <div style={{ display: 'flex', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '8px', padding: '4px', marginBottom: '20px' }}>
+              <button
+                type="button"
+                onClick={() => setIsRegisterMode(false)}
+                style={{
+                  flex: 1,
+                  padding: '8px',
+                  borderRadius: '6px',
+                  border: 'none',
+                  background: !isRegisterMode ? 'var(--accent-purple)' : 'transparent',
+                  color: '#FFF',
+                  fontWeight: 700,
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                Sign In
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsRegisterMode(true)}
+                style={{
+                  flex: 1,
+                  padding: '8px',
+                  borderRadius: '6px',
+                  border: 'none',
+                  background: isRegisterMode ? 'var(--accent-purple)' : 'transparent',
+                  color: '#FFF',
+                  fontWeight: 700,
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                Sign Up (Create Account)
+              </button>
             </div>
 
             <form onSubmit={handleUserSubmit}>
+              {isRegisterMode && (
+                <div className="form-group">
+                  <label className="form-label"><i className="fa-solid fa-user"></i> Full Name</label>
+                  <input 
+                    type="text" 
+                    className="form-input" 
+                    placeholder="Enter your name" 
+                    value={userName} 
+                    onChange={(e) => setUserName(e.target.value)} 
+                    required={isRegisterMode} 
+                  />
+                </div>
+              )}
+
               <div className="form-group">
-                <label className="form-label">Email / Customer ID</label>
-                <input type="email" className="form-input" placeholder="customer@auradining.in" value={userEmail} onChange={(e) => setUserEmail(e.target.value)} required />
+                <label className="form-label"><i className="fa-solid fa-envelope"></i> Email Address</label>
+                <input 
+                  type="email" 
+                  className="form-input" 
+                  placeholder="customer@auradining.in" 
+                  value={userEmail} 
+                  onChange={(e) => setUserEmail(e.target.value)} 
+                  required 
+                />
               </div>
+
+              {isRegisterMode && (
+                <div className="form-group">
+                  <label className="form-label"><i className="fa-solid fa-phone"></i> Mobile No. (Optional)</label>
+                  <input 
+                    type="tel" 
+                    className="form-input" 
+                    placeholder="+91 98765 43210" 
+                    value={userPhone} 
+                    onChange={(e) => setUserPhone(e.target.value)} 
+                  />
+                </div>
+              )}
+
               <div className="form-group">
-                <label className="form-label">Password</label>
-                <input type="password" className="form-input" placeholder="••••••••••••" value={userPassword} onChange={(e) => setUserPassword(e.target.value)} required />
+                <label className="form-label"><i className="fa-solid fa-key"></i> Password</label>
+                <input 
+                  type="password" 
+                  className="form-input" 
+                  placeholder="••••••••••••" 
+                  value={userPassword} 
+                  onChange={(e) => setUserPassword(e.target.value)} 
+                  required 
+                />
               </div>
-              <button type="submit" className="btn-action btn-primary-action" style={{ width: '100%', justifyContent: 'center', padding: '14px', marginTop: '10px' }}>
-                <i className="fa-solid fa-right-to-bracket"></i> Sign In to Member Account
+
+              <button type="submit" className="btn-action btn-primary-action" style={{ width: '100%', justifyContent: 'center', padding: '14px', marginTop: '14px', background: 'var(--accent-purple)' }}>
+                <i className={`fa-solid ${isRegisterMode ? 'fa-user-plus' : 'fa-right-to-bracket'}`}></i> 
+                {isRegisterMode ? ' Create Free Member Account' : ' Sign In to Member Account'}
               </button>
             </form>
 
-            <div style={{ display: 'flex', alignItems: 'center', margin: '16px 0', gap: '10px' }}>
-              <div style={{ flex: 1, height: '1px', background: 'var(--border-glass)' }}></div>
-              <div style={{ fontSize: '11px', color: 'var(--text-dim)', textTransform: 'uppercase' }}>or sign in with Google</div>
-              <div style={{ flex: 1, height: '1px', background: 'var(--border-glass)' }}></div>
-            </div>
-            
-            {/* Single Google Sign-In Container */}
-            <div 
-              type="button" 
-              onClick={handleGoogleDirectAuth}
-              style={{
-                width: '100%',
-                padding: '12px',
-                borderRadius: '8px',
-                border: '1px solid rgba(255,255,255,0.2)',
-                background: '#FFF',
-                color: '#000',
-                fontWeight: 700,
-                fontSize: '14px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justify: 'center',
-                gap: '10px'
-              }}
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24">
-                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-              </svg>
-              Sign in with Google
+            <div style={{ textAlign: 'center', marginTop: '16px' }}>
+              <button 
+                type="button" 
+                onClick={() => setIsRegisterMode(!isRegisterMode)}
+                style={{ background: 'none', border: 'none', color: '#A78BFA', fontSize: '13px', cursor: 'pointer', textDecoration: 'underline' }}
+              >
+                {isRegisterMode ? 'Already have an account? Sign In' : "Don't have an account? Create Account (Sign Up)"}
+              </button>
             </div>
           </div>
         )}
@@ -352,33 +309,24 @@ export default function AuthModal({
         {activeTab === 'staff' && (
           <div id="auth-tab-staff" className="auth-tab-content">
             <div style={{ background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: 'var(--radius-sm)', padding: '14px', color: '#FCD34D', fontSize: '13px', marginBottom: '16px' }}>
-              <i className="fa-solid fa-lock"></i> <strong>Staff & Admin Portal Login:</strong> Enter staff credentials. Unauthenticated guests cannot access staff dashboards.
+              <i className="fa-solid fa-user-shield"></i> <strong>Staff & Admin Portal Login:</strong> Enter staff credentials. Unauthenticated guests cannot access staff dashboards.
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label className="form-label" style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--text-dim)' }}>Autofill Preset Account:</label>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '8px', marginTop: '6px' }}>
+                <button type="button" className="btn-action glass" style={{ padding: '6px', fontSize: '11px', justifyContent: 'center', border: '1px solid rgba(59, 130, 246, 0.4)', color: '#60A5FA' }} onClick={() => autofillStaff('admin@auradining.in', 'AdminPassword123')}>Admin</button>
+                <button type="button" className="btn-action glass" style={{ padding: '6px', fontSize: '11px', justifyContent: 'center', border: '1px solid rgba(139, 92, 246, 0.4)', color: '#C4B5FD' }} onClick={() => autofillStaff('manager@auradining.in', 'ManagerPassword123')}>Manager</button>
+                <button type="button" className="btn-action glass" style={{ padding: '6px', fontSize: '11px', justifyContent: 'center', border: '1px solid rgba(239, 68, 68, 0.4)', color: '#FCA5A5' }} onClick={() => autofillStaff('chef@auradining.in', 'ChefPassword123')}>Chef</button>
+                <button type="button" className="btn-action glass" style={{ padding: '6px', fontSize: '11px', justifyContent: 'center', border: '1px solid rgba(245, 158, 11, 0.4)', color: '#FCD34D' }} onClick={() => autofillStaff('cashier@auradining.in', 'CashierPassword123')}>Cashier</button>
+              </div>
             </div>
 
             {staffError && (
-              <div style={{ background: 'rgba(230, 57, 70, 0.15)', border: '1px solid var(--secondary)', padding: '12px', borderRadius: 'var(--radius-sm)', color: '#F87171', fontSize: '13px', marginBottom: '16px', textAlign: 'center' }}>
-                <i className="fa-solid fa-xmark-circle" style={{ marginRight: '6px' }}></i>{staffError}
+              <div style={{ background: 'rgba(230, 57, 70, 0.15)', border: '1px solid var(--secondary)', padding: '10px', borderRadius: 'var(--radius-sm)', color: '#F87171', fontSize: '12px', marginBottom: '14px' }}>
+                <i className="fa-solid fa-circle-exclamation"></i> {staffError}
               </div>
             )}
-
-            {/* Autofill presets for testing */}
-            <div style={{ marginBottom: '14px' }}>
-              <div style={{ fontSize: '11px', color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: '6px' }}>Autofill Preset Account:</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '6px' }}>
-                <button type="button" onClick={() => handleAutofillStaff('admin@auradining.in', 'AdminPassword123')} style={{ padding: '6px', fontSize: '11px', borderRadius: '6px', background: 'rgba(16, 185, 129, 0.15)', border: '1px solid #10B981', color: '#34D399', cursor: 'pointer', fontWeight: 700 }}>
-                  Admin
-                </button>
-                <button type="button" onClick={() => handleAutofillStaff('manager@auradining.in', 'ManagerPassword123')} style={{ padding: '6px', fontSize: '11px', borderRadius: '6px', background: 'rgba(139, 92, 246, 0.15)', border: '1px solid #8B5CF6', color: '#C4B5FD', cursor: 'pointer', fontWeight: 700 }}>
-                  Manager
-                </button>
-                <button type="button" onClick={() => handleAutofillStaff('chef@auradining.in', 'ChefPassword123')} style={{ padding: '6px', fontSize: '11px', borderRadius: '6px', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid #EF4444', color: '#FCA5A5', cursor: 'pointer', fontWeight: 700 }}>
-                  Chef
-                </button>
-                <button type="button" onClick={() => handleAutofillStaff('cashier@auradining.in', 'CashierPassword123')} style={{ padding: '6px', fontSize: '11px', borderRadius: '6px', background: 'rgba(245, 158, 11, 0.15)', border: '1px solid #F59E0B', color: '#FCD34D', cursor: 'pointer', fontWeight: 700 }}>
-                  Cashier
-                </button>
-              </div>
-            </div>
 
             <form onSubmit={handleStaffSubmit}>
               <div className="form-group">
@@ -389,7 +337,7 @@ export default function AuthModal({
                 <label className="form-label"><i className="fa-solid fa-key"></i> Secret Password</label>
                 <input type="password" className="form-input" placeholder="••••••••••••" value={staffPassword} onChange={(e) => setStaffPassword(e.target.value)} required />
               </div>
-              <button type="submit" className="btn-action" style={{ width: '100%', justifyContent: 'center', padding: '14px', marginTop: '8px', background: 'linear-gradient(135deg, #F59E0B, #D97706)', border: 'none', color: '#FFF', fontWeight: 800 }}>
+              <button type="submit" className="btn-action btn-primary-action" style={{ width: '100%', justifyContent: 'center', padding: '14px', marginTop: '10px', background: 'var(--accent-amber)', color: '#000', fontWeight: 800 }}>
                 <i className="fa-solid fa-shield-halved"></i> Sign In to Staff / Admin Portal
               </button>
             </form>
