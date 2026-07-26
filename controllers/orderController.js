@@ -1,7 +1,31 @@
+const mongoose = require('mongoose');
 const Order = require('../models/Order');
 const Cart = require('../models/Cart');
 const Table = require('../models/Table');
 const Notification = require('../models/Notification');
+
+// ── Helper: Wait up to maxMs for MongoDB to be fully connected ────────────────
+const waitForDB = (maxMs = 15000) => {
+  return new Promise((resolve, reject) => {
+    // readyState 1 = connected
+    if (mongoose.connection.readyState === 1) return resolve();
+
+    const interval = 300; // poll every 300ms
+    let waited = 0;
+
+    const timer = setInterval(() => {
+      if (mongoose.connection.readyState === 1) {
+        clearInterval(timer);
+        return resolve();
+      }
+      waited += interval;
+      if (waited >= maxMs) {
+        clearInterval(timer);
+        reject(new Error(`Database not connected after ${maxMs / 1000}s. Please try again in a moment.`));
+      }
+    }, interval);
+  });
+};
 
 // @desc    Place order from active table cart
 // @route   POST /api/orders
@@ -65,13 +89,15 @@ exports.placeOrder = async (req, res, next) => {
     const isGuestUser = req.user ? req.user.isGuest : true;
     const sessionType = isGuestUser ? 'guest' : 'member';
 
-    // Only set refs if they look like valid ObjectIds
-    const mongoose = require('mongoose');
-    const isValidId = (id) => id && typeof id === 'object' && mongoose.isValidObjectId(id);
+    // Only set refs if they are valid MongoDB ObjectIds
+    const isValidId = (id) => id && mongoose.isValidObjectId(String(id)) && typeof id === 'object';
     const userRef = (!isGuestUser && isValidId(req.user?._id)) ? req.user._id : undefined;
     const guestRef = (isGuestUser && isValidId(req.user?._id)) ? req.user._id : undefined;
 
-    // 4. Create order
+    // 4. Wait for DB to be ready (handles cold-start connection delay on Render)
+    await waitForDB(15000);
+
+    // 5. Create order
     const order = await Order.create({
       tableNum,
       items: cartItems.map(item => ({

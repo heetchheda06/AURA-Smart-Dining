@@ -68,7 +68,9 @@ const orderSchema = new mongoose.Schema({
     default: 'unpaid'
   }
 }, {
-  timestamps: true
+  timestamps: true,
+  bufferCommands: false,      // ← Don't buffer — fail fast if not connected
+  bufferTimeoutMS: 8000       // ← 8s max wait if buffering is ever enabled
 });
 
 module.exports = mongoose.model('Order', orderSchema);
