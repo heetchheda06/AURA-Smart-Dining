@@ -1,8 +1,10 @@
 import React from 'react';
 
 export default function RoleQuickSwitcher({ currentRole, onSwitchRole }) {
+  // Completely hide Portal Switcher on Customer / Diner view
+  if (currentRole === 'customer') return null;
+
   const roles = [
-    { id: 'customer', label: 'Customer View', icon: 'fa-solid fa-utensils', color: '#10B981', desc: 'Home & Menu' },
     { id: 'cashier', label: 'Cashier View', icon: 'fa-solid fa-calculator', color: '#F59E0B', desc: 'Bills & Payments' },
     { id: 'manager', label: 'Manager View', icon: 'fa-solid fa-user-tie', color: '#8B5CF6', desc: 'Vacant Tables & Stock' },
     { id: 'chef', label: 'Chef View', icon: 'fa-solid fa-fire-burner', color: '#EF4444', desc: 'Kitchen Orders' },
@@ -38,7 +40,7 @@ export default function RoleQuickSwitcher({ currentRole, onSwitchRole }) {
         alignItems: 'center',
         gap: '6px'
       }}>
-        <i className="fa-solid fa-layer-group" style={{ color: '#F59E0B' }}></i> PORTAL SWITCHER:
+        <i className="fa-solid fa-layer-group" style={{ color: '#F59E0B' }}></i> ADMIN PORTAL SWITCHER:
       </span>
 
       {roles.map(r => {
