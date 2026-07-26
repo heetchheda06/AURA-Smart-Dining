@@ -87,15 +87,6 @@ export default function AdminDashboard({ onLogout, adminName, formatPrice, curre
         </div>
 
         <div className="nav-actions" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          {onSwitchRole && (
-            <div style={{ display: 'flex', gap: '4px', background: 'rgba(0,0,0,0.3)', padding: '4px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.1)' }}>
-              <button onClick={() => onSwitchRole('customer')} style={{ padding: '4px 10px', borderRadius: '14px', border: 'none', background: 'transparent', color: '#9CA3AF', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}><i className="fa-solid fa-utensils"></i> Customer</button>
-              <button onClick={() => onSwitchRole('cashier')} style={{ padding: '4px 10px', borderRadius: '14px', border: 'none', background: 'transparent', color: '#9CA3AF', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}><i className="fa-solid fa-calculator"></i> Cashier</button>
-              <button onClick={() => onSwitchRole('manager')} style={{ padding: '4px 10px', borderRadius: '14px', border: 'none', background: 'transparent', color: '#9CA3AF', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}><i className="fa-solid fa-user-tie"></i> Manager</button>
-              <button onClick={() => onSwitchRole('chef')} style={{ padding: '4px 10px', borderRadius: '14px', border: 'none', background: 'transparent', color: '#9CA3AF', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}><i className="fa-solid fa-fire-burner"></i> Chef</button>
-              <button onClick={() => onSwitchRole('admin')} style={{ padding: '4px 10px', borderRadius: '14px', border: '1px solid #3B82F6', background: 'rgba(59, 130, 246, 0.2)', color: '#3B82F6', fontSize: '11px', fontWeight: 800, cursor: 'pointer' }}><i className="fa-solid fa-shield-halved"></i> Admin</button>
-            </div>
-          )}
           <button className="btn-action" onClick={onLogout}>
             <i className="fa-solid fa-right-from-bracket" style={{ color: 'var(--secondary)' }}></i>
             <span>Logout</span>
