@@ -15,7 +15,10 @@ export default function ChefDashboard({ onLogout, chefName = "Executive Chef Mar
 
   const fetchOrders = async () => {
     try {
-      const res = await fetch('/api/orders');
+      const token = localStorage.getItem('token');
+      const res = await fetch('/api/orders', {
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+      });
       if (!res.ok) return;
       const data = await res.json();
       if (data.success) {
@@ -27,11 +30,46 @@ export default function ChefDashboard({ onLogout, chefName = "Executive Chef Mar
   };
 
   useEffect(() => {
+    // Join staff room to receive all broadcast events
+    socket.emit('staff:join');
+
     fetchOrders();
 
+    // Order placed — add directly to state AND refresh from server
     socket.on('order:placed', (newOrder) => {
-      fetchOrders();
-      showToast(`🔔 NEW KITCHEN ORDER! Table #${newOrder.tableNum} placed an order.`);
+      if (newOrder && newOrder.tableNum) {
+        setOrders(prev => {
+          const exists = prev.some(o => String(o._id) === String(newOrder._id));
+          if (exists) return prev;
+          return [newOrder, ...prev];
+        });
+        showToast(`🔔 NEW ORDER! Table #${newOrder.tableNum} — ${newOrder.items?.length || 0} items`);
+        // Also refresh from server after a short delay
+        setTimeout(fetchOrders, 1000);
+      }
+    });
+
+    // Chef-specific new order broadcast (includes full order data)
+    socket.on('chef:new_order', ({ order }) => {
+      if (order && order.tableNum) {
+        setOrders(prev => {
+          const exists = prev.some(o => String(o._id) === String(order._id));
+          if (exists) return prev;
+          return [order, ...prev];
+        });
+        showToast(`🔔 KITCHEN TICKET! Table #${order.tableNum} — ₹${order.total?.toFixed(0)}`);
+      }
+    });
+
+    // Waiter new order event
+    socket.on('waiter:new_order', ({ order }) => {
+      if (order) {
+        setOrders(prev => {
+          const exists = prev.some(o => String(o._id) === String(order._id));
+          if (exists) return prev;
+          return [order, ...prev];
+        });
+      }
     });
 
     socket.on('order:status_updated', () => {
@@ -40,6 +78,8 @@ export default function ChefDashboard({ onLogout, chefName = "Executive Chef Mar
 
     return () => {
       socket.off('order:placed');
+      socket.off('chef:new_order');
+      socket.off('waiter:new_order');
       socket.off('order:status_updated');
     };
   }, []);
