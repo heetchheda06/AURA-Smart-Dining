@@ -24,14 +24,70 @@ export default function ManagerDashboard({ onLogout, managerName = "AURA Manager
     setTimeout(() => setToastMessage(''), 3500);
   };
 
+  const default20Tables = [
+    { num: 1, seats: 2, zone: "Main Hall", status: "free" },
+    { num: 2, seats: 4, zone: "Main Hall", status: "occupied" },
+    { num: 3, seats: 2, zone: "Window Lounge", status: "free" },
+    { num: 4, seats: 6, zone: "VIP Private Lounge", status: "occupied" },
+    { num: 5, seats: 4, zone: "Window Lounge", status: "free" },
+    { num: 6, seats: 8, zone: "VIP Private Lounge", status: "free" },
+    { num: 7, seats: 2, zone: "Outdoor Patio", status: "occupied" },
+    { num: 8, seats: 4, zone: "Outdoor Patio", status: "occupied" },
+    { num: 9, seats: 6, zone: "Main Hall", status: "free" },
+    { num: 10, seats: 4, zone: "Main Hall", status: "free" },
+    { num: 11, seats: 2, zone: "Window Lounge", status: "free" },
+    { num: 12, seats: 4, zone: "Window Lounge", status: "occupied" },
+    { num: 13, seats: 6, zone: "Rooftop Deck", status: "free" },
+    { num: 14, seats: 4, zone: "Rooftop Deck", status: "free" },
+    { num: 15, seats: 8, zone: "VIP Private Lounge", status: "occupied" },
+    { num: 16, seats: 2, zone: "Rooftop Deck", status: "free" },
+    { num: 17, seats: 4, zone: "Outdoor Patio", status: "free" },
+    { num: 18, seats: 6, zone: "Family Dining", status: "free" },
+    { num: 19, seats: 10, zone: "Family Dining", status: "free" },
+    { num: 20, seats: 12, zone: "Family Dining Grand", status: "free" }
+  ];
+
   const fetchTables = async () => {
     try {
+      let loadedTables = [];
       const res = await fetch('/api/tables');
-      if (!res.ok) return;
-      const data = await res.json();
-      if (data.success) setTables(data.data || []);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.data && data.data.length > 0) {
+          loadedTables = data.data;
+        }
+      }
+      
+      if (loadedTables.length < 20) {
+        const existingMap = new Map(loadedTables.map(t => [t.num, t]));
+        loadedTables = default20Tables.map(dt => existingMap.get(dt.num) || dt);
+      }
+
+      // Cross-check live active orders so any table with an unpaid order is marked OCCUPIED
+      try {
+        const orderRes = await fetch('/api/orders');
+        if (orderRes.ok) {
+          const orderData = await orderRes.json();
+          if (orderData.success && orderData.data) {
+            const activeTableSet = new Set(
+              orderData.data
+                .filter(o => o.paymentStatus !== 'paid' && !['completed', 'cancelled'].includes(String(o.status).toLowerCase()))
+                .map(o => Number(o.tableNum))
+            );
+            loadedTables = loadedTables.map(t => {
+              if (activeTableSet.has(Number(t.num))) {
+                return { ...t, status: 'occupied' };
+              }
+              return t;
+            });
+          }
+        }
+      } catch (e) {}
+
+      setTables(loadedTables);
     } catch (err) {
       console.error(err);
+      setTables(default20Tables);
     }
   };
 
