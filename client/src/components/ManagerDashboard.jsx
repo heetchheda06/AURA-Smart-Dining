@@ -154,11 +154,18 @@ export default function ManagerDashboard({ onLogout, managerName = "AURA Manager
     };
   }, []);
 
-  // Update Table status action
+  // Update Table status action with Instant Optimistic UI Update
   const handleUpdateTableStatus = async (tableNum, newStatus) => {
+    // 1. Instant Optimistic State Update
+    setTables(prev => prev.map(t => Number(t.num) === Number(tableNum) ? { ...t, status: newStatus } : t));
+    if (selectedTable && Number(selectedTable.num) === Number(tableNum)) {
+      setSelectedTable(prev => ({ ...prev, status: newStatus }));
+    }
+    showToast(`🪑 Table #${tableNum} is now ${newStatus.toUpperCase()}`);
+
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`/api/tables/${tableNum}/status`, {
+      await fetch(`/api/tables/${tableNum}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -166,36 +173,36 @@ export default function ManagerDashboard({ onLogout, managerName = "AURA Manager
         },
         body: JSON.stringify({ status: newStatus })
       });
-      const data = await res.json();
-      if (data.success) {
-        showToast(`🪑 Table #${tableNum} is now ${newStatus.toUpperCase()}`);
-        fetchTables();
-        if (selectedTable && selectedTable.num === tableNum) {
-          setSelectedTable(prev => ({ ...prev, status: newStatus }));
-        }
-      }
     } catch (err) {
-      console.error(err);
-      showToast("⚠️ Failed to update table status.");
+      console.error("Background table status sync:", err);
     }
   };
 
-  // Adjust Ingredient Stock delta action (+ / -)
+  // Adjust Ingredient Stock delta action (+ / -) with Instant Optimistic UI Update
   const handleAdjustStock = async (ingredientId, delta) => {
+    // 1. Instant Optimistic State Update
+    setIngredients(prev => prev.map(ing => {
+      if (String(ing._id) === String(ingredientId) || String(ing.ingredient_id) === String(ingredientId)) {
+        const cur = ing.current_stock !== undefined ? ing.current_stock : (ing.quantity || 0);
+        const newQty = Math.max(0, cur + Number(delta));
+        const thresh = ing.reorder_threshold || ing.minThreshold || 5;
+        const isLow = newQty > 0 && newQty <= thresh;
+        const status = newQty <= 0 ? 'out_of_stock' : isLow ? 'low_stock' : 'in_stock';
+        return { ...ing, current_stock: newQty, quantity: newQty, status, is_low_stock: isLow };
+      }
+      return ing;
+    }));
+
+    showToast(`📦 Stock adjusted (${delta > 0 ? '+' + delta : delta})!`);
+
     try {
-      const res = await fetch(`/api/inventory/${ingredientId}/restock`, {
+      await fetch(`/api/inventory/${ingredientId}/restock`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ deltaAmount: delta })
       });
-      const data = await res.json();
-      if (data.success) {
-        showToast(`📦 Stock adjusted (${delta > 0 ? '+' + delta : delta}) for ${data.data.name}!`);
-        fetchIngredients();
-      }
     } catch (err) {
-      console.error(err);
-      showToast("⚠️ Stock update failed.");
+      console.error("Background stock sync:", err);
     }
   };
 
