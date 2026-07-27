@@ -54,7 +54,9 @@ exports.getDashboardStats = async (req, res, next) => {
     const memNonCancelled = (memoryOrders || []).filter(o => o.status !== 'cancelled' && !dbOrderIds.has(String(o._id)));
     const allOrders = [...dbOrders, ...memNonCancelled];
 
-    const totalRevenue = allOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+    // ONLY PAID orders count towards total sales revenue on Admin Dashboard
+    const paidOrders = allOrders.filter(o => o.paymentStatus === 'paid');
+    const totalRevenue = paidOrders.reduce((sum, o) => sum + (o.total || 0), 0);
     const totalOrdersCount = allOrders.length;
 
     let occupiedTables = [];
@@ -109,9 +111,11 @@ exports.getAnalytics = async (req, res, next) => {
       console.warn('⚠️ Admin Analytics DB fetch timed out, computing analytics from RAM store.');
     }
 
-    // 1. Top Selling Items
+    const paidOrders = allOrders.filter(o => o.paymentStatus === 'paid');
+
+    // 1. Top Selling Items (from paid orders)
     const dishSalesMap = {};
-    allOrders.forEach(o => {
+    paidOrders.forEach(o => {
       (o.items || []).forEach(item => {
         const name = item.name || 'Dish';
         if (!dishSalesMap[name]) dishSalesMap[name] = { totalQty: 0, totalSales: 0 };
@@ -124,10 +128,10 @@ exports.getAnalytics = async (req, res, next) => {
       .sort((a, b) => b.totalSales - a.totalSales)
       .slice(0, 10);
 
-    // 2. Weekly Analysis (Last 7 Days)
+    // 2. Weekly Analysis (Last 7 Days - paid orders)
     const weeklyBaseline = getWeeklyBaseline();
     const weeklyMap = new Map();
-    allOrders.forEach(o => {
+    paidOrders.forEach(o => {
       const dateStr = new Date(o.createdAt || Date.now()).toISOString().split('T')[0];
       const cur = weeklyMap.get(dateStr) || { sales: 0, orders: 0 };
       cur.sales += (o.total || 0);
@@ -139,10 +143,10 @@ exports.getAnalytics = async (req, res, next) => {
       return { day: item.day, date: item.date, sales: match ? match.sales : 0, orders: match ? match.orders : 0 };
     });
 
-    // 3. Monthly Analysis (Last 6 Months)
+    // 3. Monthly Analysis (Last 6 Months - paid orders)
     const monthlyBaseline = getMonthlyBaseline();
     const monthlyMap = new Map();
-    allOrders.forEach(o => {
+    paidOrders.forEach(o => {
       const d = new Date(o.createdAt || Date.now());
       const monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
       const cur = monthlyMap.get(monthKey) || { sales: 0, orders: 0 };
@@ -155,14 +159,14 @@ exports.getAnalytics = async (req, res, next) => {
       return { month: item.month, sales: match ? match.sales : 0, orders: match ? match.orders : 0 };
     });
 
-    // 4. Hourly Traffic Distribution
+    // 4. Hourly Traffic Distribution (all orders)
     const diningHours = [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22];
     const hourlyMap = new Map();
     allOrders.forEach(o => {
       const h = new Date(o.createdAt || Date.now()).getHours();
       const cur = hourlyMap.get(h) || { orders: 0, revenue: 0 };
       cur.orders += 1;
-      cur.revenue += (o.total || 0);
+      if (o.paymentStatus === 'paid') cur.revenue += (o.total || 0);
       hourlyMap.set(h, cur);
     });
     const hourlyTraffic = diningHours.map(h => {
@@ -171,10 +175,10 @@ exports.getAnalytics = async (req, res, next) => {
       return { hour: hourLabel, hourNum: h, orders: match ? match.orders : 0, revenue: match ? match.revenue : 0 };
     });
 
-    // 5. Category Distribution
+    // 5. Category Distribution (paid orders)
     const catMap = {};
     let totalCatRevenue = 0;
-    allOrders.forEach(o => {
+    paidOrders.forEach(o => {
       (o.items || []).forEach(item => {
         const cat = item.category || 'Main Course';
         const rev = (item.price || 0) * (item.qty || 1);
@@ -190,7 +194,6 @@ exports.getAnalytics = async (req, res, next) => {
     }));
 
     // 6. Payment Breakdown
-    const paidOrders = allOrders.filter(o => o.paymentStatus === 'paid');
     const unpaidOrders = allOrders.filter(o => o.paymentStatus !== 'paid');
     const memberPaid = paidOrders.filter(o => o.sessionType === 'member');
     const guestPaid = paidOrders.filter(o => o.sessionType !== 'member');

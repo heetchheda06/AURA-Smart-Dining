@@ -119,16 +119,17 @@ export default function ChefDashboard({ onLogout, chefName = "Executive Chef Mar
 
   // Filter kitchen tickets
   const filteredOrders = orders.filter(o => {
-    if (statusFilter === 'active') return ['pending', 'preparing', 'accepted'].includes(o.status);
-    if (statusFilter === 'pending') return o.status === 'pending';
-    if (statusFilter === 'preparing') return o.status === 'preparing';
-    if (statusFilter === 'completed') return ['served', 'completed'].includes(o.status);
+    const s = String(o.status || 'pending').toLowerCase();
+    if (statusFilter === 'active') return ['pending', 'placed', 'accepted', 'preparing', 'cooking', 'in_cooking'].includes(s);
+    if (statusFilter === 'pending') return ['pending', 'placed', 'accepted'].includes(s);
+    if (statusFilter === 'preparing') return ['preparing', 'cooking', 'in_cooking'].includes(s);
+    if (statusFilter === 'completed') return ['served', 'completed', 'delivered'].includes(s);
     return true;
   });
 
-  const pendingCount = orders.filter(o => o.status === 'pending').length;
-  const preparingCount = orders.filter(o => o.status === 'preparing').length;
-  const completedCount = orders.filter(o => ['served', 'completed'].includes(o.status)).length;
+  const pendingCount = orders.filter(o => ['pending', 'placed', 'accepted'].includes(String(o.status || '').toLowerCase())).length;
+  const preparingCount = orders.filter(o => ['preparing', 'cooking', 'in_cooking'].includes(String(o.status || '').toLowerCase())).length;
+  const completedCount = orders.filter(o => ['served', 'completed', 'delivered'].includes(String(o.status || '').toLowerCase())).length;
 
   return (
     <div className="admin-wrapper" style={{ background: '#F8FAFC', minHeight: '100vh', color: '#111827' }}>

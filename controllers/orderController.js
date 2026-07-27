@@ -135,14 +135,15 @@ exports.placeOrder = async (req, res, next) => {
 
   // 6. Socket notifications (always fires — whether DB or memory)
   if (io) {
+    const plain = order.toObject ? order.toObject() : order;
     // Global broadcasts to all open staff/admin portals
-    io.emit('order:placed', order);
-    io.emit('chef:new_order', { order });
-    io.emit('admin:new_order', { tableNum, orderId: order._id, total, order });
-    io.emit('waiter:new_order', { tableNum, orderId: order._id, total, order });
+    io.emit('order:placed', plain);
+    io.emit('chef:new_order', { order: plain });
+    io.emit('admin:new_order', { tableNum, orderId: plain._id, total, order: plain });
+    io.emit('waiter:new_order', { tableNum, orderId: plain._id, total, order: plain });
 
     // Table room specific broadcasts
-    io.to(`table_room_${tableNum}`).emit('order:placed', order);
+    io.to(`table_room_${tableNum}`).emit('order:placed', plain);
     io.to(`table_room_${tableNum}`).emit('cart:updated', { tableNum, items: [] });
   }
 
@@ -177,10 +178,13 @@ exports.updateOrderStatus = async (req, res, next) => {
     const { status } = req.body;
 
     // Check memory orders first
-    const memIdx = memoryOrders.findIndex(o => o._id === req.params.id);
+    const memIdx = memoryOrders.findIndex(o => String(o._id) === String(req.params.id));
     if (memIdx !== -1) {
       memoryOrders[memIdx].status = status;
       memoryOrders[memIdx].updatedAt = new Date();
+      if (status === 'completed') {
+        memoryOrders[memIdx].paymentStatus = 'paid';
+      }
       const order = memoryOrders[memIdx];
       const io = req.app.get('io');
       if (io) {
