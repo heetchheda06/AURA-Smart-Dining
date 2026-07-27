@@ -403,22 +403,34 @@ export default function ManagerDashboard({ onLogout, managerName = "AURA Manager
           <div>
             {/* Stock Overview Metrics */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '24px' }}>
-              <div className="glass" style={{ padding: '20px', borderRadius: '16px', border: '1px solid rgba(16, 185, 129, 0.3)', background: 'rgba(16, 185, 129, 0.05)' }}>
+              <div 
+                className="glass" 
+                onClick={() => setIngredientFilter('all')}
+                style={{ cursor: 'pointer', padding: '20px', borderRadius: '16px', border: ingredientFilter === 'all' ? '2px solid #10B981' : '1px solid rgba(16, 185, 129, 0.3)', background: 'rgba(16, 185, 129, 0.05)' }}
+              >
                 <div style={{ fontSize: '12px', color: '#6EE7B7', fontWeight: 700, textTransform: 'uppercase' }}>Total Tracked Ingredients</div>
                 <div style={{ fontSize: '32px', fontWeight: 900, color: '#10B981', margin: '4px 0' }}>{ingredients.length}</div>
-                <div style={{ fontSize: '12px', color: '#9CA3AF' }}>Active inventory items</div>
+                <div style={{ fontSize: '12px', color: '#9CA3AF' }}>Click to view all items</div>
               </div>
 
-              <div className="glass" style={{ padding: '20px', borderRadius: '16px', border: '1px solid rgba(245, 158, 11, 0.3)', background: 'rgba(245, 158, 11, 0.05)' }}>
+              <div 
+                className="glass" 
+                onClick={() => setIngredientFilter('low')}
+                style={{ cursor: 'pointer', padding: '20px', borderRadius: '16px', border: ingredientFilter === 'low' ? '2px solid #F59E0B' : '1px solid rgba(245, 158, 11, 0.3)', background: 'rgba(245, 158, 11, 0.08)' }}
+              >
                 <div style={{ fontSize: '12px', color: '#FCD34D', fontWeight: 700, textTransform: 'uppercase' }}>Low Stock Warnings</div>
                 <div style={{ fontSize: '32px', fontWeight: 900, color: '#F59E0B', margin: '4px 0' }}>{lowStockCount}</div>
-                <div style={{ fontSize: '12px', color: '#9CA3AF' }}>Below minimum threshold</div>
+                <div style={{ fontSize: '12px', color: '#FCD34D', fontWeight: 700 }}>⚠️ Click to filter low stock items</div>
               </div>
 
-              <div className="glass" style={{ padding: '20px', borderRadius: '16px', border: '1px solid rgba(239, 68, 68, 0.3)', background: 'rgba(239, 68, 68, 0.05)' }}>
+              <div 
+                className="glass" 
+                onClick={() => setIngredientFilter('out')}
+                style={{ cursor: 'pointer', padding: '20px', borderRadius: '16px', border: ingredientFilter === 'out' ? '2px solid #EF4444' : '1px solid rgba(239, 68, 68, 0.3)', background: 'rgba(239, 68, 68, 0.08)' }}
+              >
                 <div style={{ fontSize: '12px', color: '#FCA5A5', fontWeight: 700, textTransform: 'uppercase' }}>Out of Stock</div>
                 <div style={{ fontSize: '32px', fontWeight: 900, color: '#EF4444', margin: '4px 0' }}>{outOfStockCount}</div>
-                <div style={{ fontSize: '12px', color: '#9CA3AF' }}>Needs immediate replenishment</div>
+                <div style={{ fontSize: '12px', color: '#FCA5A5', fontWeight: 700 }}>🚨 Click to filter out of stock items</div>
               </div>
             </div>
 
@@ -429,36 +441,51 @@ export default function ManagerDashboard({ onLogout, managerName = "AURA Manager
                 Real-Time Ingredient Stock & Supply Tracker
               </h2>
               
-              <div style={{ display: 'flex', gap: '8px' }}>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 <button 
                   onClick={() => setIngredientFilter('low')}
                   style={{
                     padding: '8px 16px',
                     borderRadius: '8px',
-                    border: 'none',
-                    fontWeight: 700,
+                    border: '1px solid #F59E0B',
+                    fontWeight: 800,
                     fontSize: '12px',
                     cursor: 'pointer',
-                    background: ingredientFilter === 'low' ? '#F59E0B' : 'rgba(255,255,255,0.05)',
-                    color: ingredientFilter === 'low' ? '#FFF' : '#9CA3AF'
+                    background: ingredientFilter === 'low' ? '#F59E0B' : 'rgba(245, 158, 11, 0.15)',
+                    color: ingredientFilter === 'low' ? '#FFF' : '#FCD34D'
                   }}
                 >
-                  Low Stock ({lowStockCount})
+                  <i className="fa-solid fa-triangle-exclamation"></i> Low Stock ({lowStockCount})
+                </button>
+                <button 
+                  onClick={() => setIngredientFilter('out')}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: '8px',
+                    border: '1px solid #EF4444',
+                    fontWeight: 800,
+                    fontSize: '12px',
+                    cursor: 'pointer',
+                    background: ingredientFilter === 'out' ? '#EF4444' : 'rgba(239, 68, 68, 0.15)',
+                    color: ingredientFilter === 'out' ? '#FFF' : '#FCA5A5'
+                  }}
+                >
+                  <i className="fa-solid fa-circle-xmark"></i> Out of Stock ({outOfStockCount})
                 </button>
                 <button 
                   onClick={() => setIngredientFilter('all')}
                   style={{
                     padding: '8px 16px',
                     borderRadius: '8px',
-                    border: 'none',
-                    fontWeight: 700,
+                    border: '1px solid #10B981',
+                    fontWeight: 800,
                     fontSize: '12px',
                     cursor: 'pointer',
-                    background: ingredientFilter === 'all' ? '#10B981' : 'rgba(255,255,255,0.05)',
-                    color: ingredientFilter === 'all' ? '#FFF' : '#9CA3AF'
+                    background: ingredientFilter === 'all' ? '#10B981' : 'rgba(16, 185, 129, 0.15)',
+                    color: ingredientFilter === 'all' ? '#FFF' : '#6EE7B7'
                   }}
                 >
-                  All Items ({ingredients.length})
+                  <i className="fa-solid fa-list-check"></i> All Items ({ingredients.length})
                 </button>
                 <button 
                   onClick={() => setIsAddIngredientOpen(true)}
@@ -469,7 +496,7 @@ export default function ManagerDashboard({ onLogout, managerName = "AURA Manager
                     fontWeight: 800,
                     fontSize: '12px',
                     cursor: 'pointer',
-                    background: 'linear-gradient(135deg, #10B981, #059669)',
+                    background: 'linear-gradient(135deg, #8B5CF6, #6D28D9)',
                     color: '#FFF'
                   }}
                 >
