@@ -128,11 +128,15 @@ exports.placeOrder = async (req, res, next) => {
 
   // 6. Socket notifications (always fires — whether DB or memory)
   if (io) {
+    // Global broadcasts to all open staff/admin portals
+    io.emit('order:placed', order);
+    io.emit('chef:new_order', { order });
+    io.emit('admin:new_order', { tableNum, orderId: order._id, total, order });
+    io.emit('waiter:new_order', { tableNum, orderId: order._id, total, order });
+
+    // Table room specific broadcasts
     io.to(`table_room_${tableNum}`).emit('order:placed', order);
     io.to(`table_room_${tableNum}`).emit('cart:updated', { tableNum, items: [] });
-    io.emit('waiter:new_order', { tableNum, orderId: order._id, total, order }); // broadcast to all staff
-    io.emit('admin:new_order', { tableNum, orderId: order._id, total });
-    io.emit('chef:new_order', { order }); // direct chef broadcast
   }
 
   res.status(201).json({ success: true, data: order, savedToDb });
@@ -173,10 +177,19 @@ exports.updateOrderStatus = async (req, res, next) => {
       const order = memoryOrders[memIdx];
       const io = req.app.get('io');
       if (io) {
+        io.emit('order:status_updated', {
+          orderId: order._id,
+          tableNum: order.tableNum,
+          status: order.status,
+          message: `🍳 Order #${order.tableNum} status updated to: ${status}`,
+          order
+        });
         io.to(`table_room_${order.tableNum}`).emit('order:status_updated', {
           orderId: order._id,
+          tableNum: order.tableNum,
           status: order.status,
-          message: `🍳 Your order status updated to: ${status}`
+          message: `🍳 Your order status updated to: ${status}`,
+          order
         });
         if (status === 'completed') io.emit('table:status_changed', { num: order.tableNum, status: 'free' });
       }
@@ -199,10 +212,19 @@ exports.updateOrderStatus = async (req, res, next) => {
 
     const io = req.app.get('io');
     if (io) {
+      io.emit('order:status_updated', {
+        orderId: order._id,
+        tableNum: order.tableNum,
+        status: order.status,
+        message: `🍳 Order #${order.tableNum} status updated to: ${status}`,
+        order
+      });
       io.to(`table_room_${order.tableNum}`).emit('order:status_updated', {
         orderId: order._id,
+        tableNum: order.tableNum,
         status: order.status,
-        message: `🍳 Your order status updated to: ${status}`
+        message: `🍳 Your order status updated to: ${status}`,
+        order
       });
       if (status === 'completed') io.emit('table:status_changed', { num: order.tableNum, status: 'free' });
     }
