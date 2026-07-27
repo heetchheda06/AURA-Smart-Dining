@@ -10,7 +10,7 @@ export default function AuthModal({
   onOpenFloorplan,
   isMandatory
 }) {
-  const [activeTab, setActiveTab] = useState('guest'); // 'guest', 'user', 'staff'
+  const [activeTab, setActiveTab] = useState('user'); // 'user', 'staff'
   const [isRegisterMode, setIsRegisterMode] = useState(false); // Sign In vs Sign Up for Member
   
   // Guest state
@@ -97,22 +97,15 @@ export default function AuthModal({
             RESTRICTED ACCESS PORTAL
           </span>
           <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '26px', color: 'var(--text-main)', margin: '4px 0' }}>
-            {activeTab === 'user' ? (isRegisterMode ? 'Create Member Account' : 'Member Sign In') : 'Sign In to Continue'}
+            {activeTab === 'user' ? (isRegisterMode ? 'Create Member Account' : 'Member Sign In') : 'Staff Login'}
           </h2>
           <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginTop: '4px' }}>
-            Authenticate as Guest, Member, or Staff Account.
+            Sign in as a Member or Staff / Admin to continue.
           </p>
         </div>
 
-        {/* Tab Selection — 3 main tabs */}
-        <div className="auth-tab-buttons" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '20px' }}>
-          <button 
-            className={`auth-tab-btn ${activeTab === 'guest' ? 'active' : ''}`} 
-            onClick={() => setActiveTab('guest')}
-          >
-            <i className="fa-solid fa-chair" style={{ color: 'var(--accent-emerald)' }}></i>
-            <span>Guest Diner</span>
-          </button>
+        {/* Tab Selection — 2 tabs only: Member & Staff */}
+        <div className="auth-tab-buttons" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '20px' }}>
           <button 
             className={`auth-tab-btn ${activeTab === 'user' ? 'active' : ''}`} 
             onClick={() => setActiveTab('user')}
@@ -125,75 +118,11 @@ export default function AuthModal({
             onClick={() => setActiveTab('staff')}
           >
             <i className="fa-solid fa-lock" style={{ color: 'var(--accent-amber)' }}></i>
-            <span>Staff & Admin</span>
+            <span>Staff &amp; Admin</span>
           </button>
         </div>
 
-        {/* ========= TAB 1: GUEST DINER ========= */}
-        {activeTab === 'guest' && (
-          <div id="auth-tab-guest" className="auth-tab-content">
-            <div style={{ background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: 'var(--radius-sm)', padding: '14px', color: '#6EE7B7', fontSize: '13px', marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div>
-                <i className="fa-solid fa-wifi" style={{ marginRight: '8px' }}></i>
-                <strong>Location Check:</strong> Restaurant Wi-Fi Connected
-              </div>
-              <button 
-                type="button" 
-                onClick={() => setIsWifiInRange(!isWifiInRange)}
-                style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#FFF', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', cursor: 'pointer' }}
-              >
-                Toggle {isWifiInRange ? 'Out-of-Range' : 'In-Range'}
-              </button>
-            </div>
 
-            {!isWifiInRange && (
-              <div style={{ background: 'rgba(230, 57, 70, 0.15)', border: '1px solid var(--secondary)', padding: '14px', borderRadius: 'var(--radius-sm)', color: '#F87171', fontSize: '13px', marginBottom: '20px' }}>
-                <i className="fa-solid fa-triangle-exclamation" style={{ marginRight: '8px' }}></i>
-                <strong>Guest Access Denied:</strong> Guest access requires connection to the Restaurant Wi-Fi. Please connect on-site or use <strong>Member Login</strong>.
-              </div>
-            )}
-
-            <div style={{ opacity: isWifiInRange ? 1 : 0.4, pointerEvents: isWifiInRange ? 'all' : 'none' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
-                <div className="form-group">
-                  <label className="form-label"><i className="fa-solid fa-user"></i> Full Name</label>
-                  <input type="text" className="form-input" placeholder="Enter guest name" value={guestName} onChange={(e) => setGuestName(e.target.value)} />
-                </div>
-                <div className="form-group">
-                  <label className="form-label"><i className="fa-solid fa-phone"></i> Mobile No. (Optional)</label>
-                  <input type="tel" className="form-input" placeholder="+91 98765 43210" value={guestPhone} onChange={(e) => setGuestPhone(e.target.value)} />
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label className="form-label"><i className="fa-solid fa-users"></i> Number of Guests / Seats Needed</label>
-                <div className="seat-pill-grid">
-                  {[1, 2, 3, 4, 6, 8].map((count) => (
-                    <div key={count} className={`seat-pill ${seatCount === count ? 'active' : ''}`} onClick={() => setSeatCount(count)}>
-                      {count === 8 ? '8+ VIP' : `${count} Seat${count > 1 ? 's' : ''}`}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="form-group" style={{ marginTop: '20px' }}>
-                <label className="form-label"><i className="fa-solid fa-chair"></i> Seating Preference</label>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                  <button type="button" className="service-btn" style={{ textAlign: 'left', alignItems: 'flex-start', padding: '14px' }} onClick={() => handleGuestSubmit('auto')}>
-                    <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--primary)' }}><i className="fa-solid fa-bolt"></i> Auto-Assign Table</div>
-                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 'normal' }}>Instantly allotments customer dining session.</div>
-                  </button>
-                  <button type="button" className="service-btn" style={{ textAlign: 'left', alignItems: 'flex-start', padding: '14px' }} onClick={() => handleGuestSubmit('2d')}>
-                    <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--accent-purple)' }}><i className="fa-solid fa-map"></i> Select via 2D Floor Plan</div>
-                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 'normal' }}>Pick specific table location and seats.</div>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ========= TAB 2: MEMBER LOGIN & SIGN UP ========= */}
         {activeTab === 'user' && (
           <div id="auth-tab-user" className="auth-tab-content">
             <div style={{ display: 'flex', background: '#0F172A', borderRadius: '12px', padding: '6px', marginBottom: '20px', border: '1px solid #1E3A5F' }}>

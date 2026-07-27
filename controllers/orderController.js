@@ -256,42 +256,88 @@ exports.updateOrderStatus = async (req, res, next) => {
   }
 };
 
-// @desc    Get orders (all staff views + customer history)
+// @desc    Get orders
 // @route   GET /api/orders
 // @access  Private
 exports.getOrders = async (req, res, next) => {
   try {
-    // Always include memory orders (they're always available)
-    let allOrders = [...memoryOrders];
+    const user = req.user;
+    const isStaff = user && ['admin', 'cashier', 'manager', 'chef', 'waiter'].includes(user.role);
+    const isMemberCustomer = user && !user.isGuest && !isStaff;
+    const isGuestCustomer = user && user.isGuest;
 
-    // Merge with DB orders if connected
-    if (isDBConnected()) {
-      try {
-        let query = {};
-        // Only restrict if explicitly requested via ?myOrders=true by customer
-        if (req.query.myOrders === 'true' && req.user) {
-          if (req.user.isGuest) {
-            query = { tableNum: req.user.tableNum };
-          } else {
-            query = { userRef: req.user._id };
-          }
+    let allOrders = [];
+
+    // ─── STAFF ROLES: See ALL orders ─────────────────────────────────────────
+    if (isStaff) {
+      allOrders = [...memoryOrders];
+      if (isDBConnected()) {
+        try {
+          const dbOrders = await Promise.race([
+            Order.find({}).sort({ createdAt: -1 }).limit(200).lean(),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Query timeout')), 5000))
+          ]);
+          const dbIds = new Set(dbOrders.map(o => String(o._id)));
+          const memOnly = allOrders.filter(o => !dbIds.has(String(o._id)));
+          allOrders = [...dbOrders, ...memOnly];
+        } catch (e) {
+          console.warn('DB orders query timed out, returning memory orders only.');
         }
-        const dbOrders = await Promise.race([
-          Order.find(query).sort({ createdAt: -1 }).limit(100),
-          new Promise((_, reject) => setTimeout(() => reject(new Error('Query timeout')), 5000))
-        ]);
-        // Merge: DB orders + memory orders, deduplicate by _id
-        const dbIds = new Set(dbOrders.map(o => o._id.toString()));
-        const memOnly = allOrders.filter(o => !dbIds.has(o._id.toString()));
-        allOrders = [...memOnly, ...dbOrders];
-      } catch (e) {
-        console.warn('DB orders query timed out, returning memory orders only.');
+      }
+    }
+
+    // ─── MEMBER CUSTOMER: See ONLY their own orders ───────────────────────────
+    else if (isMemberCustomer) {
+      const userName = user.name;
+      const userId = user._id;
+
+      // Filter memory orders by customerName or userRef
+      allOrders = memoryOrders.filter(o =>
+        (o.customerName && o.customerName.trim().toLowerCase() === userName.trim().toLowerCase()) ||
+        (o.userRef && String(o.userRef) === String(userId)) ||
+        (o.sessionType === 'member' && o.customerName && o.customerName.trim().toLowerCase() === userName.trim().toLowerCase())
+      );
+
+      if (isDBConnected()) {
+        try {
+          const dbOrders = await Promise.race([
+            Order.find({
+              $or: [
+                { userRef: userId },
+                { customerName: { $regex: new RegExp(`^${userName.trim()}$`, 'i') } }
+              ]
+            }).sort({ createdAt: -1 }).limit(100).lean(),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Query timeout')), 5000))
+          ]);
+          const dbIds = new Set(dbOrders.map(o => String(o._id)));
+          const memOnly = allOrders.filter(o => !dbIds.has(String(o._id)));
+          allOrders = [...dbOrders, ...memOnly];
+        } catch (e) {
+          console.warn('DB member orders query timed out, returning memory orders only.');
+        }
+      }
+    }
+
+    // ─── GUEST CUSTOMER: See orders for their table ───────────────────────────
+    else if (isGuestCustomer) {
+      const tableNum = user.tableNum;
+      allOrders = memoryOrders.filter(o => Number(o.tableNum) === Number(tableNum));
+      if (isDBConnected()) {
+        try {
+          const dbOrders = await Promise.race([
+            Order.find({ tableNum }).sort({ createdAt: -1 }).limit(50).lean(),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Query timeout')), 5000))
+          ]);
+          const dbIds = new Set(dbOrders.map(o => String(o._id)));
+          const memOnly = allOrders.filter(o => !dbIds.has(String(o._id)));
+          allOrders = [...dbOrders, ...memOnly];
+        } catch (e) {}
       }
     }
 
     res.status(200).json({ success: true, count: allOrders.length, data: allOrders });
   } catch (error) {
-    res.status(200).json({ success: true, count: memoryOrders.length, data: memoryOrders });
+    res.status(200).json({ success: true, count: 0, data: [] });
   }
 };
 
