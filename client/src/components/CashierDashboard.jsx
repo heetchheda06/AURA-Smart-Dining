@@ -105,7 +105,15 @@ export default function CashierDashboard({ onLogout, cashierName = "Lead Cashier
       });
       const data = await res.json();
       if (data.success) {
-        showToast(`✅ Payment of ${formatPrice(selectedOrderForBill?.total || 0)} collected via ${paymentMethod}! Table bill closed.`);
+        // Automatically make seat vacant upon payment settlement
+        if (selectedOrderForBill && selectedOrderForBill.tableNum) {
+          fetch(`/api/tables/${selectedOrderForBill.tableNum}/status`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: 'free' })
+          }).catch(() => {});
+        }
+        showToast(`✅ Payment of ${formatPrice(selectedOrderForBill?.total || 0)} collected via ${paymentMethod}! Table #${selectedOrderForBill?.tableNum} is now VACANT.`);
         fetchOrders();
         setIsReceiptModalOpen(true);
       } else {

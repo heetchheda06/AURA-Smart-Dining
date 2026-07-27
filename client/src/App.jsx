@@ -19,6 +19,7 @@ import ManagerDashboard from './components/ManagerDashboard';
 import ChefDashboard from './components/ChefDashboard';
 import RoleQuickSwitcher from './components/RoleQuickSwitcher';
 import AIRecommender from './components/AIRecommender';
+import TableSelectModal from './components/TableSelectModal';
 import { fallbackMenu } from './data/fallbackMenu';
 
 // Initialize socket connection at module level
@@ -59,6 +60,11 @@ export default function App() {
   const [isQueueOpen, setIsQueueOpen] = useState(false);
   const [isTableFreedOpen, setIsTableFreedOpen] = useState(false);
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
+
+  // --- Table Selection Modal ---
+  const [isTableSelectOpen, setIsTableSelectOpen] = useState(false);
+  // Pending info while waiting for table selection
+  const [pendingCustomerInfo, setPendingCustomerInfo] = useState({ name: '', loginType: 'guest', openDashboard: false });
 
   // --- Toast helper ---
   const showToast = (message) => {
@@ -280,20 +286,11 @@ export default function App() {
     fetchMenu(catId);
   };
 
-  // Handle Guest Login
+  // Handle Guest Login — now shows Table Select modal first
   const handleGuestLogin = async (name, seats, mode) => {
-    // If auto-allocating, check database table availability
-    if (mode === 'auto') {
-      const freeTable = restaurantTables.find(t => t.status === 'free' && t.seats >= seats);
-      if (freeTable) {
-        await submitGuestLoginApi(name, freeTable.num, freeTable.seats, freeTable.zone);
-      } else {
-        // No tables free, add to queue
-        setIsAuthModalOpen(false);
-        setPartySizeInput(seats);
-        setIsQueueOpen(true);
-      }
-    }
+    setIsAuthModalOpen(false);
+    setPendingCustomerInfo({ name: name || 'Guest Customer', loginType: 'guest', openDashboard: false });
+    setIsTableSelectOpen(true);
   };
 
   // Submit Guest credentials to API
@@ -394,7 +391,8 @@ export default function App() {
         showToast(`🎉 Registration successful! Welcome to AURA, ${data.user.name}!`);
         setIsAuthModalOpen(false);
         setCurrentRole('customer');
-        allotTableToCustomer(data.user.name, 8, 4, "Outdoor Patio");
+        setPendingCustomerInfo({ name: data.user.name, loginType: 'member', openDashboard: false });
+        setIsTableSelectOpen(true);
       } else {
         showToast(`⚠️ Registration failed: ${data.message}`);
       }
@@ -435,9 +433,9 @@ export default function App() {
           showToast("🍳 Kitchen Display System (KDS) unlocked.");
         } else {
           setCurrentRole('customer');
-          allotTableToCustomer(data.user.name, 8, 4, "Outdoor Patio", "member");
-          setIsUserOrdersOpen(true);
-          showToast(`🎉 Welcome to your Member Dashboard, ${data.user.name}!`);
+          setPendingCustomerInfo({ name: data.user.name, loginType: 'member', openDashboard: true });
+          setIsTableSelectOpen(true);
+          showToast(`👋 Welcome back, ${data.user.name}! Please select your dining table.`);
         }
       } else {
         showToast(`⚠️ Login failed: ${data.message}`);
@@ -842,10 +840,11 @@ export default function App() {
         onAdminLogin={handleAdminLogin}
         onGoogleLogin={(user, token) => {
           localStorage.setItem('token', token);
-          showToast(`👋 Welcome back, ${user.name}!`);
+          showToast(`👋 Welcome, ${user.name}! Please choose your dining table.`);
           setIsAuthModalOpen(false);
           setCurrentRole('customer');
-          allotTableToCustomer(user.name, 8, 4, "Outdoor Patio");
+          setPendingCustomerInfo({ name: user.name, loginType: 'member', openDashboard: false });
+          setIsTableSelectOpen(true);
         }}
         onOpenFloorplan={handleOpenFloorplan}
       />
@@ -939,6 +938,26 @@ export default function App() {
         customerName={activeCustomerSession.customerName}
         formatPrice={formatPrice}
         onAddToCart={handleAddToCart}
+      />
+
+      {/* Table Selection Modal — shown after guest/member login */}
+      <TableSelectModal
+        isOpen={isTableSelectOpen}
+        onClose={() => setIsTableSelectOpen(false)}
+        customerName={pendingCustomerInfo.name || 'Customer'}
+        onConfirmTable={async (tableNum, seats, zone) => {
+          setIsTableSelectOpen(false);
+          if (pendingCustomerInfo.loginType === 'guest') {
+            // For guests: call API then allot
+            await submitGuestLoginApi(pendingCustomerInfo.name, tableNum, seats, zone);
+          } else {
+            // For members: allot directly (already have token)
+            allotTableToCustomer(pendingCustomerInfo.name, tableNum, seats, zone, 'member');
+          }
+          if (pendingCustomerInfo.openDashboard) {
+            setTimeout(() => setIsUserOrdersOpen(true), 400);
+          }
+        }}
       />
 
       {/* Toast Notification Container */}
