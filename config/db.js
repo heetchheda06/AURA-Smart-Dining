@@ -36,6 +36,23 @@ const connectDB = async () => {
         console.warn('⚠️ Seeder warning:', seedErr.message);
       }
 
+      // Pre-load historical orders into memory cache so data is permanently preserved across logins and reboots
+      try {
+        const Order = require('../models/Order');
+        const { memoryOrders } = require('../controllers/orderController');
+        const existingOrders = await Order.find().sort({ createdAt: -1 }).limit(100).lean();
+        if (existingOrders && existingOrders.length > 0) {
+          existingOrders.forEach(o => {
+            if (!memoryOrders.some(m => String(m._id) === String(o._id))) {
+              memoryOrders.push(o);
+            }
+          });
+          console.log(`📦 Permanently loaded ${existingOrders.length} orders from MongoDB into memory cache.`);
+        }
+      } catch (orderSyncErr) {
+        console.warn('⚠️ Order cache pre-load warning:', orderSyncErr.message);
+      }
+
       return; // success — exit loop
     } catch (error) {
       console.warn(`⚠️ MongoDB attempt ${attempt} failed: ${error.message}`);

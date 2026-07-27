@@ -102,11 +102,18 @@ exports.getAnalytics = async (req, res, next) => {
     try {
       const dbOrders = await Promise.race([
         Order.find({ status: { $ne: 'cancelled' } }).lean(),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('DB timeout')), 3000))
+        new Promise((_, reject) => setTimeout(() => reject(new Error('DB timeout')), 15000))
       ]);
       const dbIds = new Set(dbOrders.map(o => String(o._id)));
       const memOnly = allOrders.filter(o => o.status !== 'cancelled' && !dbIds.has(String(o._id)));
       allOrders = [...memOnly, ...dbOrders];
+
+      // Keep RAM store in sync with DB orders
+      dbOrders.forEach(o => {
+        if (!memoryOrders.some(m => String(m._id) === String(o._id))) {
+          memoryOrders.push(o);
+        }
+      });
     } catch (e) {
       console.warn('⚠️ Admin Analytics DB fetch timed out, computing analytics from RAM store.');
     }
