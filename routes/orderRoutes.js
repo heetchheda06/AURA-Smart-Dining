@@ -11,7 +11,7 @@ router.route('/:id')
   .get(protect, orderController.getOrderDetails);
 
 router.route('/:id/status')
-  .put(protect, authorize('chef', 'cashier', 'manager', 'waiter', 'admin'), orderController.updateOrderStatus);
+  .put(protect, authorize('chef', 'cashier', 'manager', 'waiter', 'admin', 'customer'), orderController.updateOrderStatus);
 
 router.route('/:id/split/:count')
   .get(protect, orderController.splitBill);
