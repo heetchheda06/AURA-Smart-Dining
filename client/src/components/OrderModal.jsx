@@ -38,9 +38,9 @@ export default function OrderModal({
         left: 0,
         width: '100vw',
         height: '100vh',
-        background: 'rgba(10, 12, 16, 0.85)',
-        backdropFilter: 'blur(16px)',
-        WebkitBackdropFilter: 'blur(16px)',
+        background: 'rgba(15, 23, 42, 0.65)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
         zIndex: 999999,
         display: 'flex',
         alignItems: 'center',
@@ -50,7 +50,6 @@ export default function OrderModal({
       }}
     >
       <div 
-        className="modal-card glass" 
         style={{ 
           width: '92%', 
           maxWidth: '540px', 
@@ -59,8 +58,10 @@ export default function OrderModal({
           position: 'relative', 
           maxHeight: '90vh', 
           overflowY: 'auto',
-          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.7)',
-          border: '1.5px solid rgba(255, 159, 28, 0.4)'
+          background: '#FFFFFF',
+          border: '2px solid #D6EAF8',
+          boxShadow: '0 20px 60px rgba(30, 58, 95, 0.15)',
+          color: '#111827'
         }}
       >
         {/* Modal Close Button */}
@@ -70,9 +71,9 @@ export default function OrderModal({
             position: 'absolute',
             top: '20px',
             right: '20px',
-            background: 'rgba(255,255,255,0.1)', 
+            background: '#D6EAF8', 
             border: 'none', 
-            color: '#FFF', 
+            color: '#1E3A5F', 
             width: '36px', 
             height: '36px', 
             borderRadius: '50%', 
@@ -81,22 +82,24 @@ export default function OrderModal({
             display: 'flex', 
             alignItems: 'center', 
             justifyContent: 'center',
+            fontWeight: 900,
             transition: 'all 0.2s ease'
           }}
+          title="Close Order Modal"
         >
           <i className="fa-solid fa-xmark"></i>
         </button>
 
         {/* Modal Header */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', paddingBottom: '16px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-          <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: 'linear-gradient(135deg, #F59E0B, #D97706)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFF', fontSize: '20px', boxShadow: '0 4px 15px rgba(245,158,11,0.4)' }}>
+        <div style={{ background: '#1E3A5F', borderRadius: '16px', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '20px', boxShadow: '0 4px 15px rgba(30,58,95,0.2)' }}>
+          <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: '#F97316', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFF', fontSize: '20px', boxShadow: '0 4px 12px rgba(249,115,22,0.4)' }}>
             <i className="fa-solid fa-receipt"></i>
           </div>
           <div>
-            <h3 style={{ margin: 0, fontSize: '20px', fontWeight: 800, color: '#FFF', fontFamily: 'Playfair Display, serif' }}>
+            <h3 style={{ margin: 0, fontSize: '20px', fontWeight: 900, color: '#FFF' }}>
               Table #0{isLoggedIn ? tableNum : '8'} Shared Order
             </h3>
-            <span style={{ fontSize: '11px', color: 'var(--accent-emerald)', fontWeight: 800, letterSpacing: '0.5px' }}>
+            <span style={{ fontSize: '11px', background: '#DCFCE7', color: '#065F46', border: '1px solid #6EE7B7', padding: '2px 8px', borderRadius: '10px', fontWeight: 900, display: 'inline-block', marginTop: '4px' }}>
               ● LIVE SYNCED TABLE CART ({totalCount} items selected)
             </span>
           </div>
@@ -105,58 +108,55 @@ export default function OrderModal({
         {/* Order Items List */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px', maxHeight: '300px', overflowY: 'auto', paddingRight: '4px' }}>
           {cart.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-dim)', background: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px border-glass' }}>
-              <i className="fa-solid fa-basket-shopping" style={{ fontSize: '40px', color: 'var(--primary)', marginBottom: '14px', opacity: 0.8 }}></i>
-              <div style={{ fontSize: '15px', fontWeight: 700, color: '#FFF' }}>Your table cart is empty</div>
-              <div style={{ fontSize: '12px', marginTop: '6px', color: 'var(--text-muted)' }}>Select delicious dishes from the menu to start ordering!</div>
+            <div style={{ textAlign: 'center', padding: '36px 20px', color: '#1E3A5F', background: '#F8FAFC', borderRadius: '16px', border: '2px dashed #D6EAF8' }}>
+              <i className="fa-solid fa-basket-shopping" style={{ fontSize: '48px', color: '#F97316', marginBottom: '12px', display: 'block' }}></i>
+              <div style={{ fontSize: '16px', fontWeight: 900, color: '#1E3A5F' }}>Your table cart is empty</div>
+              <div style={{ fontSize: '13px', marginTop: '4px', color: '#4B5563', fontWeight: 700 }}>Select delicious dishes from the menu to start ordering!</div>
             </div>
           ) : (
             cart.map((item) => {
               const isYou = item.addedBy === customerName;
               return (
-                <div key={item.menuItemId} style={{ background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div key={item.menuItemId} style={{ background: '#F8FAFC', border: '1.5px solid #D6EAF8', borderRadius: '16px', padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
                   <div>
-                    <div style={{ fontWeight: 800, fontSize: '15px', color: '#FFF' }}>{item.name}</div>
+                    <div style={{ fontWeight: 900, fontSize: '15px', color: '#111827' }}>{item.name}</div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
                       <span style={{ 
                         fontSize: '10px', 
-                        fontWeight: 800,
+                        fontWeight: 900,
                         padding: '3px 8px', 
-                        borderRadius: '10px',
-                        background: isYou ? 'rgba(255,159,28,0.2)' : 'rgba(139,92,246,0.2)',
-                        color: isYou ? 'var(--primary)' : '#C4B5FD',
-                        border: isYou ? '1px solid rgba(255,159,28,0.4)' : '1px solid rgba(139,92,246,0.4)'
+                        borderRadius: '6px',
+                        background: isYou ? '#F97316' : '#1E3A5F',
+                        color: '#FFFFFF'
                       }}>
                         {item.addedBy}
                       </span>
-                      <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                      <span style={{ fontSize: '12px', color: '#4B5563', fontWeight: 700 }}>
                         {formatPrice(item.price)} each
                       </span>
                     </div>
                   </div>
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                    <div className="qty-control" style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '20px', padding: '4px 12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#D6EAF8', border: '1px solid #93C5FD', borderRadius: '20px', padding: '4px 10px' }}>
                       <button 
-                        className="qty-btn" 
                         onClick={() => onUpdateQty(item.menuItemId, -1)} 
-                        style={{ background: 'none', border: 'none', color: '#FFF', cursor: 'pointer', fontSize: '14px', padding: '2px 4px' }}
+                        style={{ background: 'none', border: 'none', color: '#1E3A5F', cursor: 'pointer', fontSize: '14px', padding: '2px 4px', fontWeight: 900 }}
                         title="Reduce quantity"
                       >
                         <i className="fa-solid fa-minus"></i>
                       </button>
-                      <span style={{ fontWeight: 800, fontSize: '14px', color: '#FFF', minWidth: '16px', textAlign: 'center' }}>{item.qty}</span>
+                      <span style={{ fontWeight: 900, fontSize: '14px', color: '#1E3A5F', minWidth: '16px', textAlign: 'center' }}>{item.qty}</span>
                       <button 
-                        className="qty-btn" 
                         onClick={() => onUpdateQty(item.menuItemId, 1)} 
-                        style={{ background: 'none', border: 'none', color: '#FFF', cursor: 'pointer', fontSize: '14px', padding: '2px 4px' }}
+                        style={{ background: 'none', border: 'none', color: '#1E3A5F', cursor: 'pointer', fontSize: '14px', padding: '2px 4px', fontWeight: 900 }}
                         title="Increase quantity"
                       >
                         <i className="fa-solid fa-plus"></i>
                       </button>
                     </div>
 
-                    <div style={{ fontWeight: 800, fontSize: '15px', color: 'var(--primary)', minWidth: '65px', textAlign: 'right' }}>
+                    <div style={{ fontWeight: 900, fontSize: '16px', color: '#F97316', minWidth: '65px', textAlign: 'right' }}>
                       {formatPrice(item.price * item.qty)}
                     </div>
                   </div>
@@ -167,35 +167,39 @@ export default function OrderModal({
         </div>
 
         {/* Bill Summary */}
-        <div style={{ background: 'rgba(0,0,0,0.4)', borderRadius: '18px', padding: '18px', marginBottom: '20px', border: '1px solid rgba(255,255,255,0.1)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: 'var(--text-muted)', marginBottom: '8px' }}>
+        <div style={{ background: '#F8FAFC', borderRadius: '18px', padding: '20px', marginBottom: '20px', border: '2px solid #D6EAF8', color: '#111827' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: '#4B5563', fontWeight: 800, marginBottom: '8px' }}>
             <span>Subtotal</span>
-            <span>{formatPrice(subtotal)}</span>
+            <span style={{ color: '#1E3A5F', fontWeight: 900 }}>{formatPrice(subtotal)}</span>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: 'var(--text-muted)', marginBottom: '12px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: '#4B5563', fontWeight: 800, marginBottom: '12px' }}>
             <span>Service & Taxes (10%)</span>
-            <span>{formatPrice(tax)}</span>
+            <span style={{ color: '#1E3A5F', fontWeight: 900 }}>{formatPrice(tax)}</span>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '18px', fontWeight: 800, color: '#FFF', paddingTop: '10px', borderTop: '1px dashed rgba(255,255,255,0.2)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '18px', fontWeight: 900, color: '#1E3A5F', paddingTop: '12px', borderTop: '2px solid #D6EAF8' }}>
             <span>Total Bill</span>
-            <span style={{ color: 'var(--primary)' }}>{formatPrice(total)}</span>
+            <span style={{ color: '#F97316', fontSize: '26px', fontWeight: 900 }}>{formatPrice(total)}</span>
           </div>
         </div>
 
         {/* Action Buttons */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <button 
-            className="btn-action btn-primary-action" 
             style={{ 
               width: '100%', 
-              justify: 'center', 
               padding: '16px', 
-              borderRadius: '16px', 
-              fontSize: '15px', 
-              fontWeight: 800,
+              borderRadius: '18px', 
+              fontSize: '16px', 
+              fontWeight: 900,
+              border: 'none',
+              color: '#FFFFFF',
+              background: cart.length === 0 ? '#CBD5E1' : 'linear-gradient(135deg, #F97316 0%, #EA580C 100%)',
               cursor: cart.length === 0 ? 'not-allowed' : 'pointer',
-              opacity: cart.length === 0 ? 0.6 : 1,
-              boxShadow: cart.length > 0 ? '0 6px 20px rgba(255,159,28,0.4)' : 'none'
+              boxShadow: cart.length > 0 ? '0 6px 20px rgba(249,115,22,0.4)' : 'none',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '10px'
             }} 
             onClick={() => {
               if (cart.length > 0) {
@@ -209,8 +213,7 @@ export default function OrderModal({
           </button>
           
           <button 
-            className="btn-action" 
-            style={{ width: '100%', justifyContent: 'center', padding: '12px', borderRadius: '14px', fontSize: '13px', background: 'rgba(255,255,255,0.06)', borderColor: 'rgba(255,255,255,0.15)', color: '#FFF', fontWeight: 700 }} 
+            style={{ width: '100%', justifyContent: 'center', padding: '12px', borderRadius: '16px', fontSize: '13px', border: 'none', background: '#1E3A5F', color: '#FFF', fontWeight: 900, cursor: cart.length === 0 ? 'not-allowed' : 'pointer', opacity: cart.length === 0 ? 0.6 : 1, display: 'flex', alignItems: 'center', gap: '8px' }} 
             onClick={() => onSplitBill(total)}
             disabled={cart.length === 0}
           >
@@ -219,19 +222,18 @@ export default function OrderModal({
         </div>
 
         {/* AI Sommelier Recommendations */}
-        <div style={{ marginTop: '20px', background: 'rgba(139,92,246,0.12)', border: '1px solid rgba(139,92,246,0.3)', borderRadius: '18px', padding: '16px' }}>
-          <div style={{ fontSize: '13px', fontWeight: 800, color: '#C4B5FD', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <i className="fa-solid fa-wand-magic-sparkles"></i> AI Smart Sommelier
+        <div style={{ marginTop: '20px', background: '#D6EAF8', border: '2px solid #93C5FD', borderRadius: '18px', padding: '18px', color: '#111827' }}>
+          <div style={{ fontSize: '14px', fontWeight: 900, color: '#1E3A5F', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <i className="fa-solid fa-wand-magic-sparkles" style={{ color: '#F97316' }}></i> AI Smart Sommelier
           </div>
-          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '12px' }}>
+          <div style={{ fontSize: '12.5px', color: '#1E3A5F', marginBottom: '12px', fontWeight: 700, lineHeight: '1.4' }}>
             Recommends perfect beverage pairings based on your active table selections.
           </div>
           <button 
-            className="btn-action" 
-            style={{ width: '100%', justifyContent: 'center', fontSize: '12px', borderColor: 'rgba(139,92,246,0.4)', color: '#C4B5FD', background: 'rgba(139,92,246,0.18)', fontWeight: 700 }} 
+            style={{ width: '100%', justifyContent: 'center', fontSize: '13px', border: 'none', borderRadius: '14px', color: '#FFF', background: '#1E3A5F', fontWeight: 900, padding: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 12px rgba(30,58,95,0.2)' }} 
             onClick={onGetRecommendation}
           >
-            <i className="fa-solid fa-wine-glass"></i> Suggest Wine & Cocktail Pairing
+            <i className="fa-solid fa-wine-glass" style={{ color: '#F97316' }}></i> Suggest Wine & Cocktail Pairing
           </button>
         </div>
 
