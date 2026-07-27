@@ -15,23 +15,29 @@ const defaultIngredients = [
   { _id: 'ing_12', ingredient_id: 'ING-12', name: 'Fresh Tomatoes', category: 'Produce', initial_stock: 40, current_stock: 3, quantity: 3, reorder_threshold: 6, minThreshold: 6, maxCapacity: 50, unit: 'kg', cost_per_unit: 40, shelf_life_days: 5, status: 'low_stock', is_low_stock: true }
 ];
 
+let memoryIngredients = [...defaultIngredients];
+
 // @desc    Get all ingredients
 // @route   GET /api/inventory
 // @access  Public / Manager
 exports.getIngredients = async (req, res, next) => {
   try {
-    let ingredients = await Ingredient.find().sort({ status: 1, name: 1 });
-    if (!ingredients || ingredients.length === 0) {
-      try {
-        await Ingredient.insertMany(defaultIngredients.map(item => {
-          const { _id, ...rest } = item;
-          return rest;
-        }));
-        ingredients = await Ingredient.find().sort({ status: 1, name: 1 });
-      } catch (seedErr) {
-        ingredients = defaultIngredients;
-      }
+    let ingredients = [];
+    try {
+      ingredients = await Promise.race([
+        Ingredient.find().sort({ status: 1, name: 1 }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('DB timeout')), 3000))
+      ]);
+    } catch (e) {
+      console.warn('⚠️ Inventory DB fetch failed, using RAM fallback.');
     }
+
+    if (!ingredients || ingredients.length === 0) {
+      ingredients = memoryIngredients;
+    } else {
+      memoryIngredients = ingredients.map(i => (i.toObject ? i.toObject() : i));
+    }
+
     res.status(200).json({
       success: true,
       count: ingredients.length,
@@ -40,8 +46,8 @@ exports.getIngredients = async (req, res, next) => {
   } catch (error) {
     res.status(200).json({
       success: true,
-      count: defaultIngredients.length,
-      data: defaultIngredients
+      count: memoryIngredients.length,
+      data: memoryIngredients
     });
   }
 };
