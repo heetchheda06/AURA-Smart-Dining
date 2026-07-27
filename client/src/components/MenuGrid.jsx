@@ -199,11 +199,11 @@ export default function MenuGrid({
       </div>
 
       {/* DISH CARD GRID */}
-      <div className="menu-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(310px, 1fr))', gap: '16px' }}>
+      <div className="menu-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(310px, 1fr))', gap: '18px' }}>
         {filteredItems.length === 0 ? (
-          <div style={{ textAlign: 'center', color: 'var(--text-dim)', padding: '60px', gridColumn: '1/-1', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px border-glass' }}>
-            <i className="fa-solid fa-utensils" style={{ fontSize: '32px', marginBottom: '12px', opacity: 0.5 }}></i>
-            <div>No matching dishes found in this category. Try clearing filters.</div>
+          <div style={{ textAlign: 'center', color: '#CBD5E1', padding: '60px', gridColumn: '1/-1', background: '#1E293B', borderRadius: '16px', border: '1.5px solid #334155' }}>
+            <i className="fa-solid fa-utensils" style={{ fontSize: '36px', marginBottom: '12px', color: '#F97316' }}></i>
+            <div style={{ fontSize: '15px', fontWeight: 700, color: '#FFFFFF' }}>No matching dishes found in this category. Try clearing filters.</div>
           </div>
         ) : (
           filteredItems.map((item) => {
@@ -213,49 +213,44 @@ export default function MenuGrid({
             const isTodaySpecial = specialIds.has(item._id || item.dish_id);
 
             const borderCol = isTodaySpecial ? '#F59E0B' : isVeg ? '#10B981' : isVegan ? '#059669' : '#EF4444';
-            const cardBg = isTodaySpecial 
-              ? 'linear-gradient(145deg, #FFFBEB 0%, #FFFFFF 100%)' 
-              : isVeg 
-              ? 'linear-gradient(145deg, #FFFFFF 0%, #F0FDF4 100%)' 
-              : isVegan 
-              ? 'linear-gradient(145deg, #FFFFFF 0%, #ECFDF5 100%)' 
-              : 'linear-gradient(145deg, #FFFFFF 0%, #FEF2F2 100%)';
+            const cardBg = '#1E293B';
 
             const cardShadow = isTodaySpecial
-              ? '0 0 25px rgba(245, 158, 11, 0.45), 0 8px 24px rgba(245, 158, 11, 0.25)'
+              ? '0 0 30px rgba(245, 158, 11, 0.55), 0 8px 24px rgba(0, 0, 0, 0.5)'
               : isVeg
-              ? '0 6px 20px rgba(16, 185, 129, 0.12)'
+              ? '0 0 18px rgba(16, 185, 129, 0.35), 0 6px 20px rgba(0, 0, 0, 0.35)'
               : isVegan
-              ? '0 6px 20px rgba(5, 150, 105, 0.12)'
-              : '0 6px 20px rgba(239, 68, 68, 0.12)';
+              ? '0 0 18px rgba(5, 150, 105, 0.35), 0 6px 20px rgba(0, 0, 0, 0.35)'
+              : '0 0 18px rgba(239, 68, 68, 0.35), 0 6px 20px rgba(0, 0, 0, 0.35)';
 
             return (
               <div 
                 key={item._id || item.dish_id} 
                 style={{ 
-                  borderRadius: '16px', 
-                  padding: '18px', 
+                  borderRadius: '18px', 
+                  padding: '20px', 
                   display: 'flex', 
                   flexDirection: 'column', 
                   justifyContent: 'space-between',
-                  border: `2px solid ${borderCol}`,
+                  border: `${isTodaySpecial ? '3px' : '2.5px'} solid ${borderCol}`,
                   background: cardBg,
                   boxShadow: cardShadow,
                   position: 'relative',
-                  transition: 'all 0.3s ease'
+                  transition: 'all 0.3s ease',
+                  color: '#FFFFFF'
                 }}
               >
                 {/* Today's Special Yellow Gold Ribbon with Glow */}
                 {isTodaySpecial && (
-                  <div style={{ position: 'absolute', top: '-12px', right: '14px', background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#FFF', fontSize: '10px', fontWeight: 900, padding: '4px 12px', borderRadius: '20px', boxShadow: '0 4px 14px rgba(245, 158, 11, 0.5), 0 0 10px #F59E0B', display: 'flex', alignItems: 'center', gap: '5px', letterSpacing: '0.5px', zIndex: 2 }}>
+                  <div style={{ position: 'absolute', top: '-14px', right: '14px', background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#FFFFFF', fontSize: '10px', fontWeight: 900, padding: '5px 14px', borderRadius: '20px', boxShadow: '0 4px 16px rgba(245, 158, 11, 0.6), 0 0 12px #F59E0B', display: 'flex', alignItems: 'center', gap: '5px', letterSpacing: '0.5px', zIndex: 2 }}>
                     <i className="fa-solid fa-fire"></i> TODAY'S SPECIAL
                   </div>
                 )}
 
                 <div>
                   {/* Top Category Badge Row with Visual Symbol Icons */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                    <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                       {/* Visual Veg/NonVeg/Vegan Symbol Badge */}
                       <span style={{ 
                         display: 'inline-flex', 
@@ -263,10 +258,10 @@ export default function MenuGrid({
                         gap: '6px',
                         fontSize: '11px', 
                         fontWeight: 800, 
-                        color: isVeg ? '#065F46' : isVegan ? '#064E3B' : '#991B1B', 
-                        background: isVeg ? '#DCFCE7' : isVegan ? '#D1FAE5' : '#FEE2E2', 
+                        color: '#FFFFFF', 
+                        background: isVeg ? '#065F46' : isVegan ? '#064E3B' : '#991B1B', 
                         border: `1.5px solid ${isVeg ? '#10B981' : isVegan ? '#059669' : '#EF4444'}`,
-                        padding: '3px 9px', 
+                        padding: '4px 10px', 
                         borderRadius: '8px' 
                       }}>
                         {isVeg && <VegIcon />}
@@ -278,52 +273,52 @@ export default function MenuGrid({
                       {/* Cuisine Badge */}
                       <span style={{ 
                         fontSize: '11px', 
-                        fontWeight: 700, 
-                        color: '#334155', 
-                        background: '#E2E8F0', 
-                        border: '1px solid #CBD5E1',
-                        padding: '3px 8px', 
-                        borderRadius: '6px' 
+                        fontWeight: 800, 
+                        color: '#E2E8F0', 
+                        background: '#0F172A', 
+                        border: '1px solid #475569',
+                        padding: '4px 10px', 
+                        borderRadius: '8px' 
                       }}>
                         {item.cuisine || 'Indian'}
                       </span>
                     </div>
 
                     {/* Dish ID */}
-                    <span style={{ fontSize: '11px', color: '#64748B', fontFamily: 'monospace', fontWeight: 700 }}>
+                    <span style={{ fontSize: '11px', color: '#94A3B8', fontFamily: 'monospace', fontWeight: 800 }}>
                       {item.dish_id || 'DSH'}
                     </span>
                   </div>
 
                   {/* Dish Name & Price Header */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px', marginBottom: '8px' }}>
-                    <h3 style={{ fontSize: '17px', fontWeight: 800, color: '#1E3A5F', margin: 0, lineHeight: '1.3' }}>
+                    <h3 style={{ fontSize: '18px', fontWeight: 900, color: '#FFFFFF', margin: 0, lineHeight: '1.3' }}>
                       {item.name}
                     </h3>
-                    <div style={{ fontSize: '19px', fontWeight: 800, color: '#1E3A5F', whiteSpace: 'nowrap' }}>
+                    <div style={{ fontSize: '21px', fontWeight: 900, color: '#F59E0B', whiteSpace: 'nowrap' }}>
                       {formatPrice(item.price)}
                     </div>
                   </div>
 
                   {/* Category Subtitle */}
-                  <div style={{ fontSize: '11px', color: '#4B5563', marginBottom: '12px', fontWeight: 700 }}>
-                    <i className="fa-solid fa-layer-group" style={{ marginRight: '4px', color: '#1E3A5F' }}></i>
+                  <div style={{ fontSize: '12px', color: '#CBD5E1', marginBottom: '14px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <i className="fa-solid fa-layer-group" style={{ color: '#F97316' }}></i>
                     {item.category}
                   </div>
 
                   {/* Ingredients Used Section */}
                   <div style={{ 
-                    background: '#FFFFFF', 
-                    border: '1px solid rgba(30, 58, 95, 0.15)', 
-                    borderRadius: '10px', 
-                    padding: '10px 12px', 
-                    marginBottom: '14px',
-                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.03)'
+                    background: '#0F172A', 
+                    border: '1px solid #334155', 
+                    borderRadius: '12px', 
+                    padding: '12px 14px', 
+                    marginBottom: '16px',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.25)'
                   }}>
-                    <div style={{ fontSize: '11px', fontWeight: 800, color: '#F97316', textTransform: 'uppercase', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <div style={{ fontSize: '11px', fontWeight: 800, color: '#F97316', textTransform: 'uppercase', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <i className="fa-solid fa-wheat-awn" style={{ color: '#F97316' }}></i> Ingredients Used:
                     </div>
-                    <div style={{ fontSize: '12px', color: '#374151', lineHeight: '1.4', fontWeight: 500 }}>
+                    <div style={{ fontSize: '13px', color: '#FFFFFF', lineHeight: '1.4', fontWeight: 500 }}>
                       {item.ingredients || item.desc || "Fresh seasonal produce, signature herbs and spices."}
                     </div>
                   </div>
@@ -331,12 +326,12 @@ export default function MenuGrid({
 
                 {/* Footer Details & Add Button */}
                 <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '10px', borderTop: '1px solid rgba(30,58,95,0.12)' }}>
-                    <div style={{ display: 'flex', gap: '12px', fontSize: '11px', color: '#4B5563', fontWeight: 600 }}>
-                      <span><i className="fa-regular fa-clock"></i> {item.prep_time_minutes || 15} min</span>
-                      {item.calories && <span><i className="fa-solid fa-fire"></i> {item.calories} kcal</span>}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '12px', borderTop: '1px solid #334155' }}>
+                    <div style={{ display: 'flex', gap: '12px', fontSize: '12px', color: '#CBD5E1', fontWeight: 700 }}>
+                      <span><i className="fa-regular fa-clock" style={{ color: '#F59E0B' }}></i> {item.prep_time_minutes || 15} min</span>
+                      {item.calories && <span><i className="fa-solid fa-fire" style={{ color: '#F97316' }}></i> {item.calories} kcal</span>}
                       {item.spiciness && (
-                        <span style={{ color: item.spiciness === 'High' ? '#DC2626' : '#059669', fontWeight: 700 }}>
+                        <span style={{ color: item.spiciness === 'High' ? '#EF4444' : '#10B981', fontWeight: 800 }}>
                           <i className="fa-solid fa-pepper-hot"></i> {item.spiciness}
                         </span>
                       )}
@@ -347,22 +342,20 @@ export default function MenuGrid({
                       onClick={() => onAddToCart(item._id || item.dish_id)} 
                       title="Add to Cart"
                       style={{
-                        background: 'linear-gradient(135deg, #1E3A5F, #2A4D7C)',
+                        background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
                         color: '#FFFFFF',
                         border: 'none',
-                        padding: '8px 16px',
+                        padding: '10px 18px',
                         borderRadius: '20px',
-                        fontSize: '12px',
-                        fontWeight: 800,
+                        fontSize: '13px',
+                        fontWeight: 900,
                         cursor: 'pointer',
                         whiteSpace: 'nowrap',
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: '6px',
-                        boxShadow: '0 4px 12px rgba(30, 58, 95, 0.3)',
-                        transition: 'all 0.2s ease',
-                        width: 'auto',
-                        height: 'auto'
+                        boxShadow: '0 4px 18px rgba(16, 185, 129, 0.45)',
+                        transition: 'all 0.2s ease'
                       }}
                     >
                       <i className="fa-solid fa-plus"></i> Add Item
