@@ -23,32 +23,35 @@ export default function CartSidebar({
   const total = subtotal + tax;
 
   return (
-    <aside className="order-sidebar" id="order-section">
+    <aside className="order-sidebar" id="order-section" style={{ minWidth: '340px' }}>
       <div 
         style={{
-          background: '#0F172A',
-          border: '2px solid #1E3A5F',
+          background: '#FFFFFF',
+          border: '2px solid #D6EAF8',
           borderRadius: '20px',
           padding: '20px',
-          boxShadow: '0 10px 30px rgba(0, 0, 0, 0.4)',
-          color: '#FFFFFF'
+          boxShadow: '0 8px 30px rgba(30, 58, 95, 0.08)',
+          color: '#111827'
         }}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', paddingBottom: '12px', borderBottom: '1px solid rgba(255,255,255,0.12)' }}>
-          <div style={{ fontSize: '15px', fontWeight: 800, color: '#FFFFFF', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <i className="fa-solid fa-receipt" style={{ color: '#F97316' }}></i> 
-            Table #0{isLoggedIn ? tableNum : '8'} Shared Order
+        {/* Sidebar Header */}
+        <div style={{ background: '#1E3A5F', borderRadius: '14px', padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', boxShadow: '0 4px 15px rgba(30, 58, 95, 0.2)' }}>
+          <div style={{ fontSize: '15px', fontWeight: 900, color: '#FFFFFF', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <i className="fa-solid fa-receipt" style={{ color: '#F97316', fontSize: '18px' }}></i> 
+            Table #0{isLoggedIn ? tableNum : '8'} Live Cart
           </div>
-          <span style={{ fontSize: '11px', background: '#10B981', color: '#FFFFFF', padding: '3px 9px', borderRadius: '12px', fontWeight: 800 }}>
-            LIVE ({totalCount} items)
+          <span style={{ fontSize: '11px', background: '#F97316', color: '#FFFFFF', padding: '4px 10px', borderRadius: '12px', fontWeight: 900 }}>
+            {totalCount} ITEMS
           </span>
         </div>
 
+        {/* Cart Items List */}
         <div className="order-items-list" id="cart-items" style={{ marginBottom: '16px' }}>
           {cart.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '30px 10px', color: '#CBD5E1' }}>
-              <i className="fa-solid fa-basket-shopping" style={{ fontSize: '36px', color: '#F97316', marginBottom: '12px', display: 'block' }}></i>
-              Your table cart is empty. Select items from the menu to start!
+            <div style={{ textAlign: 'center', padding: '36px 16px', color: '#1E3A5F', background: '#F8FAFC', borderRadius: '16px', border: '1.5px dashed #CBD5E1' }}>
+              <i className="fa-solid fa-basket-shopping" style={{ fontSize: '44px', color: '#F97316', marginBottom: '12px', display: 'block' }}></i>
+              <div style={{ fontWeight: 900, fontSize: '15px', color: '#1E3A5F', marginBottom: '4px' }}>Your table cart is empty</div>
+              <div style={{ fontSize: '13px', color: '#4B5563', fontWeight: 600 }}>Select delicious dishes from the menu to start ordering!</div>
             </div>
           ) : (
             cart.map((item) => {
@@ -57,8 +60,8 @@ export default function CartSidebar({
                 <div 
                   key={item.menuItemId} 
                   style={{
-                    background: '#1E293B',
-                    border: '1.5px solid #334155',
+                    background: '#F8FAFC',
+                    border: '1.5px solid #D6EAF8',
                     borderRadius: '14px',
                     padding: '14px',
                     marginBottom: '12px',
@@ -66,27 +69,27 @@ export default function CartSidebar({
                     justifyContent: 'space-between',
                     alignItems: 'center',
                     gap: '12px',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.25)'
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.03)'
                   }}
                 >
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '15px', fontWeight: 800, color: '#FFFFFF', marginBottom: '4px' }}>
+                    <div style={{ fontSize: '15px', fontWeight: 900, color: '#111827', marginBottom: '4px' }}>
                       {item.name}
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <span 
                         style={{
-                          background: isYou ? '#F97316' : '#8B5CF6',
+                          background: isYou ? '#F97316' : '#1E3A5F',
                           color: '#FFFFFF',
                           fontSize: '10px',
-                          fontWeight: 800,
-                          padding: '2px 8px',
+                          fontWeight: 900,
+                          padding: '3px 8px',
                           borderRadius: '6px'
                         }}
                       >
                         {item.addedBy}
                       </span>
-                      <span style={{ fontSize: '12px', color: '#E2E8F0', fontWeight: 600 }}>
+                      <span style={{ fontSize: '12px', color: '#4B5563', fontWeight: 700 }}>
                         {formatPrice(item.price)} each
                       </span>
                     </div>
@@ -97,31 +100,31 @@ export default function CartSidebar({
                       style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '8px',
-                        background: '#0F172A',
-                        border: '1px solid #475569',
+                        gap: '6px',
+                        background: '#D6EAF8',
+                        border: '1px solid #93C5FD',
                         borderRadius: '20px',
                         padding: '4px 10px'
                       }}
                     >
                       <button 
                         onClick={() => onUpdateQty(item.menuItemId, -1)}
-                        style={{ background: 'none', border: 'none', color: '#FFFFFF', cursor: 'pointer', fontSize: '12px', padding: '2px 4px' }}
+                        style={{ background: 'none', border: 'none', color: '#1E3A5F', cursor: 'pointer', fontSize: '13px', padding: '2px 4px', fontWeight: 900 }}
                       >
                         <i className="fa-solid fa-minus"></i>
                       </button>
-                      <span style={{ color: '#FFFFFF', fontWeight: 800, fontSize: '13px', minWidth: '16px', textAlign: 'center' }}>
+                      <span style={{ color: '#1E3A5F', fontWeight: 900, fontSize: '14px', minWidth: '18px', textAlign: 'center' }}>
                         {item.qty}
                       </span>
                       <button 
                         onClick={() => onUpdateQty(item.menuItemId, 1)}
-                        style={{ background: 'none', border: 'none', color: '#FFFFFF', cursor: 'pointer', fontSize: '12px', padding: '2px 4px' }}
+                        style={{ background: 'none', border: 'none', color: '#1E3A5F', cursor: 'pointer', fontSize: '13px', padding: '2px 4px', fontWeight: 900 }}
                       >
                         <i className="fa-solid fa-plus"></i>
                       </button>
                     </div>
 
-                    <div style={{ fontSize: '16px', fontWeight: 900, color: '#F59E0B', whiteSpace: 'nowrap' }}>
+                    <div style={{ fontSize: '16px', fontWeight: 900, color: '#F97316', whiteSpace: 'nowrap' }}>
                       {formatPrice(item.price * item.qty)}
                     </div>
                   </div>
@@ -134,26 +137,26 @@ export default function CartSidebar({
         {/* Bill Summary Container */}
         <div 
           style={{
-            background: '#1E293B',
-            border: '1.5px solid #334155',
+            background: '#F8FAFC',
+            border: '2px solid #D6EAF8',
             borderRadius: '16px',
-            padding: '16px',
-            color: '#FFFFFF'
+            padding: '18px',
+            color: '#111827'
           }}
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '13px', color: '#E2E8F0', fontWeight: 600 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '14px', color: '#4B5563', fontWeight: 700 }}>
             <span>Subtotal</span>
-            <span style={{ color: '#FFFFFF', fontWeight: 800 }}>{formatPrice(subtotal)}</span>
+            <span style={{ color: '#1E3A5F', fontWeight: 900 }}>{formatPrice(subtotal)}</span>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '13px', color: '#E2E8F0', fontWeight: 600 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '14px', color: '#4B5563', fontWeight: 700 }}>
             <span>Service & Taxes (10%)</span>
-            <span style={{ color: '#FFFFFF', fontWeight: 800 }}>{formatPrice(tax)}</span>
+            <span style={{ color: '#1E3A5F', fontWeight: 900 }}>{formatPrice(tax)}</span>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '12px', borderTop: '1px solid #334155', marginTop: '8px' }}>
-            <span style={{ fontSize: '16px', fontWeight: 900, color: '#FFFFFF' }}>Total Bill</span>
-            <span style={{ fontSize: '22px', fontWeight: 900, color: '#F59E0B' }}>{formatPrice(total)}</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '12px', borderTop: '2px solid #D6EAF8', marginTop: '8px' }}>
+            <span style={{ fontSize: '17px', fontWeight: 900, color: '#1E3A5F' }}>Total Bill</span>
+            <span style={{ fontSize: '24px', fontWeight: 900, color: '#F97316' }}>{formatPrice(total)}</span>
           </div>
 
           <button 
@@ -164,16 +167,16 @@ export default function CartSidebar({
               color: '#FFFFFF',
               border: 'none',
               borderRadius: '20px',
-              padding: '14px',
+              padding: '16px',
               marginTop: '16px',
-              fontSize: '15px',
+              fontSize: '16px',
               fontWeight: 900,
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '8px',
-              boxShadow: '0 4px 18px rgba(249, 115, 22, 0.45)',
+              gap: '10px',
+              boxShadow: '0 6px 20px rgba(249, 115, 22, 0.4)',
               transition: 'all 0.2s ease'
             }} 
           >
@@ -184,20 +187,20 @@ export default function CartSidebar({
             onClick={() => onSplitBill(total)}
             style={{
               width: '100%',
-              background: 'linear-gradient(135deg, #1E3A5F, #2A4D7C)',
+              background: '#1E3A5F',
               color: '#FFFFFF',
               border: 'none',
               borderRadius: '20px',
-              padding: '10px',
+              padding: '12px',
               marginTop: '10px',
-              fontSize: '12px',
-              fontWeight: 800,
+              fontSize: '13px',
+              fontWeight: 900,
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '6px',
-              boxShadow: '0 2px 10px rgba(30, 58, 95, 0.3)'
+              gap: '8px',
+              boxShadow: '0 3px 12px rgba(30, 58, 95, 0.2)'
             }} 
           >
             <i className="fa-solid fa-calculator"></i> Split Bill per Person
@@ -208,41 +211,41 @@ export default function CartSidebar({
       {/* AI Sommelier Card */}
       <div 
         style={{
-          background: 'linear-gradient(135deg, #1E1B4B 0%, #0F172A 100%)',
-          border: '1.5px solid #8B5CF6',
+          background: '#D6EAF8',
+          border: '2px solid #93C5FD',
           borderRadius: '20px',
           padding: '18px',
           marginTop: '16px',
-          boxShadow: '0 8px 25px rgba(139, 92, 246, 0.25)',
-          color: '#FFFFFF'
+          boxShadow: '0 4px 15px rgba(30, 58, 95, 0.08)',
+          color: '#111827'
         }}
       >
-        <div style={{ fontSize: '14px', fontWeight: 800, color: '#F59E0B', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <i className="fa-solid fa-wand-magic-sparkles" style={{ color: '#8B5CF6' }}></i> AI Smart Sommelier
+        <div style={{ fontSize: '15px', fontWeight: 900, color: '#1E3A5F', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <i className="fa-solid fa-wand-magic-sparkles" style={{ color: '#F97316' }}></i> AI Smart Sommelier
         </div>
-        <div style={{ fontSize: '12px', color: '#E2E8F0', lineHeight: '1.4', marginBottom: '14px' }}>
+        <div style={{ fontSize: '12px', color: '#1E3A5F', lineHeight: '1.4', marginBottom: '14px', fontWeight: 700 }}>
           Recommends perfect beverage pairings based on your active table selections.
         </div>
         <button 
           onClick={onGetRecommendation}
           style={{
             width: '100%',
-            background: 'linear-gradient(135deg, #8B5CF6, #6D28D9)',
+            background: '#1E3A5F',
             color: '#FFFFFF',
             border: 'none',
             borderRadius: '16px',
-            padding: '10px',
-            fontSize: '12px',
-            fontWeight: 800,
+            padding: '12px',
+            fontSize: '13px',
+            fontWeight: 900,
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: '6px',
-            boxShadow: '0 4px 12px rgba(139, 92, 246, 0.4)'
+            gap: '8px',
+            boxShadow: '0 4px 12px rgba(30, 58, 95, 0.2)'
           }} 
         >
-          <i className="fa-solid fa-wine-glass"></i> Suggest Wine & Cocktail Pairing
+          <i className="fa-solid fa-wine-glass" style={{ color: '#F97316' }}></i> Suggest Wine & Cocktail Pairing
         </button>
       </div>
     </aside>
