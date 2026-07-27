@@ -212,27 +212,42 @@ export default function MenuGrid({
             const isNonVeg = item.dietary_type === 'Non-Veg';
             const isTodaySpecial = specialIds.has(item._id || item.dish_id);
 
-            const borderCol = isVeg ? 'rgba(16, 185, 129, 0.3)' : isVegan ? 'rgba(5, 150, 105, 0.3)' : 'rgba(239, 68, 68, 0.3)';
+            const borderCol = isTodaySpecial ? '#F59E0B' : isVeg ? '#10B981' : isVegan ? '#059669' : '#EF4444';
+            const cardBg = isTodaySpecial 
+              ? 'linear-gradient(145deg, #FFFBEB 0%, #FFFFFF 100%)' 
+              : isVeg 
+              ? 'linear-gradient(145deg, #FFFFFF 0%, #F0FDF4 100%)' 
+              : isVegan 
+              ? 'linear-gradient(145deg, #FFFFFF 0%, #ECFDF5 100%)' 
+              : 'linear-gradient(145deg, #FFFFFF 0%, #FEF2F2 100%)';
+
+            const cardShadow = isTodaySpecial
+              ? '0 0 25px rgba(245, 158, 11, 0.45), 0 8px 24px rgba(245, 158, 11, 0.25)'
+              : isVeg
+              ? '0 6px 20px rgba(16, 185, 129, 0.12)'
+              : isVegan
+              ? '0 6px 20px rgba(5, 150, 105, 0.12)'
+              : '0 6px 20px rgba(239, 68, 68, 0.12)';
 
             return (
               <div 
                 key={item._id || item.dish_id} 
-                className="glass" 
                 style={{ 
                   borderRadius: '16px', 
                   padding: '18px', 
                   display: 'flex', 
                   flexDirection: 'column', 
-                  justify: 'space-between',
-                  border: isTodaySpecial ? '1.5px solid #F59E0B' : `1px solid ${borderCol}`,
-                  background: isTodaySpecial ? 'linear-gradient(145deg, rgba(245, 158, 11, 0.08), rgba(15, 23, 42, 0.7))' : 'rgba(15, 23, 42, 0.65)',
-                  boxShadow: isTodaySpecial ? '0 10px 30px rgba(245, 158, 11, 0.25)' : '0 8px 24px rgba(0,0,0,0.3)',
-                  position: 'relative'
+                  justifyContent: 'space-between',
+                  border: `2px solid ${borderCol}`,
+                  background: cardBg,
+                  boxShadow: cardShadow,
+                  position: 'relative',
+                  transition: 'all 0.3s ease'
                 }}
               >
-                {/* Today's Special Gold Ribbon */}
+                {/* Today's Special Yellow Gold Ribbon with Glow */}
                 {isTodaySpecial && (
-                  <div style={{ position: 'absolute', top: '-10px', right: '14px', background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#FFF', fontSize: '10px', fontWeight: 800, padding: '3px 10px', borderRadius: '20px', boxShadow: '0 4px 10px rgba(245,158,11,0.4)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <div style={{ position: 'absolute', top: '-12px', right: '14px', background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#FFF', fontSize: '10px', fontWeight: 900, padding: '4px 12px', borderRadius: '20px', boxShadow: '0 4px 14px rgba(245, 158, 11, 0.5), 0 0 10px #F59E0B', display: 'flex', alignItems: 'center', gap: '5px', letterSpacing: '0.5px', zIndex: 2 }}>
                     <i className="fa-solid fa-fire"></i> TODAY'S SPECIAL
                   </div>
                 )}
@@ -248,11 +263,11 @@ export default function MenuGrid({
                         gap: '6px',
                         fontSize: '11px', 
                         fontWeight: 800, 
-                        color: isVeg ? '#10B981' : isVegan ? '#34D399' : '#EF4444', 
-                        background: isVeg ? 'rgba(16,185,129,0.12)' : isVegan ? 'rgba(5,150,105,0.12)' : 'rgba(239,68,68,0.12)', 
-                        border: `1px solid ${isVeg ? '#10B981' : isVegan ? '#059669' : '#EF4444'}`,
-                        padding: '3px 8px', 
-                        borderRadius: '6px' 
+                        color: isVeg ? '#065F46' : isVegan ? '#064E3B' : '#991B1B', 
+                        background: isVeg ? '#DCFCE7' : isVegan ? '#D1FAE5' : '#FEE2E2', 
+                        border: `1.5px solid ${isVeg ? '#10B981' : isVegan ? '#059669' : '#EF4444'}`,
+                        padding: '3px 9px', 
+                        borderRadius: '8px' 
                       }}>
                         {isVeg && <VegIcon />}
                         {isNonVeg && <NonVegIcon />}
@@ -263,9 +278,10 @@ export default function MenuGrid({
                       {/* Cuisine Badge */}
                       <span style={{ 
                         fontSize: '11px', 
-                        fontWeight: 600, 
-                        color: '#9CA3AF', 
-                        background: 'rgba(255,255,255,0.06)', 
+                        fontWeight: 700, 
+                        color: '#334155', 
+                        background: '#E2E8F0', 
+                        border: '1px solid #CBD5E1',
                         padding: '3px 8px', 
                         borderRadius: '6px' 
                       }}>
@@ -274,39 +290,40 @@ export default function MenuGrid({
                     </div>
 
                     {/* Dish ID */}
-                    <span style={{ fontSize: '10px', color: 'var(--text-dim)', fontFamily: 'monospace' }}>
+                    <span style={{ fontSize: '11px', color: '#64748B', fontFamily: 'monospace', fontWeight: 700 }}>
                       {item.dish_id || 'DSH'}
                     </span>
                   </div>
 
                   {/* Dish Name & Price Header */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px', marginBottom: '8px' }}>
-                    <h3 style={{ fontSize: '17px', fontWeight: 800, color: 'var(--text-main)', margin: 0, lineHeight: '1.3' }}>
+                    <h3 style={{ fontSize: '17px', fontWeight: 800, color: '#1E3A5F', margin: 0, lineHeight: '1.3' }}>
                       {item.name}
                     </h3>
-                    <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--primary)', whiteSpace: 'nowrap' }}>
+                    <div style={{ fontSize: '19px', fontWeight: 800, color: '#1E3A5F', whiteSpace: 'nowrap' }}>
                       {formatPrice(item.price)}
                     </div>
                   </div>
 
                   {/* Category Subtitle */}
-                  <div style={{ fontSize: '11px', color: 'var(--text-dim)', marginBottom: '12px', fontWeight: 600 }}>
-                    <i className="fa-solid fa-layer-group" style={{ marginRight: '4px', color: 'var(--primary)' }}></i>
+                  <div style={{ fontSize: '11px', color: '#4B5563', marginBottom: '12px', fontWeight: 700 }}>
+                    <i className="fa-solid fa-layer-group" style={{ marginRight: '4px', color: '#1E3A5F' }}></i>
                     {item.category}
                   </div>
 
                   {/* Ingredients Used Section */}
                   <div style={{ 
-                    background: 'rgba(0, 0, 0, 0.3)', 
-                    border: '1px solid rgba(255, 255, 255, 0.08)', 
-                    borderRadius: '8px', 
+                    background: '#FFFFFF', 
+                    border: '1px solid rgba(30, 58, 95, 0.15)', 
+                    borderRadius: '10px', 
                     padding: '10px 12px', 
-                    marginBottom: '14px' 
+                    marginBottom: '14px',
+                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.03)'
                   }}>
-                    <div style={{ fontSize: '11px', fontWeight: 800, color: '#C4B5FD', textTransform: 'uppercase', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <i className="fa-solid fa-wheat-awn" style={{ color: '#F59E0B' }}></i> Ingredients Used:
+                    <div style={{ fontSize: '11px', fontWeight: 800, color: '#F97316', textTransform: 'uppercase', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <i className="fa-solid fa-wheat-awn" style={{ color: '#F97316' }}></i> Ingredients Used:
                     </div>
-                    <div style={{ fontSize: '12px', color: '#E2E8F0', lineHeight: '1.4' }}>
+                    <div style={{ fontSize: '12px', color: '#374151', lineHeight: '1.4', fontWeight: 500 }}>
                       {item.ingredients || item.desc || "Fresh seasonal produce, signature herbs and spices."}
                     </div>
                   </div>
@@ -314,12 +331,12 @@ export default function MenuGrid({
 
                 {/* Footer Details & Add Button */}
                 <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '10px', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-                    <div style={{ display: 'flex', gap: '12px', fontSize: '11px', color: 'var(--text-muted)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '10px', borderTop: '1px solid rgba(30,58,95,0.12)' }}>
+                    <div style={{ display: 'flex', gap: '12px', fontSize: '11px', color: '#4B5563', fontWeight: 600 }}>
                       <span><i className="fa-regular fa-clock"></i> {item.prep_time_minutes || 15} min</span>
                       {item.calories && <span><i className="fa-solid fa-fire"></i> {item.calories} kcal</span>}
                       {item.spiciness && (
-                        <span style={{ color: item.spiciness === 'High' ? '#EF4444' : '#10B981' }}>
+                        <span style={{ color: item.spiciness === 'High' ? '#DC2626' : '#059669', fontWeight: 700 }}>
                           <i className="fa-solid fa-pepper-hot"></i> {item.spiciness}
                         </span>
                       )}
@@ -330,8 +347,8 @@ export default function MenuGrid({
                       onClick={() => onAddToCart(item._id || item.dish_id)} 
                       title="Add to Cart"
                       style={{
-                        background: 'linear-gradient(135deg, #F59E0B, #D97706)',
-                        color: '#0F172A',
+                        background: 'linear-gradient(135deg, #1E3A5F, #2A4D7C)',
+                        color: '#FFFFFF',
                         border: 'none',
                         padding: '8px 16px',
                         borderRadius: '20px',
@@ -342,7 +359,7 @@ export default function MenuGrid({
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: '6px',
-                        boxShadow: '0 4px 12px rgba(245, 158, 11, 0.35)',
+                        boxShadow: '0 4px 12px rgba(30, 58, 95, 0.3)',
                         transition: 'all 0.2s ease',
                         width: 'auto',
                         height: 'auto'
