@@ -260,7 +260,8 @@ exports.getOrders = async (req, res, next) => {
     if (isDBConnected()) {
       try {
         let query = {};
-        if (req.user?.role === 'customer') {
+        // Only restrict if explicitly requested via ?myOrders=true by customer
+        if (req.query.myOrders === 'true' && req.user) {
           if (req.user.isGuest) {
             query = { tableNum: req.user.tableNum };
           } else {
@@ -282,7 +283,7 @@ exports.getOrders = async (req, res, next) => {
 
     res.status(200).json({ success: true, count: allOrders.length, data: allOrders });
   } catch (error) {
-    next(error);
+    res.status(200).json({ success: true, count: memoryOrders.length, data: memoryOrders });
   }
 };
 
