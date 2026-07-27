@@ -217,10 +217,10 @@ exports.updateOrderStatus = async (req, res, next) => {
     }
     await order.save();
 
-    const memIdx = memoryOrders.findIndex(o => String(o._id) === String(order._id));
-    if (memIdx !== -1) {
-      memoryOrders[memIdx].status = status;
-      if (status === 'completed') memoryOrders[memIdx].paymentStatus = 'paid';
+    const dbMemIdx = memoryOrders.findIndex(o => String(o._id) === String(order._id));
+    if (dbMemIdx !== -1) {
+      memoryOrders[dbMemIdx].status = status;
+      if (status === 'completed') memoryOrders[dbMemIdx].paymentStatus = 'paid';
     }
 
     const io = req.app.get('io');
