@@ -66,23 +66,27 @@ export default function CashierDashboard({ onLogout, cashierName = "Lead Cashier
 
   // Filter orders
   const filteredOrders = orders.filter(order => {
+    if (!order) return false;
+    const isPaid = order.paymentStatus === 'paid';
     const matchesTab = 
       filterTab === 'all' ? true :
-      filterTab === 'unpaid' ? order.paymentStatus === 'unpaid' :
-      order.paymentStatus === 'paid';
+      filterTab === 'unpaid' ? !isPaid :
+      isPaid;
     
-    const matchesSearch = 
-      order.tableNum.toString().includes(searchTerm) ||
-      order._id.toLowerCase().includes(searchTerm.toLowerCase());
+    const tableStr = String(order.tableNum || '');
+    const idStr = String(order._id || '');
+    const matchesSearch = !searchTerm || 
+      tableStr.includes(searchTerm) ||
+      idStr.toLowerCase().includes(searchTerm.toLowerCase());
 
     return matchesTab && matchesSearch;
   });
 
   // Calculate totals
-  const totalUnpaid = orders.filter(o => o.paymentStatus === 'unpaid').reduce((sum, o) => sum + o.total, 0);
-  const totalPaid = orders.filter(o => o.paymentStatus === 'paid').reduce((sum, o) => sum + o.total, 0);
-  const pendingCount = orders.filter(o => o.paymentStatus === 'unpaid').length;
-  const completedCount = orders.filter(o => o.paymentStatus === 'paid').length;
+  const totalUnpaid = orders.filter(o => o && o.paymentStatus !== 'paid').reduce((sum, o) => sum + (o.total || 0), 0);
+  const totalPaid = orders.filter(o => o && o.paymentStatus === 'paid').reduce((sum, o) => sum + (o.total || 0), 0);
+  const pendingCount = orders.filter(o => o && o.paymentStatus !== 'paid').length;
+  const completedCount = orders.filter(o => o && o.paymentStatus === 'paid').length;
 
   // Process payment action
   const handleProcessPayment = async (orderId) => {
@@ -178,208 +182,197 @@ export default function CashierDashboard({ onLogout, cashierName = "Lead Cashier
           <div style={{ padding: '20px', borderRadius: '16px', border: '2px solid #10B981', background: '#F0FDF4', boxShadow: '0 4px 15px rgba(16,185,129,0.08)', color: '#111827' }}>
             <div style={{ fontSize: '12px', color: '#065F46', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Today's Paid Revenue</div>
             <div style={{ fontSize: '32px', fontWeight: 900, color: '#059669', margin: '6px 0' }}>{formatPrice(totalPaid)}</div>
-            <div style={{ fontSize: '12px', color: '#065F46', fontWeight: 700 }}><i className="fa-solid fa-circle-check"></i> {completedCount} Receipts Closed</div>
+            <div style={{ fontSize: '12px', color: '#065F46', fontWeight: 700 }}><i className="fa-solid fa-circle-check"></i> {completedCount} Settled Transactions</div>
           </div>
 
-          <div style={{ padding: '20px', borderRadius: '16px', border: '2px solid #F59E0B', background: '#FFFBEB', boxShadow: '0 4px 15px rgba(245,158,11,0.08)', color: '#111827' }}>
-            <div style={{ fontSize: '12px', color: '#92400E', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Active Billing Tables</div>
-            <div style={{ fontSize: '32px', fontWeight: 900, color: '#D97706', margin: '6px 0' }}>{orders.length}</div>
-            <div style={{ fontSize: '12px', color: '#92400E', fontWeight: 700 }}><i className="fa-solid fa-utensils"></i> Live Dining Sessions</div>
-          </div>
-
-          <div style={{ padding: '20px', borderRadius: '16px', border: '2px solid #1E3A5F', background: '#FFFFFF', boxShadow: '0 4px 15px rgba(30,58,95,0.06)', color: '#111827' }}>
-            <div style={{ fontSize: '12px', color: '#1E3A5F', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Accepted Payment Modes</div>
-            <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
-              <span style={{ background: '#D6EAF8', color: '#1E3A5F', padding: '6px 10px', borderRadius: '8px', fontSize: '12px', fontWeight: 900 }}><i className="fa-solid fa-qrcode"></i> UPI</span>
-              <span style={{ background: '#D6EAF8', color: '#1E3A5F', padding: '6px 10px', borderRadius: '8px', fontSize: '12px', fontWeight: 900 }}><i className="fa-solid fa-credit-card"></i> Card</span>
-              <span style={{ background: '#D6EAF8', color: '#1E3A5F', padding: '6px 10px', borderRadius: '8px', fontSize: '12px', fontWeight: 900 }}><i className="fa-solid fa-money-bill-wave"></i> Cash</span>
-            </div>
+          <div style={{ padding: '20px', borderRadius: '16px', border: '2px solid #D6EAF8', background: '#FFFFFF', boxShadow: '0 4px 15px rgba(0,0,0,0.04)', color: '#111827' }}>
+            <div style={{ fontSize: '12px', color: '#4B5563', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Invoices Recorded</div>
+            <div style={{ fontSize: '32px', fontWeight: 900, color: '#1E3A5F', margin: '6px 0' }}>{orders.length}</div>
+            <div style={{ fontSize: '12px', color: '#4B5563', fontWeight: 700 }}><i className="fa-solid fa-receipt"></i> Active Order Log</div>
           </div>
         </div>
 
-        {/* Filter and Search Bar */}
-        <div style={{ background: '#FFFFFF', padding: '16px 20px', borderRadius: '16px', marginBottom: '24px', border: '1.5px solid #D6EAF8', boxShadow: '0 4px 15px rgba(0,0,0,0.04)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <button 
-              onClick={() => setFilterTab('unpaid')}
-              style={{
-                padding: '8px 18px',
-                borderRadius: '20px',
-                border: '1.5px solid #EF4444',
-                cursor: 'pointer',
-                fontWeight: 900,
-                fontSize: '13px',
-                background: filterTab === 'unpaid' ? '#EF4444' : '#FEF2F2',
-                color: filterTab === 'unpaid' ? '#FFF' : '#991B1B'
-              }}
-            >
-              <i className="fa-solid fa-file-invoice-dollar" style={{ marginRight: '6px' }}></i>
-              Unpaid Bills ({pendingCount})
-            </button>
-            <button 
-              onClick={() => setFilterTab('paid')}
-              style={{
-                padding: '8px 18px',
-                borderRadius: '20px',
-                border: '1.5px solid #10B981',
-                cursor: 'pointer',
-                fontWeight: 900,
-                fontSize: '13px',
-                background: filterTab === 'paid' ? '#10B981' : '#F0FDF4',
-                color: filterTab === 'paid' ? '#FFF' : '#065F46'
-              }}
-            >
-              <i className="fa-solid fa-circle-check" style={{ marginRight: '6px' }}></i>
-              Paid Receipts ({completedCount})
-            </button>
-            <button 
-              onClick={() => setFilterTab('all')}
-              style={{
-                padding: '8px 18px',
-                borderRadius: '20px',
-                border: '1.5px solid #1E3A5F',
-                cursor: 'pointer',
-                fontWeight: 900,
-                fontSize: '13px',
-                background: filterTab === 'all' ? '#1E3A5F' : '#D6EAF8',
-                color: filterTab === 'all' ? '#FFF' : '#1E3A5F'
-              }}
-            >
-              <i className="fa-solid fa-list" style={{ marginRight: '6px' }}></i>
-              All Orders ({orders.length})
-            </button>
+        {/* Invoices List Container */}
+        <div style={{ background: '#FFFFFF', padding: '24px', borderRadius: '16px', border: '2px solid #D6EAF8', boxShadow: '0 4px 20px rgba(30,58,95,0.06)', marginBottom: '24px' }}>
+          
+          {/* Controls Bar */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '14px' }}>
+            <div style={{ display: 'flex', gap: '8px', background: '#F8FAFC', padding: '4px', borderRadius: '12px', border: '1px solid #D6EAF8' }}>
+              <button 
+                onClick={() => setFilterTab('unpaid')}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  background: filterTab === 'unpaid' ? '#EF4444' : 'transparent',
+                  color: filterTab === 'unpaid' ? '#FFFFFF' : '#1E3A5F',
+                  fontWeight: 900,
+                  fontSize: '12px',
+                  cursor: 'pointer'
+                }}
+              >
+                🔴 Unpaid Bills ({pendingCount})
+              </button>
+              <button 
+                onClick={() => setFilterTab('paid')}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  background: filterTab === 'paid' ? '#10B981' : 'transparent',
+                  color: filterTab === 'paid' ? '#FFFFFF' : '#1E3A5F',
+                  fontWeight: 900,
+                  fontSize: '12px',
+                  cursor: 'pointer'
+                }}
+              >
+                🟢 Paid Bills ({completedCount})
+              </button>
+              <button 
+                onClick={() => setFilterTab('all')}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  background: filterTab === 'all' ? '#1E3A5F' : 'transparent',
+                  color: filterTab === 'all' ? '#FFFFFF' : '#1E3A5F',
+                  fontWeight: 900,
+                  fontSize: '12px',
+                  cursor: 'pointer'
+                }}
+              >
+                📄 All Orders ({orders.length})
+              </button>
+            </div>
+
+            {/* Search Input */}
+            <div style={{ position: 'relative', minWidth: '260px' }}>
+              <i className="fa-solid fa-magnifying-glass" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#1E3A5F' }}></i>
+              <input 
+                type="text"
+                placeholder="Search table # or order ID…"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '10px 14px 10px 38px',
+                  borderRadius: '10px',
+                  border: '1.5px solid #D6EAF8',
+                  background: '#F8FAFC',
+                  color: '#111827',
+                  fontSize: '13px',
+                  fontWeight: 800,
+                  outline: 'none'
+                }}
+              />
+            </div>
           </div>
 
-          <div style={{ position: 'relative', width: '280px' }}>
-            <i className="fa-solid fa-magnifying-glass" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#1E3A5F' }}></i>
-            <input 
-              type="text"
-              placeholder="Search Table # or Order ID..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '10px 14px 10px 38px',
-                borderRadius: '20px',
-                background: '#F8FAFC',
-                border: '1.5px solid #D6EAF8',
-                color: '#111827',
-                fontSize: '13px',
-                fontWeight: 800,
-                outline: 'none'
-              }}
-            />
-          </div>
+          {/* Table of Invoices */}
+          {filteredOrders.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '60px 20px', color: '#4B5563' }}>
+              <i className="fa-solid fa-receipt" style={{ fontSize: '42px', color: '#D6EAF8', marginBottom: '14px', display: 'block' }}></i>
+              <h3 style={{ fontSize: '18px', fontWeight: 900, color: '#1E3A5F', margin: 0 }}>No invoices matching filter</h3>
+              <p style={{ fontSize: '13px', color: '#64748B', marginTop: '4px' }}>New table orders will appear here automatically for settlement.</p>
+            </div>
+          ) : (
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13.5px' }}>
+                <thead>
+                  <tr style={{ background: '#1E3A5F', color: '#FFFFFF', borderBottom: '2px solid #D6EAF8' }}>
+                    <th style={{ padding: '14px 16px', fontWeight: 900 }}>Table #</th>
+                    <th style={{ padding: '14px 16px', fontWeight: 900 }}>Invoice ID</th>
+                    <th style={{ padding: '14px 16px', fontWeight: 900 }}>Time</th>
+                    <th style={{ padding: '14px 16px', fontWeight: 900 }}>Dishes</th>
+                    <th style={{ padding: '14px 16px', fontWeight: 900 }}>Subtotal</th>
+                    <th style={{ padding: '14px 16px', fontWeight: 900 }}>Total Bill</th>
+                    <th style={{ padding: '14px 16px', fontWeight: 900 }}>Bill Status</th>
+                    <th style={{ padding: '14px 16px', fontWeight: 900, textAlign: 'right' }}>Cashier Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredOrders.map((order, idx) => {
+                    const isSelected = selectedOrderForBill?._id === order._id;
+                    const isPaid = order.paymentStatus === 'paid';
+                    const idStr = String(order._id || '');
+                    const displayId = idStr.length >= 6 ? idStr.substring(idStr.length - 6).toUpperCase() : idStr.toUpperCase();
+                    return (
+                      <tr 
+                        key={order._id || idx} 
+                        style={{ 
+                          borderBottom: '1px solid #E2E8F0',
+                          background: isSelected ? '#FEF3C7' : idx % 2 === 0 ? '#FFFFFF' : '#F8FAFC',
+                          cursor: 'pointer'
+                        }}
+                        onClick={() => openBillModal(order)}
+                      >
+                        <td style={{ padding: '14px 16px', fontWeight: 900, color: '#1E3A5F' }}>
+                          <span style={{ background: '#D6EAF8', color: '#1E3A5F', padding: '4px 10px', borderRadius: '8px', fontSize: '13px' }}>
+                            Table #{order.tableNum}
+                          </span>
+                        </td>
+                        <td style={{ padding: '14px 16px', fontFamily: 'monospace', color: '#1E3A5F', fontWeight: 800 }}>
+                          #{displayId}
+                        </td>
+                        <td style={{ padding: '14px 16px', color: '#4B5563', fontWeight: 700 }}>
+                          {new Date(order.createdAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </td>
+                        <td style={{ padding: '14px 16px', color: '#111827', fontWeight: 800, fontSize: '13.5px' }}>
+                          {(order.items || []).map(i => `${i.qty || 1}x ${i.name || 'Dish'}`).join(', ')}
+                        </td>
+                        <td style={{ padding: '14px 16px', color: '#4B5563', fontWeight: 700 }}>
+                          {formatPrice(order.subtotal || order.total * 0.9)}
+                        </td>
+                        <td style={{ padding: '14px 16px', fontWeight: 900, color: '#F97316', fontSize: '16px' }}>
+                          {formatPrice(order.total || 0)}
+                        </td>
+                        <td style={{ padding: '14px 16px' }}>
+                          <span style={{
+                            padding: '4px 10px',
+                            borderRadius: '6px',
+                            fontSize: '11px',
+                            fontWeight: 900,
+                            background: isPaid ? '#DCFCE7' : '#FEE2E2',
+                            color: isPaid ? '#065F46' : '#991B1B',
+                            border: `1px solid ${isPaid ? '#6EE7B7' : '#FCA5A5'}`
+                          }}>
+                            {isPaid ? 'PAID' : 'UNPAID'}
+                          </span>
+                        </td>
+                        <td style={{ padding: '14px 16px', textAlign: 'right' }}>
+                          <button 
+                            style={{ 
+                              padding: '8px 14px', 
+                              fontSize: '12px', 
+                              borderRadius: '8px',
+                              border: 'none',
+                              background: isPaid ? '#1E3A5F' : 'linear-gradient(135deg, #F97316, #EA580C)',
+                              color: '#FFFFFF',
+                              fontWeight: 900,
+                              cursor: 'pointer',
+                              boxShadow: isPaid ? 'none' : '0 3px 10px rgba(249,115,22,0.3)'
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openBillModal(order);
+                            }}
+                          >
+                            <i className={`fa-solid ${isPaid ? 'fa-receipt' : 'fa-cash-register'}`}></i>
+                            {isPaid ? ' View Bill' : ' Process Bill'}
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
 
         {/* Main Cashier Workspace Grid */}
         <div style={{ display: 'grid', gridTemplateColumns: selectedOrderForBill ? '1fr 420px' : '1fr', gap: '24px' }}>
           
-          {/* Bills List Table */}
-          <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '2px solid #D6EAF8', padding: '20px', boxShadow: '0 6px 25px rgba(30,58,95,0.08)' }}>
-            <h2 style={{ fontSize: '18px', fontWeight: 900, marginTop: 0, marginBottom: '16px', color: '#1E3A5F', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <i className="fa-solid fa-receipt" style={{ color: '#F97316' }}></i>
-              Table Invoices & Bills List ({filteredOrders.length})
-            </h2>
-
-            {filteredOrders.length === 0 ? (
-              <div style={{ padding: '40px', textAlign: 'center', color: '#4B5563', background: '#F8FAFC', borderRadius: '12px', border: '1.5px dashed #CBD5E1' }}>
-                <i className="fa-solid fa-folder-open" style={{ fontSize: '36px', marginBottom: '12px', color: '#F97316' }}></i>
-                <p style={{ margin: 0, fontWeight: 700, color: '#1E3A5F' }}>No table bills found matching the selected filter.</p>
-              </div>
-            ) : (
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
-                  <thead>
-                    <tr style={{ background: '#1E3A5F', color: '#FFFFFF' }}>
-                      <th style={{ padding: '14px 16px', fontWeight: 900 }}>Table #</th>
-                      <th style={{ padding: '14px 16px', fontWeight: 900 }}>Order ID</th>
-                      <th style={{ padding: '14px 16px', fontWeight: 900 }}>Time</th>
-                      <th style={{ padding: '14px 16px', fontWeight: 900 }}>Dishes</th>
-                      <th style={{ padding: '14px 16px', fontWeight: 900 }}>Subtotal</th>
-                      <th style={{ padding: '14px 16px', fontWeight: 900 }}>Total Bill</th>
-                      <th style={{ padding: '14px 16px', fontWeight: 900 }}>Bill Status</th>
-                      <th style={{ padding: '14px 16px', fontWeight: 900, textAlign: 'right' }}>Cashier Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredOrders.map((order, idx) => {
-                      const isSelected = selectedOrderForBill?._id === order._id;
-                      const isPaid = order.paymentStatus === 'paid';
-                      return (
-                        <tr 
-                          key={order._id} 
-                          style={{ 
-                            borderBottom: '1px solid #E2E8F0',
-                            background: isSelected ? '#FEF3C7' : idx % 2 === 0 ? '#FFFFFF' : '#F8FAFC',
-                            cursor: 'pointer'
-                          }}
-                          onClick={() => openBillModal(order)}
-                        >
-                          <td style={{ padding: '14px 16px', fontWeight: 900, color: '#1E3A5F' }}>
-                            <span style={{ background: '#D6EAF8', color: '#1E3A5F', padding: '4px 10px', borderRadius: '8px', fontSize: '13px' }}>
-                              Table #{order.tableNum}
-                            </span>
-                          </td>
-                          <td style={{ padding: '14px 16px', fontFamily: 'monospace', color: '#1E3A5F', fontWeight: 800 }}>
-                            #{order._id.substring(order._id.length - 6).toUpperCase()}
-                          </td>
-                          <td style={{ padding: '14px 16px', color: '#4B5563', fontWeight: 700 }}>
-                            {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          </td>
-                          <td style={{ padding: '14px 16px', color: '#111827', fontWeight: 800, fontSize: '13.5px' }}>
-                            {order.items.map(i => `${i.qty}x ${i.name}`).join(', ')}
-                          </td>
-                          <td style={{ padding: '14px 16px', color: '#4B5563', fontWeight: 700 }}>
-                            {formatPrice(order.subtotal || order.total * 0.9)}
-                          </td>
-                          <td style={{ padding: '14px 16px', fontWeight: 900, color: '#F97316', fontSize: '16px' }}>
-                            {formatPrice(order.total)}
-                          </td>
-                          <td style={{ padding: '14px 16px' }}>
-                            <span style={{
-                              padding: '4px 10px',
-                              borderRadius: '6px',
-                              fontSize: '11px',
-                              fontWeight: 900,
-                              background: isPaid ? '#DCFCE7' : '#FEE2E2',
-                              color: isPaid ? '#065F46' : '#991B1B',
-                              border: `1px solid ${isPaid ? '#6EE7B7' : '#FCA5A5'}`
-                            }}>
-                              {isPaid ? 'PAID' : 'UNPAID'}
-                            </span>
-                          </td>
-                          <td style={{ padding: '14px 16px', textAlign: 'right' }}>
-                            <button 
-                              style={{ 
-                                padding: '8px 14px', 
-                                fontSize: '12px', 
-                                borderRadius: '8px',
-                                border: 'none',
-                                background: isPaid ? '#1E3A5F' : 'linear-gradient(135deg, #F97316, #EA580C)',
-                                color: '#FFFFFF',
-                                fontWeight: 900,
-                                cursor: 'pointer',
-                                boxShadow: isPaid ? 'none' : '0 3px 10px rgba(249,115,22,0.3)'
-                              }}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                openBillModal(order);
-                              }}
-                            >
-                              <i className={`fa-solid ${isPaid ? 'fa-receipt' : 'fa-cash-register'}`}></i>
-                              {isPaid ? ' View Bill' : ' Process Bill'}
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-
           {/* Right Drawer: Selected Table Bill & Payment Checkout */}
           {selectedOrderForBill && (
             <div style={{ background: '#FFFFFF', padding: '24px', borderRadius: '16px', border: '2px solid #D6EAF8', boxShadow: '0 6px 25px rgba(30,58,95,0.08)' }}>
