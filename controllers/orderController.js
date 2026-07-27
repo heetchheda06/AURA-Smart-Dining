@@ -111,10 +111,10 @@ exports.placeOrder = async (req, res, next) => {
     }
   }
 
-  // 5. Fallback: create in-memory order if DB write failed or DB not connected
-  if (!savedToDb) {
+  // 5. Fallback & RAM Store Sync: Ensure order is in memoryOrders so RAM store is ALWAYS complete
+  if (!savedToDb || !order) {
     order = createMemoryOrder({
-      tableNum,
+      tableNum: Number(tableNum),
       items: cartItems,
       subtotal,
       tax,
@@ -124,6 +124,13 @@ exports.placeOrder = async (req, res, next) => {
       paymentStatus: 'unpaid'
     });
     console.log(`📋 Order stored in memory (DB unavailable): Table #${tableNum} ₹${total}`);
+  } else {
+    const plainOrder = order.toObject ? order.toObject() : order;
+    const exists = memoryOrders.some(o => String(o._id) === String(plainOrder._id));
+    if (!exists) {
+      memoryOrders.unshift(plainOrder);
+      if (memoryOrders.length > 100) memoryOrders.pop();
+    }
   }
 
   // 6. Socket notifications (always fires — whether DB or memory)
@@ -209,6 +216,12 @@ exports.updateOrderStatus = async (req, res, next) => {
       await Table.findOneAndUpdate({ num: order.tableNum }, { status: 'free' });
     }
     await order.save();
+
+    const memIdx = memoryOrders.findIndex(o => String(o._id) === String(order._id));
+    if (memIdx !== -1) {
+      memoryOrders[memIdx].status = status;
+      if (status === 'completed') memoryOrders[memIdx].paymentStatus = 'paid';
+    }
 
     const io = req.app.get('io');
     if (io) {
