@@ -7,16 +7,22 @@ const mongoose = require('mongoose');
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID || '686445090372-17hhr1l6fsbjots3e8kuse904cv9rq72.apps.googleusercontent.com');
 
-// Helper to generate JWT token
-const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET || 'your_jwt_secret_key_change_in_production', {
+// Helper to generate JWT token — encodes name, email, role so profile works even without DB
+const generateToken = (user) => {
+  const payload = {
+    id: user._id || user.id || 'demo_user_id',
+    name: user.name || '',
+    email: user.email || '',
+    role: user.role || 'customer'
+  };
+  return jwt.sign(payload, process.env.JWT_SECRET || 'your_jwt_secret_key_change_in_production', {
     expiresIn: '30d'
   });
 };
 
 // Send response helper
 const sendTokenResponse = (user, statusCode, res) => {
-  const token = generateToken(user._id || user.id || 'demo_user_id');
+  const token = generateToken(user);
 
   res.status(statusCode).json({
     success: true,
@@ -220,7 +226,38 @@ exports.createEmployee = async (req, res, next) => {
 // @route   GET /api/auth/profile
 // @access  Private
 exports.getProfile = async (req, res, next) => {
-  res.status(200).json({ success: true, data: req.user });
+  try {
+    // Try to fetch fresh data from DB first
+    if (mongoose.connection.readyState === 1 && req.user && req.user._id && !String(req.user._id).startsWith('anon') && !String(req.user._id).startsWith('guest')) {
+      const freshUser = await User.findById(req.user._id).select('-password').catch(() => null);
+      if (freshUser) {
+        return res.status(200).json({
+          success: true,
+          user: {
+            id: freshUser._id,
+            name: freshUser.name,
+            email: freshUser.email,
+            mobile: freshUser.mobile,
+            role: freshUser.role,
+            profileImage: freshUser.profileImage,
+            loyaltyPoints: freshUser.loyaltyPoints
+          }
+        });
+      }
+    }
+    // Fallback: return from JWT-decoded req.user (has name/email/role from token)
+    return res.status(200).json({
+      success: true,
+      user: {
+        id: req.user._id || req.user.id,
+        name: req.user.name,
+        email: req.user.email,
+        role: req.user.role
+      }
+    });
+  } catch (err) {
+    return res.status(200).json({ success: true, user: req.user });
+  }
 };
 
 // @desc    Update Profile

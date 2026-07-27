@@ -85,9 +85,9 @@ const protect = async (req, res, next) => {
     req.user = {
       _id: decoded.id || 'staff_jwt_user',
       id: decoded.id || 'staff_jwt_user',
-      role: decoded.role || 'chef',
-      name: decoded.name || 'Staff Member',
-      email: decoded.email || 'staff@aura.com',
+      role: decoded.role || 'customer',
+      name: decoded.name || 'AURA Member',
+      email: decoded.email || '',
       tableNum: decoded.tableNum
     };
     return next();
