@@ -24,6 +24,8 @@ export default function AdminDashboard({ onLogout, adminName, formatPrice }) {
     socket.on('waiter:new_order', handleOrderEvent);
     socket.on('order:placed', handleOrderEvent);
     socket.on('order:status_updated', handleOrderEvent);
+    socket.on('payment:completed', handleOrderEvent);
+    socket.on('bill:settled', handleOrderEvent);
 
     const interval = setInterval(() => {
       fetchDashboard();
@@ -35,6 +37,8 @@ export default function AdminDashboard({ onLogout, adminName, formatPrice }) {
       socket.off('waiter:new_order', handleOrderEvent);
       socket.off('order:placed', handleOrderEvent);
       socket.off('order:status_updated', handleOrderEvent);
+      socket.off('payment:completed', handleOrderEvent);
+      socket.off('bill:settled', handleOrderEvent);
       clearInterval(interval);
     };
   }, []);
@@ -130,6 +134,15 @@ export default function AdminDashboard({ onLogout, adminName, formatPrice }) {
           </div>
         </div>
         <div className="nav-actions">
+          <button 
+            className="btn-action" 
+            onClick={() => { fetchDashboard(); fetchAnalytics(); }}
+            style={{ background: '#D6EAF8', color: '#1E3A5F', fontWeight: 800, border: '1px solid #1E3A5F' }}
+            title="Refresh Admin Dashboard"
+          >
+            <i className="fa-solid fa-arrows-rotate"></i>
+            <span>Refresh Data</span>
+          </button>
           <button className="btn-action" onClick={onLogout}>
             <i className="fa-solid fa-right-from-bracket" style={{ color: 'var(--secondary)' }}></i>
             <span>Logout</span>

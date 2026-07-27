@@ -76,11 +76,19 @@ export default function ChefDashboard({ onLogout, chefName = "Executive Chef Mar
       fetchOrders();
     });
 
+    socket.on('payment:completed', () => {
+      fetchOrders();
+    });
+
+    const interval = setInterval(fetchOrders, 5000);
+
     return () => {
       socket.off('order:placed');
       socket.off('chef:new_order');
       socket.off('waiter:new_order');
       socket.off('order:status_updated');
+      socket.off('payment:completed');
+      clearInterval(interval);
     };
   }, []);
 
@@ -147,6 +155,14 @@ export default function ChefDashboard({ onLogout, chefName = "Executive Chef Mar
             <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#EF4444', display: 'inline-block' }}></span>
             {pendingCount + preparingCount} Live Tickets In Kitchen
           </span>
+          <button 
+            className="btn-action" 
+            onClick={() => { fetchOrders(); showToast("🔄 Kitchen tickets refreshed!"); }} 
+            style={{ background: '#D6EAF8', borderColor: '#1E3A5F', color: '#1E3A5F', fontWeight: 800 }}
+            title="Refresh Kitchen Tickets"
+          >
+            <i className="fa-solid fa-arrows-rotate"></i> Refresh Tickets
+          </button>
           <button className="btn-action" onClick={onLogout} style={{ background: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.2)', color: '#FFF' }}>
             <i className="fa-solid fa-right-from-bracket"></i> Switch Account
           </button>

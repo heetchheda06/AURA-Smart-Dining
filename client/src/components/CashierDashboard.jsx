@@ -35,18 +35,32 @@ export default function CashierDashboard({ onLogout, cashierName = "Lead Cashier
   useEffect(() => {
     fetchOrders();
 
+    const handleRefresh = () => {
+      fetchOrders();
+    };
+
     socket.on('order:placed', () => {
       fetchOrders();
       showToast("🔔 New order placed by table! Invoice ready for billing.");
     });
 
-    socket.on('order:status_updated', () => {
+    socket.on('waiter:new_order', handleRefresh);
+    socket.on('order:status_updated', handleRefresh);
+    socket.on('payment:completed', () => {
       fetchOrders();
+      showToast("💳 Payment received! Invoice status updated.");
     });
+    socket.on('bill:settled', handleRefresh);
+
+    const interval = setInterval(fetchOrders, 5000);
 
     return () => {
       socket.off('order:placed');
+      socket.off('waiter:new_order');
       socket.off('order:status_updated');
+      socket.off('payment:completed');
+      socket.off('bill:settled');
+      clearInterval(interval);
     };
   }, []);
 
@@ -131,6 +145,14 @@ export default function CashierDashboard({ onLogout, cashierName = "Lead Cashier
             <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#34D399', display: 'inline-block' }}></span>
             POS Register Active
           </span>
+          <button 
+            className="btn-action" 
+            onClick={() => { fetchOrders(); showToast("🔄 Billing data refreshed!"); }} 
+            style={{ background: '#D6EAF8', borderColor: '#1E3A5F', color: '#1E3A5F', fontWeight: 800 }}
+            title="Refresh Billing Orders"
+          >
+            <i className="fa-solid fa-arrows-rotate"></i> Refresh Data
+          </button>
           <button className="btn-action" onClick={onLogout} style={{ background: 'rgba(239, 68, 68, 0.15)', borderColor: '#EF4444', color: '#FCA5A5' }}>
             <i className="fa-solid fa-right-from-bracket"></i> Switch Account
           </button>

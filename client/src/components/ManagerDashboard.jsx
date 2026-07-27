@@ -50,12 +50,26 @@ export default function ManagerDashboard({ onLogout, managerName = "AURA Manager
     fetchTables();
     fetchIngredients();
 
-    socket.on('table:status_changed', () => fetchTables());
-    socket.on('inventory:updated', () => fetchIngredients());
+    const handleRefresh = () => {
+      fetchTables();
+      fetchIngredients();
+    };
+
+    socket.on('table:status_changed', handleRefresh);
+    socket.on('inventory:updated', handleRefresh);
+    socket.on('order:placed', handleRefresh);
+    socket.on('order:status_updated', handleRefresh);
+    socket.on('payment:completed', handleRefresh);
+
+    const interval = setInterval(handleRefresh, 5000);
 
     return () => {
-      socket.off('table:status_changed');
-      socket.off('inventory:updated');
+      socket.off('table:status_changed', handleRefresh);
+      socket.off('inventory:updated', handleRefresh);
+      socket.off('order:placed', handleRefresh);
+      socket.off('order:status_updated', handleRefresh);
+      socket.off('payment:completed', handleRefresh);
+      clearInterval(interval);
     };
   }, []);
 
@@ -173,6 +187,14 @@ export default function ManagerDashboard({ onLogout, managerName = "AURA Manager
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <button 
+            className="btn-action" 
+            onClick={() => { fetchTables(); fetchIngredients(); showToast("🔄 Floor & Inventory refreshed!"); }} 
+            style={{ background: '#D6EAF8', borderColor: '#1E3A5F', color: '#1E3A5F', fontWeight: 800 }}
+            title="Refresh Floor & Inventory Data"
+          >
+            <i className="fa-solid fa-arrows-rotate"></i> Refresh Data
+          </button>
           <button className="btn-action" onClick={onLogout} style={{ background: 'rgba(239, 68, 68, 0.15)', borderColor: '#EF4444', color: '#FCA5A5' }}>
             <i className="fa-solid fa-right-from-bracket"></i> Switch Account
           </button>
