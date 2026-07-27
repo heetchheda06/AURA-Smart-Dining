@@ -40,17 +40,13 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 // ── Boot Sequence ─────────────────────────────────────────────────────────────
-// Connect DB first, THEN start accepting HTTP requests
-const boot = async () => {
-  await connectDB();   // waits for MongoDB (up to 3 retries × 30s each)
+// Start server listening IMMEDIATELY so Render health check succeeds without delay
+server.listen(PORT, () => {
+  console.log(`🚀 Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+  console.log(`✅ Ready to accept requests.`);
+});
 
-  server.listen(PORT, () => {
-    console.log(`🚀 Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
-    console.log(`✅ Ready to accept requests.`);
-  });
-};
-
-boot().catch(err => {
-  console.error('❌ Boot failed:', err.message);
-  process.exit(1);
+// Connect DB asynchronously in background (in-memory store handles requests if DB connecting/offline)
+connectDB().catch(err => {
+  console.warn('⚠️ Background DB connection error (in-memory fallback active):', err.message);
 });
