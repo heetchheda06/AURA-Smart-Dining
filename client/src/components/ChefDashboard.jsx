@@ -288,7 +288,10 @@ export default function ChefDashboard({ onLogout, chefName = "Executive Chef Mar
                         <div style={{ fontSize: '22px', fontWeight: 900, color: '#1E3A5F' }}>
                           Table #{order.tableNum}
                         </div>
-                        <div style={{ fontSize: '11px', color: '#64748B', fontFamily: 'monospace', fontWeight: 800 }}>
+                        <div style={{ fontSize: '13px', fontWeight: 900, color: '#F97316', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <i className="fa-solid fa-user"></i> {order.customerName || order.userRef?.name || order.items?.[0]?.addedBy || 'Guest Diner'}
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#64748B', fontFamily: 'monospace', fontWeight: 800, marginTop: '2px' }}>
                           TICKET #{order._id.substring(order._id.length - 6).toUpperCase()}
                         </div>
                       </div>

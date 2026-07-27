@@ -70,10 +70,12 @@ exports.placeOrder = async (req, res, next) => {
       const isValidObjId = (id) => id && mongoose.isValidObjectId(String(id)) && typeof id === 'object';
       const userRef = (!isGuestUser && isValidObjId(req.user?._id)) ? req.user._id : undefined;
       const guestRef = (isGuestUser && isValidObjId(req.user?._id)) ? req.user._id : undefined;
+      const customerName = req.user?.name || req.body?.customerName || cartItems[0]?.addedBy || 'Guest Diner';
 
       order = await Promise.race([
         Order.create({
           tableNum,
+          customerName,
           items: cartItems.map(item => ({
             menuItem: item.menuItem,
             name: item.name,
@@ -102,7 +104,7 @@ exports.placeOrder = async (req, res, next) => {
       Notification.create({
         recipientRole: 'waiter',
         tableNum,
-        message: `🛎️ New Order at Table #${tableNum} — ₹${total.toLocaleString('en-IN')}`
+        message: `🛎️ New Order at Table #${tableNum} — ${customerName} (₹${total.toLocaleString('en-IN')})`
       }).catch(() => {});
 
     } catch (dbErr) {
@@ -113,8 +115,10 @@ exports.placeOrder = async (req, res, next) => {
 
   // 5. Fallback & RAM Store Sync: Ensure order is in memoryOrders so RAM store is ALWAYS complete
   if (!savedToDb || !order) {
+    const custName = req.user?.name || req.body?.customerName || cartItems[0]?.addedBy || 'Guest Diner';
     order = createMemoryOrder({
       tableNum: Number(tableNum),
+      customerName: custName,
       items: cartItems,
       subtotal,
       tax,
@@ -123,7 +127,7 @@ exports.placeOrder = async (req, res, next) => {
       sessionType,
       paymentStatus: 'unpaid'
     });
-    console.log(`📋 Order stored in memory (DB unavailable): Table #${tableNum} ₹${total}`);
+    console.log(`📋 Order stored in memory (DB unavailable): Table #${tableNum} ${custName} ₹${total}`);
   } else {
     const plainOrder = order.toObject ? order.toObject() : order;
     const exists = memoryOrders.some(o => String(o._id) === String(plainOrder._id));

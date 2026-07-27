@@ -61,6 +61,10 @@ const orderSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Guest'
   },
+  customerName: {
+    type: String,
+    required: false
+  },
   paymentStatus: {
     type: String,
     enum: ['unpaid', 'paid'],

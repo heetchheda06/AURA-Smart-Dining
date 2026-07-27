@@ -284,6 +284,7 @@ export default function CashierDashboard({ onLogout, cashierName = "Lead Cashier
                 <thead>
                   <tr style={{ background: '#1E3A5F', color: '#FFFFFF', borderBottom: '2px solid #D6EAF8' }}>
                     <th style={{ padding: '14px 16px', fontWeight: 900 }}>Table #</th>
+                    <th style={{ padding: '14px 16px', fontWeight: 900 }}>Customer Name</th>
                     <th style={{ padding: '14px 16px', fontWeight: 900 }}>Invoice ID</th>
                     <th style={{ padding: '14px 16px', fontWeight: 900 }}>Time</th>
                     <th style={{ padding: '14px 16px', fontWeight: 900 }}>Dishes</th>
@@ -299,6 +300,7 @@ export default function CashierDashboard({ onLogout, cashierName = "Lead Cashier
                     const isPaid = order.paymentStatus === 'paid';
                     const idStr = String(order._id || '');
                     const displayId = idStr.length >= 6 ? idStr.substring(idStr.length - 6).toUpperCase() : idStr.toUpperCase();
+                    const custName = order.customerName || order.userRef?.name || order.items?.[0]?.addedBy || 'Guest Diner';
                     return (
                       <tr 
                         key={order._id || idx} 
@@ -313,6 +315,10 @@ export default function CashierDashboard({ onLogout, cashierName = "Lead Cashier
                           <span style={{ background: '#D6EAF8', color: '#1E3A5F', padding: '4px 10px', borderRadius: '8px', fontSize: '13px' }}>
                             Table #{order.tableNum}
                           </span>
+                        </td>
+                        <td style={{ padding: '14px 16px', fontWeight: 900, color: '#111827' }}>
+                          <i className="fa-solid fa-user" style={{ color: '#F97316', marginRight: '6px' }}></i>
+                          {custName}
                         </td>
                         <td style={{ padding: '14px 16px', fontFamily: 'monospace', color: '#1E3A5F', fontWeight: 800 }}>
                           #{displayId}
