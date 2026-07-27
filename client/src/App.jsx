@@ -436,6 +436,8 @@ export default function App() {
         } else {
           setCurrentRole('customer');
           allotTableToCustomer(data.user.name, 8, 4, "Outdoor Patio");
+          setIsUserOrdersOpen(true);
+          showToast(`🎉 Welcome to your Member Dashboard, ${data.user.name}!`);
         }
       } else {
         showToast(`⚠️ Login failed: ${data.message}`);
@@ -936,6 +938,7 @@ export default function App() {
         onClose={() => setIsUserOrdersOpen(false)}
         customerName={activeCustomerSession.customerName}
         formatPrice={formatPrice}
+        onAddToCart={handleAddToCart}
       />
 
       {/* Toast Notification Container */}
