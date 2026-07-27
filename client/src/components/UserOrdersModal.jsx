@@ -3,12 +3,32 @@ import React, { useState, useEffect, useMemo } from 'react';
 export default function UserOrdersModal({ isOpen, onClose, customerName, formatPrice, onAddToCart }) {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [realName, setRealName] = useState(customerName || '');
 
   useEffect(() => {
     if (isOpen) {
       fetchUserOrders();
+      fetchProfile();
     }
   }, [isOpen]);
+
+  const fetchProfile = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      const res = await fetch('/api/auth/profile', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.user && data.user.name) {
+          setRealName(data.user.name);
+        }
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const fetchUserOrders = async () => {
     setLoading(true);
@@ -114,7 +134,7 @@ export default function UserOrdersModal({ isOpen, onClose, customerName, formatP
           <div style={{ flex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
               <h3 style={{ fontSize: '22px', fontWeight: 900, color: '#FFFFFF', margin: 0, letterSpacing: '0.3px' }}>
-                {customerName}
+                {realName || customerName || 'Valued Member'}
               </h3>
               <span style={{ background: '#F97316', color: '#FFFFFF', padding: '3px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 900 }}>
                 👑 MEMBER DASHBOARD

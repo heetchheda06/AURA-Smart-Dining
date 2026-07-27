@@ -36,7 +36,29 @@ export default function Navbar({
 
         {/* Right: Actions */}
         <div className="nav-actions-group">
-          {isLoggedIn && (
+          {isLoggedIn && loginType === 'member' && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '13px', fontWeight: 900, color: '#1E3A5F', background: '#D6EAF8', padding: '5px 12px', borderRadius: '20px', letterSpacing: '0.3px' }}>
+                👤 {customerName}
+              </span>
+              <button 
+                className="nav-btn nav-btn-outline" 
+                onClick={onOpenOrdersHistory} 
+                title="Open My Member Dashboard"
+                style={{
+                  borderColor: '#F97316',
+                  color: '#1E3A5F',
+                  background: '#FEF3C7',
+                  fontWeight: 900
+                }}
+              >
+                <i className="fa-solid fa-chart-pie" style={{ color: '#F97316' }}></i>
+                <span className="btn-label" style={{ fontWeight: 900 }}>Dashboard</span>
+              </button>
+            </div>
+          )}
+
+          {isLoggedIn && loginType !== 'member' && (
             <button 
               className="nav-btn nav-btn-outline" 
               onClick={onOpenOrdersHistory} 
