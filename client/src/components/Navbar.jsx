@@ -37,9 +37,19 @@ export default function Navbar({
         {/* Right: Actions */}
         <div className="nav-actions-group">
           {isLoggedIn && loginType === 'member' && (
-            <button className="nav-btn nav-btn-outline" onClick={onOpenOrdersHistory} title="View My Orders">
-              <i className="fa-solid fa-clock-rotate-left"></i>
-              <span className="btn-label">My Orders</span>
+            <button 
+              className="nav-btn nav-btn-outline" 
+              onClick={onOpenOrdersHistory} 
+              title="Open My Member Dashboard"
+              style={{
+                borderColor: '#F97316',
+                color: '#1E3A5F',
+                background: '#FEF3C7',
+                fontWeight: 900
+              }}
+            >
+              <i className="fa-solid fa-chart-pie" style={{ color: '#F97316' }}></i>
+              <span className="btn-label" style={{ fontWeight: 900 }}>Dashboard</span>
             </button>
           )}
 
