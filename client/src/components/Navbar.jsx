@@ -36,7 +36,7 @@ export default function Navbar({
 
         {/* Right: Actions */}
         <div className="nav-actions-group">
-          {isLoggedIn && loginType === 'member' && (
+          {isLoggedIn && (
             <button 
               className="nav-btn nav-btn-outline" 
               onClick={onOpenOrdersHistory} 

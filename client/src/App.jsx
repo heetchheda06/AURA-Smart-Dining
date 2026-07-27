@@ -338,7 +338,7 @@ export default function App() {
   };
 
   // Allot Table session
-  const allotTableToCustomer = (name, tableNum, seats, zone) => {
+  const allotTableToCustomer = (name, tableNum, seats, zone, loginType = "guest") => {
     setIsAuthModalOpen(false);
     const newSession = {
       isLoggedIn: true,
@@ -347,7 +347,7 @@ export default function App() {
       seats: seats,
       zone: zone,
       status: "active_dining",
-      loginType: "guest"
+      loginType: loginType
     };
     setActiveCustomerSession(newSession);
 
@@ -435,7 +435,7 @@ export default function App() {
           showToast("🍳 Kitchen Display System (KDS) unlocked.");
         } else {
           setCurrentRole('customer');
-          allotTableToCustomer(data.user.name, 8, 4, "Outdoor Patio");
+          allotTableToCustomer(data.user.name, 8, 4, "Outdoor Patio", "member");
           setIsUserOrdersOpen(true);
           showToast(`🎉 Welcome to your Member Dashboard, ${data.user.name}!`);
         }
