@@ -327,8 +327,8 @@ export default function AuthModal({
                 <label className="form-label"><i className="fa-solid fa-key"></i> Secret Password</label>
                 <input type="password" className="form-input" placeholder="••••••••••••" value={staffPassword} onChange={(e) => setStaffPassword(e.target.value)} required />
               </div>
-              <button type="submit" className="btn-action btn-primary-action" style={{ width: '100%', justifyContent: 'center', padding: '14px', marginTop: '10px', background: '#FFFFFF', color: '#FFFFFF', textShadow: '0 1px 4px rgba(0,0,0,0.9), 0 0 2px #000', border: '1px solid #FFFFFF', fontWeight: 800, boxShadow: '0 0 15px rgba(255,255,255,0.4)' }}>
-                <i className="fa-solid fa-shield-halved" style={{ color: '#FFFFFF', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.8))' }}></i> Sign In to Staff / Admin Portal
+              <button type="submit" className="btn-action btn-white-staff-signin" style={{ width: '100%', justifyContent: 'center', padding: '14px', marginTop: '10px' }}>
+                <i className="fa-solid fa-shield-halved"></i> Sign In to Staff / Admin Portal
               </button>
             </form>
           </div>
