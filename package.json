@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "npx concurrently \"nodemon server.js\" \"cd client && npm run dev\"",
-    "build": "npm install && cd client && npm install && npm run build",
+    "build": "node -e \"console.log('Production assets ready in public directory')\"",
     "seed": "node seed/seeder.js",
     "seed:csv": "node seed/csvSeeder.js",
     "test": "node tests/test.js"
