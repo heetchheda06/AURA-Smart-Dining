@@ -3,7 +3,7 @@ services:
     name: aura-smart-dining
     env: node
     plan: free
-    buildCommand: npm install --legacy-peer-deps --include=dev && cd client && npm install --legacy-peer-deps --include=dev && npm run build && cd ..
+    buildCommand: npm install && cd client && npm install && npm run build && cd ..
     startCommand: node server.js
     envVars:
       - key: NODE_ENV
