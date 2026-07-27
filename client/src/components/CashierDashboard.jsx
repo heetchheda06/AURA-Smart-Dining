@@ -21,7 +21,10 @@ export default function CashierDashboard({ onLogout, cashierName = "Lead Cashier
 
   const fetchOrders = async () => {
     try {
-      const res = await fetch('/api/orders');
+      const token = localStorage.getItem('token');
+      const res = await fetch('/api/orders', {
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+      });
       if (!res.ok) return;
       const data = await res.json();
       if (data.success) {

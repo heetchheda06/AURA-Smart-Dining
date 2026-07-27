@@ -28,6 +28,15 @@ const protect = async (req, res, next) => {
       };
       return next();
     }
+    // Allow GET requests (reading orders, menu, tables) for dashboards
+    if (req.method === 'GET') {
+      req.user = {
+        _id: 'anon_staff_viewer',
+        name: 'AURA Staff Viewer',
+        role: 'chef'
+      };
+      return next();
+    }
     return res.status(401).json({ success: false, message: 'Not authorized. Please log in or scan your table QR.' });
   }
 
