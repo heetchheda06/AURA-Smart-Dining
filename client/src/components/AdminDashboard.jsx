@@ -114,108 +114,109 @@ export default function AdminDashboard({ onLogout, adminName, formatPrice }) {
   );
 
   return (
-    <div className="app-container">
-      <div className="ambient-orb orb-1"></div>
-      <div className="ambient-orb orb-2"></div>
-
+    <div className="admin-wrapper" style={{ background: '#F8FAFC', minHeight: '100vh', color: '#111827' }}>
+      
       {/* Admin Navbar */}
-      <nav className="navbar glass">
-        <a href="#" className="brand-container" onClick={(e) => e.preventDefault()}>
-          <div className="brand-logo"><i className="fa-solid fa-utensils"></i></div>
-          <div>
-            <div className="brand-title">AURA</div>
-            <div className="brand-badge">ADMIN PANEL</div>
+      <header style={{ background: '#1E3A5F', color: '#FFFFFF', padding: '16px 28px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 4px 20px rgba(30, 58, 95, 0.25)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <div style={{ background: '#F97316', width: '42px', height: '42px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', color: '#FFF', boxShadow: '0 4px 12px rgba(249, 115, 22, 0.4)' }}>
+            <i className="fa-solid fa-chart-pie"></i>
           </div>
-        </a>
-        <div className="nav-center-info">
-          <div className="status-pill" style={{ background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.3)' }}>
-            <span className="status-dot" style={{ backgroundColor: '#8B5CF6', boxShadow: '0 0 10px #8B5CF6' }}></span>
-            <span style={{ color: '#C4B5FD' }}>Admin Dashboard • {adminName}</span>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <h1 style={{ fontSize: '22px', fontWeight: 900, margin: 0, color: '#FFF', letterSpacing: '0.5px' }}>AURA Admin Executive Portal</h1>
+              <span style={{ background: '#D6EAF8', color: '#1E3A5F', padding: '2px 10px', borderRadius: '10px', fontSize: '11px', fontWeight: 900 }}>
+                EXECUTIVE ANALYTICS
+              </span>
+            </div>
+            <p style={{ fontSize: '12px', color: '#CBD5E1', margin: '2px 0 0 0' }}>Logged in as: <strong>{adminName}</strong> &bull; Super Admin Permissions</p>
           </div>
         </div>
-        <div className="nav-actions">
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <span style={{ fontSize: '12px', background: '#D6EAF8', color: '#1E3A5F', padding: '6px 14px', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 900 }}>
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10B981', display: 'inline-block' }}></span>
+            Real-Time DB Sync
+          </span>
           <button 
-            className="btn-action" 
             onClick={() => { fetchDashboard(); fetchAnalytics(); }}
-            style={{ background: '#D6EAF8', color: '#1E3A5F', fontWeight: 800, border: '1px solid #1E3A5F' }}
+            style={{ background: '#F97316', color: '#FFFFFF', border: 'none', borderRadius: '20px', padding: '10px 18px', fontSize: '13px', fontWeight: 900, cursor: 'pointer', boxShadow: '0 4px 14px rgba(249,115,22,0.4)' }}
             title="Refresh Admin Dashboard"
           >
-            <i className="fa-solid fa-arrows-rotate"></i>
-            <span>Refresh Data</span>
+            <i className="fa-solid fa-arrows-rotate"></i> Refresh Data
           </button>
-          <button className="btn-action" onClick={onLogout}>
-            <i className="fa-solid fa-right-from-bracket" style={{ color: 'var(--secondary)' }}></i>
-            <span>Logout</span>
+          <button onClick={onLogout} style={{ background: '#D6EAF8', color: '#1E3A5F', border: '1px solid #BEE3F8', borderRadius: '20px', padding: '10px 18px', fontSize: '13px', fontWeight: 800, cursor: 'pointer' }}>
+            <i className="fa-solid fa-right-from-bracket"></i> Switch Account
           </button>
         </div>
-      </nav>
+      </header>
 
-      <div style={{ padding: '24px', maxWidth: '1400px', margin: '0 auto' }}>
+      <div style={{ padding: '24px 28px', maxWidth: '1400px', margin: '0 auto' }}>
 
         {/* Welcome Banner */}
-        <div className="glass" style={{ padding: '24px', borderRadius: 'var(--radius-md)', marginBottom: '24px', border: '1px solid rgba(139,92,246,0.3)' }}>
+        <div style={{ background: '#FFFFFF', padding: '22px 28px', borderRadius: '16px', marginBottom: '24px', border: '2px solid #D6EAF8', boxShadow: '0 4px 20px rgba(30,58,95,0.06)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
             <div>
-              <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: '28px', color: 'var(--text-main)', margin: 0 }}>
-                Welcome back, <span style={{ color: 'var(--primary)' }}>{adminName}</span>
+              <h1 style={{ fontSize: '24px', fontWeight: 900, color: '#1E3A5F', margin: 0 }}>
+                Welcome back, <span style={{ color: '#F97316' }}>{adminName}</span>
               </h1>
-              <p style={{ color: 'var(--text-muted)', fontSize: '13px', margin: '4px 0 0 0' }}>
-                Live restaurant performance metrics powered by real order and sales data.
+              <p style={{ color: '#4B5563', fontSize: '13px', margin: '4px 0 0 0', fontWeight: 600 }}>
+                Live restaurant performance metrics powered by real-time order and sales data.
               </p>
             </div>
-            <span className="brand-badge" style={{ background: 'rgba(139,92,246,0.2)', color: '#C4B5FD', borderColor: 'rgba(139,92,246,0.4)' }}>
-              <i className="fa-solid fa-shield-halved"></i> ADMIN ACCESS
+            <span style={{ background: '#D6EAF8', color: '#1E3A5F', border: '1.5px solid #93C5FD', padding: '6px 14px', borderRadius: '20px', fontSize: '12px', fontWeight: 900 }}>
+              <i className="fa-solid fa-shield-halved" style={{ color: '#F97316', marginRight: '6px' }}></i> FULL SYSTEM CONTROL
             </span>
           </div>
         </div>
 
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '80px', color: 'var(--text-muted)' }}>
-            <i className="fa-solid fa-spinner fa-spin" style={{ fontSize: '36px', marginBottom: '16px', display: 'block', color: 'var(--primary)' }}></i>
-            Loading live analytics data from database…
+          <div style={{ textAlign: 'center', padding: '80px', color: '#1E3A5F', background: '#FFFFFF', borderRadius: '16px', border: '2px solid #D6EAF8' }}>
+            <i className="fa-solid fa-spinner fa-spin" style={{ fontSize: '36px', marginBottom: '16px', display: 'block', color: '#F97316' }}></i>
+            <div style={{ fontWeight: 800 }}>Loading live analytics data from database…</div>
           </div>
         ) : (
           <>
             {/* KPI Cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(185px, 1fr))', gap: '14px', marginBottom: '24px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(185px, 1fr))', gap: '16px', marginBottom: '24px' }}>
               {[
-                { label: 'Total Sales Revenue', value: formatPrice(stats?.totalRevenue || 0), sub: `${stats?.totalOrdersCount || 0} total completed orders`, color: 'var(--primary)', icon: 'fa-indian-rupee-sign' },
-                { label: 'Total Orders Placed', value: stats?.totalOrdersCount || 0, sub: 'All non-cancelled orders', color: '#10B981', icon: 'fa-receipt' },
-                { label: 'Active Kitchen Orders', value: stats?.activeOrdersCount || 0, sub: 'Preparing / Pending now', color: '#F59E0B', icon: 'fa-fire' },
-                { label: 'Confirmed Bookings', value: stats?.bookingsCount || 0, sub: 'Reserved tables', color: '#EF4444', icon: 'fa-calendar-check' },
-                { label: 'Menu Dishes', value: stats?.menuItemsCount || 0, sub: 'Active catalog items', color: '#C4B5FD', icon: 'fa-utensils' },
-                { label: 'Registered Customers', value: stats?.customersCount || 0, sub: 'Member accounts', color: '#60A5FA', icon: 'fa-users' }
+                { label: 'Total Sales Revenue', value: formatPrice(stats?.totalRevenue || 0), sub: `${stats?.totalOrdersCount || 0} completed orders`, color: '#1E3A5F', icon: 'fa-indian-rupee-sign' },
+                { label: 'Total Orders Placed', value: stats?.totalOrdersCount || 0, sub: 'All non-cancelled orders', color: '#059669', icon: 'fa-receipt' },
+                { label: 'Active Kitchen Orders', value: stats?.activeOrdersCount || 0, sub: 'Preparing / Pending now', color: '#D97706', icon: 'fa-fire' },
+                { label: 'Confirmed Bookings', value: stats?.bookingsCount || 0, sub: 'Reserved tables', color: '#DC2626', icon: 'fa-calendar-check' },
+                { label: 'Menu Dishes', value: stats?.menuItemsCount || 0, sub: 'Active catalog items', color: '#7C3AED', icon: 'fa-utensils' },
+                { label: 'Registered Customers', value: stats?.customersCount || 0, sub: 'Member accounts', color: '#2563EB', icon: 'fa-users' }
               ].map((kpi, idx) => (
-                <div key={idx} className="glass" style={{ padding: '18px', borderRadius: 'var(--radius-md)', borderLeft: `3px solid ${kpi.color}` }}>
-                  <div style={{ fontSize: '10px', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '6px' }}>{kpi.label}</div>
-                  <div style={{ fontSize: '26px', fontWeight: 800, color: kpi.color }}>{kpi.value}</div>
-                  <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '4px' }}>
-                    <i className={`fa-solid ${kpi.icon}`}></i> {kpi.sub}
+                <div key={idx} style={{ background: '#FFFFFF', padding: '18px', borderRadius: '16px', border: '2px solid #D6EAF8', borderLeft: `4px solid ${kpi.color}`, boxShadow: '0 4px 15px rgba(0,0,0,0.04)' }}>
+                  <div style={{ fontSize: '11px', color: '#4B5563', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.5px', marginBottom: '6px' }}>{kpi.label}</div>
+                  <div style={{ fontSize: '26px', fontWeight: 900, color: kpi.color }}>{kpi.value}</div>
+                  <div style={{ fontSize: '11px', color: '#4B5563', marginTop: '4px', fontWeight: 600 }}>
+                    <i className={`fa-solid ${kpi.icon}`} style={{ marginRight: '4px', color: kpi.color }}></i> {kpi.sub}
                   </div>
                 </div>
               ))}
             </div>
 
             {/* Analytics Suite */}
-            <div className="glass" style={{ padding: '24px', borderRadius: 'var(--radius-md)', marginBottom: '24px', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <div style={{ background: '#FFFFFF', padding: '24px', borderRadius: '16px', marginBottom: '24px', border: '2px solid #D6EAF8', boxShadow: '0 6px 25px rgba(30,58,95,0.08)' }}>
 
               {/* Header */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px', flexWrap: 'wrap', gap: '14px' }}>
                 <div>
-                  <h3 style={{ fontFamily: 'Playfair Display, serif', fontSize: '20px', color: '#FFF', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <i className="fa-solid fa-chart-column" style={{ color: 'var(--primary)' }}></i>
+                  <h3 style={{ fontSize: '20px', fontWeight: 900, color: '#1E3A5F', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <i className="fa-solid fa-chart-column" style={{ color: '#F97316' }}></i>
                     Live Sales & Revenue Analytics
                   </h3>
-                  <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
+                  <p style={{ fontSize: '12px', color: '#4B5563', margin: '4px 0 0 0', fontWeight: 600 }}>
                     All graphs powered by real-time order data from your database.
                   </p>
                 </div>
 
-                <div style={{ display: 'flex', gap: '4px', background: 'rgba(0,0,0,0.5)', padding: '4px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.12)', flexWrap: 'wrap' }}>
-                  {tabBtn('revenue', '📈 Revenue Trend', 'linear-gradient(135deg,var(--primary),#D97706)')}
-                  {tabBtn('hourly', '🔥 Peak Traffic Hours', 'linear-gradient(135deg,#EF4444,#B91C1C)')}
-                  {tabBtn('categories', '🍱 Category Revenue Share', 'linear-gradient(135deg,#10B981,#047857)')}
-                  {tabBtn('payments', '💳 Payment Breakdown', 'linear-gradient(135deg,#8B5CF6,#6D28D9)')}
+                <div style={{ display: 'flex', gap: '6px', background: '#F8FAFC', padding: '6px', borderRadius: '20px', border: '1.5px solid #D6EAF8', flexWrap: 'wrap' }}>
+                  {tabBtn('revenue', '📈 Revenue Trend', '#1E3A5F')}
+                  {tabBtn('hourly', '🔥 Peak Traffic Hours', '#F97316')}
+                  {tabBtn('categories', '🍱 Category Revenue Share', '#10B981')}
+                  {tabBtn('payments', '💳 Payment Breakdown', '#1E3A5F')}
                 </div>
               </div>
 
@@ -223,27 +224,27 @@ export default function AdminDashboard({ onLogout, adminName, formatPrice }) {
               {activeMetricTab === 'revenue' && (
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
-                    <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                    <span style={{ fontSize: '13px', color: '#4B5563', fontWeight: 700 }}>
                       Total revenue (₹) and order counts from real completed orders.
                     </span>
-                    <div style={{ display: 'flex', gap: '4px', background: 'rgba(255,255,255,0.05)', padding: '3px', borderRadius: '12px' }}>
-                      <button onClick={() => setGraphTab('weekly')} style={{ padding: '4px 12px', borderRadius: '10px', border: 'none', background: graphTab === 'weekly' ? '#F59E0B' : 'transparent', color: graphTab === 'weekly' ? '#000' : '#AAA', fontWeight: 800, fontSize: '11px', cursor: 'pointer' }}>
+                    <div style={{ display: 'flex', gap: '6px', background: '#D6EAF8', padding: '4px', borderRadius: '12px' }}>
+                      <button onClick={() => setGraphTab('weekly')} style={{ padding: '6px 14px', borderRadius: '8px', border: 'none', background: graphTab === 'weekly' ? '#1E3A5F' : 'transparent', color: graphTab === 'weekly' ? '#FFF' : '#1E3A5F', fontWeight: 900, fontSize: '12px', cursor: 'pointer' }}>
                         Last 7 Days
                       </button>
-                      <button onClick={() => setGraphTab('monthly')} style={{ padding: '4px 12px', borderRadius: '10px', border: 'none', background: graphTab === 'monthly' ? '#8B5CF6' : 'transparent', color: graphTab === 'monthly' ? '#FFF' : '#AAA', fontWeight: 800, fontSize: '11px', cursor: 'pointer' }}>
+                      <button onClick={() => setGraphTab('monthly')} style={{ padding: '6px 14px', borderRadius: '8px', border: 'none', background: graphTab === 'monthly' ? '#1E3A5F' : 'transparent', color: graphTab === 'monthly' ? '#FFF' : '#1E3A5F', fontWeight: 900, fontSize: '12px', cursor: 'pointer' }}>
                         Last 6 Months
                       </button>
                     </div>
                   </div>
 
                   {chartData.length === 0 || chartData.every(d => d.sales === 0) ? (
-                    <div style={{ textAlign: 'center', padding: '50px', color: 'var(--text-dim)' }}>
-                      <i className="fa-solid fa-chart-bar" style={{ fontSize: '32px', display: 'block', marginBottom: '10px', color: 'var(--primary)' }}></i>
-                      No order data yet. Revenue trend will populate as orders are placed.
+                    <div style={{ textAlign: 'center', padding: '50px', color: '#4B5563', background: '#F8FAFC', borderRadius: '14px' }}>
+                      <i className="fa-solid fa-chart-bar" style={{ fontSize: '36px', display: 'block', marginBottom: '10px', color: '#F97316' }}></i>
+                      <div style={{ fontWeight: 800, color: '#1E3A5F' }}>No order data yet. Revenue trend will populate as orders are placed.</div>
                     </div>
                   ) : (
-                    <div style={{ background: 'rgba(10,12,16,0.6)', borderRadius: '16px', padding: '24px 20px 16px 20px', border: '1px solid rgba(255,255,255,0.06)' }}>
-                      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-around', height: '230px', gap: '12px', borderBottom: '2px solid rgba(255,255,255,0.1)', paddingBottom: '12px' }}>
+                    <div style={{ background: '#F8FAFC', borderRadius: '16px', padding: '24px 20px 16px 20px', border: '1.5px solid #D6EAF8' }}>
+                      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-around', height: '230px', gap: '12px', borderBottom: '2px solid #CBD5E1', paddingBottom: '12px' }}>
                         {chartData.map((item, idx) => {
                           const label = item.day || item.month;
                           const heightPercent = Math.max(Math.round(((item.sales || 0) / maxSales) * 100), item.sales > 0 ? 8 : 2);
@@ -251,12 +252,12 @@ export default function AdminDashboard({ onLogout, adminName, formatPrice }) {
                           return (
                             <div key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', justifyContent: 'flex-end', position: 'relative' }}>
                               {isPeak && (
-                                <div style={{ position: 'absolute', top: 0, background: 'linear-gradient(135deg,#EF4444,#DC2626)', color: '#FFF', fontSize: '9px', fontWeight: 800, padding: '2px 6px', borderRadius: '10px', whiteSpace: 'nowrap' }}>
+                                <div style={{ position: 'absolute', top: 0, background: '#F97316', color: '#FFF', fontSize: '9px', fontWeight: 900, padding: '2px 6px', borderRadius: '10px', whiteSpace: 'nowrap' }}>
                                   🔥 PEAK
                                 </div>
                               )}
                               {item.sales > 0 && (
-                                <div style={{ fontSize: '11px', fontWeight: 800, color: isPeak ? '#F59E0B' : '#E2E8F0', marginBottom: '5px' }}>
+                                <div style={{ fontSize: '11px', fontWeight: 900, color: isPeak ? '#F97316' : '#1E3A5F', marginBottom: '5px' }}>
                                   {formatPrice(item.sales)}
                                 </div>
                               )}
@@ -265,19 +266,17 @@ export default function AdminDashboard({ onLogout, adminName, formatPrice }) {
                                   width: '100%', maxWidth: '48px',
                                   height: `${heightPercent}%`,
                                   background: item.sales === 0
-                                    ? 'rgba(255,255,255,0.05)'
+                                    ? '#E2E8F0'
                                     : isPeak
-                                      ? 'linear-gradient(180deg,#F59E0B,#D97706)'
-                                      : graphTab === 'weekly'
-                                        ? 'linear-gradient(180deg,#10B981,#047857)'
-                                        : 'linear-gradient(180deg,#8B5CF6,#4C1D95)',
+                                      ? 'linear-gradient(180deg,#F97316,#EA580C)'
+                                      : 'linear-gradient(180deg,#1E3A5F,#2A4D7C)',
                                   borderRadius: '6px 6px 3px 3px',
-                                  boxShadow: isPeak ? '0 0 14px rgba(245,158,11,0.5)' : 'none',
+                                  boxShadow: isPeak ? '0 4px 14px rgba(249,115,22,0.4)' : 'none',
                                   transition: 'height 0.4s ease'
                                 }}
                                 title={`${label}: ${formatPrice(item.sales || 0)} · ${item.orders || 0} orders`}
                               ></div>
-                              <div style={{ fontSize: '10px', color: 'var(--text-dim)', marginTop: '4px', fontWeight: 700 }}>
+                              <div style={{ fontSize: '10px', color: '#4B5563', marginTop: '4px', fontWeight: 800 }}>
                                 {item.orders || 0} orders
                               </div>
                             </div>
@@ -286,7 +285,7 @@ export default function AdminDashboard({ onLogout, adminName, formatPrice }) {
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-around', marginTop: '10px' }}>
                         {chartData.map((item, idx) => (
-                          <div key={idx} style={{ flex: 1, textAlign: 'center', fontSize: '11px', fontWeight: 800, color: '#9CA3AF' }}>
+                          <div key={idx} style={{ flex: 1, textAlign: 'center', fontSize: '12px', fontWeight: 900, color: '#1E3A5F' }}>
                             {item.day || item.month}
                           </div>
                         ))}
@@ -299,29 +298,29 @@ export default function AdminDashboard({ onLogout, adminName, formatPrice }) {
               {/* GRAPH 2: Hourly Peak Traffic */}
               {activeMetricTab === 'hourly' && (
                 <div>
-                  <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '16px' }}>
+                  <p style={{ fontSize: '13px', color: '#4B5563', marginBottom: '16px', fontWeight: 600 }}>
                     Actual customer order traffic by dining hour. Helps optimize kitchen prep and staff scheduling.
                   </p>
                   {hourlyTraffic.length === 0 || hourlyTraffic.every(h => h.orders === 0) ? (
-                    <div style={{ textAlign: 'center', padding: '50px', color: 'var(--text-dim)' }}>
-                      <i className="fa-solid fa-clock" style={{ fontSize: '32px', display: 'block', marginBottom: '10px', color: '#EF4444' }}></i>
-                      No hourly traffic data yet. Order times will appear here as orders come in.
+                    <div style={{ textAlign: 'center', padding: '50px', color: '#1E3A5F', background: '#F8FAFC', borderRadius: '14px' }}>
+                      <i className="fa-solid fa-clock" style={{ fontSize: '36px', display: 'block', marginBottom: '10px', color: '#F97316' }}></i>
+                      <div style={{ fontWeight: 800 }}>No hourly traffic data yet. Order times will appear here as orders come in.</div>
                     </div>
                   ) : (
-                    <div style={{ background: 'rgba(10,12,16,0.6)', borderRadius: '16px', padding: '24px 20px 16px 20px', border: '1px solid rgba(255,255,255,0.06)' }}>
-                      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-around', height: '220px', gap: '10px', borderBottom: '2px solid rgba(255,255,255,0.1)', paddingBottom: '12px' }}>
+                    <div style={{ background: '#F8FAFC', borderRadius: '16px', padding: '24px 20px 16px 20px', border: '1.5px solid #D6EAF8' }}>
+                      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-around', height: '220px', gap: '10px', borderBottom: '2px solid #CBD5E1', paddingBottom: '12px' }}>
                         {hourlyTraffic.map((h, idx) => {
                           const heightPercent = Math.max(Math.round(((h.orders || 0) / maxHourlyOrders) * 100), h.orders > 0 ? 8 : 2);
                           const isPeak = h.orders > 0 && h.orders === maxHourlyOrders;
                           return (
                             <div key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', justifyContent: 'flex-end', position: 'relative' }}>
                               {isPeak && (
-                                <div style={{ position: 'absolute', top: 0, background: 'linear-gradient(135deg,#EF4444,#B91C1C)', color: '#FFF', fontSize: '8px', fontWeight: 800, padding: '2px 5px', borderRadius: '8px', whiteSpace: 'nowrap' }}>
+                                <div style={{ position: 'absolute', top: 0, background: '#F97316', color: '#FFF', fontSize: '8px', fontWeight: 900, padding: '2px 5px', borderRadius: '8px', whiteSpace: 'nowrap' }}>
                                   🔥 PEAK
                                 </div>
                               )}
                               {h.orders > 0 && (
-                                <div style={{ fontSize: '10px', fontWeight: 800, color: isPeak ? '#EF4444' : '#FCD34D', marginBottom: '4px' }}>
+                                <div style={{ fontSize: '10px', fontWeight: 900, color: isPeak ? '#F97316' : '#1E3A5F', marginBottom: '4px' }}>
                                   {h.orders}
                                 </div>
                               )}
@@ -330,12 +329,12 @@ export default function AdminDashboard({ onLogout, adminName, formatPrice }) {
                                   width: '100%', maxWidth: '38px',
                                   height: `${heightPercent}%`,
                                   background: h.orders === 0
-                                    ? 'rgba(255,255,255,0.05)'
+                                    ? '#E2E8F0'
                                     : isPeak
-                                      ? 'linear-gradient(180deg,#EF4444,#991B1B)'
-                                      : 'linear-gradient(180deg,#F59E0B,#B45309)',
+                                      ? 'linear-gradient(180deg,#F97316,#EA580C)'
+                                      : 'linear-gradient(180deg,#1E3A5F,#2A4D7C)',
                                   borderRadius: '5px 5px 2px 2px',
-                                  boxShadow: isPeak ? '0 0 10px rgba(239,68,68,0.4)' : 'none',
+                                  boxShadow: isPeak ? '0 4px 10px rgba(249,115,22,0.4)' : 'none',
                                   transition: 'height 0.3s ease'
                                 }}
                                 title={`${h.hour}: ${h.orders} orders · ${formatPrice(h.revenue)}`}
@@ -346,7 +345,7 @@ export default function AdminDashboard({ onLogout, adminName, formatPrice }) {
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-around', marginTop: '10px' }}>
                         {hourlyTraffic.map((h, idx) => (
-                          <div key={idx} style={{ flex: 1, textAlign: 'center', fontSize: '10px', fontWeight: 700, color: h.orders === maxHourlyOrders && h.orders > 0 ? '#EF4444' : '#9CA3AF' }}>
+                          <div key={idx} style={{ flex: 1, textAlign: 'center', fontSize: '11px', fontWeight: 800, color: '#1E3A5F' }}>
                             {h.hour}
                           </div>
                         ))}
@@ -359,33 +358,33 @@ export default function AdminDashboard({ onLogout, adminName, formatPrice }) {
               {/* GRAPH 3: Category Sales Share */}
               {activeMetricTab === 'categories' && (
                 <div>
-                  <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '16px' }}>
+                  <p style={{ fontSize: '13px', color: '#4B5563', marginBottom: '16px', fontWeight: 600 }}>
                     Revenue contribution by menu category, computed from all non-cancelled orders.
                   </p>
                   {categoryDistribution.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '50px', color: 'var(--text-dim)' }}>
-                      <i className="fa-solid fa-bowl-food" style={{ fontSize: '32px', display: 'block', marginBottom: '10px', color: '#10B981' }}></i>
-                      No category data yet. Sales will be tracked as orders arrive.
+                    <div style={{ textAlign: 'center', padding: '50px', color: '#1E3A5F', background: '#F8FAFC', borderRadius: '14px' }}>
+                      <i className="fa-solid fa-bowl-food" style={{ fontSize: '36px', display: 'block', marginBottom: '10px', color: '#10B981' }}></i>
+                      <div style={{ fontWeight: 800 }}>No category data yet. Sales will be tracked as orders arrive.</div>
                     </div>
                   ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', background: 'rgba(10,12,16,0.6)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', background: '#F8FAFC', padding: '20px', borderRadius: '16px', border: '1.5px solid #D6EAF8' }}>
                       {categoryDistribution.map((cat, idx) => {
                         const color = COLORS[idx % COLORS.length];
                         return (
                           <div key={idx}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px', fontSize: '13px' }}>
-                              <span style={{ fontWeight: 700, color: '#FFF' }}>
-                                <i className="fa-solid fa-circle" style={{ color, fontSize: '8px', marginRight: '8px' }}></i>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px', fontSize: '13.5px' }}>
+                              <span style={{ fontWeight: 900, color: '#111827' }}>
+                                <i className="fa-solid fa-circle" style={{ color, fontSize: '9px', marginRight: '8px' }}></i>
                                 {cat.category}
                               </span>
-                              <span style={{ fontWeight: 800, color }}>
+                              <span style={{ fontWeight: 900, color: '#1E3A5F' }}>
                                 {formatPrice(cat.revenue)} ({cat.percent}%)
                               </span>
                             </div>
-                            <div style={{ height: '10px', background: 'rgba(255,255,255,0.08)', borderRadius: '5px', overflow: 'hidden' }}>
-                              <div style={{ width: `${cat.percent}%`, height: '100%', background: `linear-gradient(90deg,${color},${color}99)`, borderRadius: '5px', boxShadow: `0 0 8px ${color}50`, transition: 'width 0.5s ease' }}></div>
+                            <div style={{ height: '10px', background: '#E2E8F0', borderRadius: '5px', overflow: 'hidden' }}>
+                              <div style={{ width: `${cat.percent}%`, height: '100%', background: color, borderRadius: '5px', transition: 'width 0.5s ease' }}></div>
                             </div>
-                            <div style={{ fontSize: '10px', color: 'var(--text-dim)', marginTop: '3px' }}>{cat.qty} units sold</div>
+                            <div style={{ fontSize: '11px', color: '#4B5563', marginTop: '3px', fontWeight: 700 }}>{cat.qty} units sold</div>
                           </div>
                         );
                       })}
@@ -397,29 +396,29 @@ export default function AdminDashboard({ onLogout, adminName, formatPrice }) {
               {/* GRAPH 4: Payment Breakdown */}
               {activeMetricTab === 'payments' && (
                 <div>
-                  <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '16px' }}>
+                  <p style={{ fontSize: '13px', color: '#4B5563', marginBottom: '16px', fontWeight: 600 }}>
                     Transaction settlement breakdown from real payment records.
                   </p>
                   {paymentBreakdown.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '50px', color: 'var(--text-dim)' }}>
-                      <i className="fa-solid fa-credit-card" style={{ fontSize: '32px', display: 'block', marginBottom: '10px', color: '#8B5CF6' }}></i>
-                      No payment data yet.
+                    <div style={{ textAlign: 'center', padding: '50px', color: '#1E3A5F', background: '#F8FAFC', borderRadius: '14px' }}>
+                      <i className="fa-solid fa-credit-card" style={{ fontSize: '36px', display: 'block', marginBottom: '10px', color: '#1E3A5F' }}></i>
+                      <div style={{ fontWeight: 800 }}>No payment data yet.</div>
                     </div>
                   ) : (
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
                       {paymentBreakdown.map((pm, idx) => (
-                        <div key={idx} className="glass" style={{ padding: '20px', borderRadius: '16px', borderLeft: `4px solid ${pm.color}` }}>
+                        <div key={idx} style={{ background: '#FFFFFF', padding: '20px', borderRadius: '16px', border: '2px solid #D6EAF8', borderLeft: `4px solid ${pm.color}`, boxShadow: '0 4px 15px rgba(0,0,0,0.04)' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                            <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: `${pm.color}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: pm.color, fontSize: '18px' }}>
+                            <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: '#D6EAF8', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1E3A5F', fontSize: '18px' }}>
                               <i className={`fa-solid ${pm.icon}`}></i>
                             </div>
-                            <span style={{ fontSize: '24px', fontWeight: 800, color: pm.color }}>{pm.percent}%</span>
+                            <span style={{ fontSize: '24px', fontWeight: 900, color: pm.color }}>{pm.percent}%</span>
                           </div>
-                          <h4 style={{ margin: 0, fontSize: '14px', color: '#FFF' }}>{pm.method}</h4>
-                          <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--primary)', marginTop: '6px' }}>
+                          <h4 style={{ margin: 0, fontSize: '15px', color: '#111827', fontWeight: 900 }}>{pm.method}</h4>
+                          <div style={{ fontSize: '20px', fontWeight: 900, color: '#1E3A5F', marginTop: '6px' }}>
                             {pm.amount > 0 ? formatPrice(pm.amount) : '—'}
                           </div>
-                          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                          <div style={{ fontSize: '12px', color: '#4B5563', marginTop: '4px', fontWeight: 700 }}>
                             {pm.count} transaction{pm.count !== 1 ? 's' : ''}
                           </div>
                         </div>
@@ -434,24 +433,24 @@ export default function AdminDashboard({ onLogout, adminName, formatPrice }) {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
 
               {/* Recent Orders */}
-              <div className="glass" style={{ padding: '20px', borderRadius: 'var(--radius-md)' }}>
-                <h3 style={{ fontFamily: 'Playfair Display, serif', fontSize: '18px', marginBottom: '16px', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <i className="fa-solid fa-receipt" style={{ color: 'var(--primary)' }}></i>
+              <div style={{ background: '#FFFFFF', padding: '20px', borderRadius: '16px', border: '2px solid #D6EAF8', boxShadow: '0 4px 15px rgba(0,0,0,0.04)' }}>
+                <h3 style={{ fontSize: '18px', fontWeight: 900, marginBottom: '16px', color: '#1E3A5F', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <i className="fa-solid fa-receipt" style={{ color: '#F97316' }}></i>
                   Recent Orders
                 </h3>
                 {stats?.recentOrders && stats.recentOrders.length > 0 ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     {stats.recentOrders.map((order, idx) => (
-                      <div key={order._id || idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: 'rgba(0,0,0,0.2)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-glass)' }}>
+                      <div key={order._id || idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 14px', background: '#F8FAFC', borderRadius: '10px', border: '1px solid #D6EAF8' }}>
                         <div>
-                          <div style={{ fontWeight: 700, fontSize: '13px', color: '#FFF' }}>Table #{order.tableNum}</div>
-                          <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                            {order.items?.length || 0} items &bull; <strong style={{ color: order.status === 'served' || order.status === 'completed' ? '#10B981' : '#F59E0B' }}>{order.status.toUpperCase()}</strong>
+                          <div style={{ fontWeight: 900, fontSize: '14px', color: '#111827' }}>Table #{order.tableNum}</div>
+                          <div style={{ fontSize: '11px', color: '#4B5563', fontWeight: 700 }}>
+                            {order.items?.length || 0} items &bull; <strong style={{ color: order.status === 'served' || order.status === 'completed' ? '#059669' : '#D97706' }}>{order.status.toUpperCase()}</strong>
                           </div>
                         </div>
                         <div style={{ textAlign: 'right' }}>
-                          <div style={{ fontWeight: 800, color: 'var(--primary)' }}>{formatPrice(order.total || 0)}</div>
-                          <div style={{ fontSize: '10px', color: 'var(--text-dim)' }}>
+                          <div style={{ fontWeight: 900, color: '#F97316', fontSize: '15px' }}>{formatPrice(order.total || 0)}</div>
+                          <div style={{ fontSize: '10px', color: '#64748B', fontWeight: 700 }}>
                             {new Date(order.createdAt).toLocaleString('en-IN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' })}
                           </div>
                         </div>
@@ -459,39 +458,39 @@ export default function AdminDashboard({ onLogout, adminName, formatPrice }) {
                     ))}
                   </div>
                 ) : (
-                  <div style={{ textAlign: 'center', padding: '30px', color: 'var(--text-dim)', fontSize: '13px' }}>
-                    <i className="fa-solid fa-inbox" style={{ fontSize: '24px', display: 'block', marginBottom: '8px' }}></i>
+                  <div style={{ textAlign: 'center', padding: '30px', color: '#4B5563', fontSize: '13px', background: '#F8FAFC', borderRadius: '10px' }}>
+                    <i className="fa-solid fa-inbox" style={{ fontSize: '24px', display: 'block', marginBottom: '8px', color: '#F97316' }}></i>
                     No orders placed yet.
                   </div>
                 )}
               </div>
 
               {/* Top Selling Dishes */}
-              <div className="glass" style={{ padding: '20px', borderRadius: 'var(--radius-md)' }}>
-                <h3 style={{ fontFamily: 'Playfair Display, serif', fontSize: '18px', marginBottom: '16px', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ background: '#FFFFFF', padding: '20px', borderRadius: '16px', border: '2px solid #D6EAF8', boxShadow: '0 4px 15px rgba(0,0,0,0.04)' }}>
+                <h3 style={{ fontSize: '18px', fontWeight: 900, marginBottom: '16px', color: '#1E3A5F', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <i className="fa-solid fa-chart-line" style={{ color: '#10B981' }}></i>
                   Top Bestselling Dishes
                 </h3>
                 {topDishes.length > 0 ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     {topDishes.slice(0, 7).map((item, idx) => (
-                      <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', background: 'rgba(0,0,0,0.2)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-glass)' }}>
+                      <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 14px', background: '#F8FAFC', borderRadius: '10px', border: '1px solid #D6EAF8' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <span style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'rgba(255,159,28,0.2)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 800 }}>
+                          <span style={{ width: '24px', height: '24px', borderRadius: '50%', background: '#D6EAF8', color: '#1E3A5F', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 900 }}>
                             #{idx + 1}
                           </span>
                           <div>
-                            <div style={{ fontWeight: 700, fontSize: '13px', color: '#FFF' }}>{item._id}</div>
-                            <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{item.totalQty} units sold</div>
+                            <div style={{ fontWeight: 900, fontSize: '14px', color: '#111827' }}>{item._id}</div>
+                            <div style={{ fontSize: '11px', color: '#4B5563', fontWeight: 700 }}>{item.totalQty} units sold</div>
                           </div>
                         </div>
-                        <div style={{ fontWeight: 800, color: '#10B981' }}>{formatPrice(item.totalSales)}</div>
+                        <div style={{ fontWeight: 900, color: '#059669', fontSize: '15px' }}>{formatPrice(item.totalSales)}</div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div style={{ textAlign: 'center', padding: '30px', color: 'var(--text-dim)', fontSize: '13px' }}>
-                    <i className="fa-solid fa-chart-bar" style={{ fontSize: '24px', display: 'block', marginBottom: '8px' }}></i>
+                  <div style={{ textAlign: 'center', padding: '30px', color: '#4B5563', fontSize: '13px', background: '#F8FAFC', borderRadius: '10px' }}>
+                    <i className="fa-solid fa-chart-bar" style={{ fontSize: '24px', display: 'block', marginBottom: '8px', color: '#10B981' }}></i>
                     No sales data yet. Top dishes will appear as orders arrive.
                   </div>
                 )}
