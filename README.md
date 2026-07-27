@@ -1,190 +1,223 @@
-# AURA â€“ Smart Interactive Dining Experience
+# ??? AURA — Smart Dining Platform
 
-A production-ready Full Stack Smart Restaurant Management System built with **Node.js**, **Express.js**, **MongoDB Atlas**, **Mongoose**, and **Socket.IO**. AURA elevates dine-in experiences with real-time collaborative ordering, digital interactive floor plans, Google Identity Services OAuth 2.0, secure JWT authentication, and localized Indian currency (â‚¹) formatting.
-
----
-
-## Table of Contents
-1. [Project Architecture](#project-architecture)
-2. [Security & Compliance](#security--compliance)
-3. [Environment Configuration](#environment-configuration)
-4. [Third-Party Setup Guides](#third-party-setup-guides)
-   - [MongoDB Atlas Setup](#mongodb-atlas-setup)
-   - [Google OAuth 2.0 Setup](#google-oauth-2-0-setup)
-   - [Cloudinary Configuration](#cloudinary-configuration)
-5. [Database Seeding](#database-seeding)
-6. [API Documentation](#api-documentation)
-7. [Real-time Socket.IO Events](#real-time-socketio-events)
-8. [Production Deployment Guide](#production-deployment-guide)
+> **AI-Powered Restaurant Management & Ordering System**
+> Live Demo: [https://aura-smart-dining.onrender.com](https://aura-smart-dining.onrender.com)
 
 ---
 
-## Project Architecture
+## ?? About the Project
 
-AURA follows a clean **MVC (Model-View-Controller)** pattern:
-
-```
-â”œâ”€â”€ config/             # Connection configurations (DB, Cloudinary)
-â”œâ”€â”€ controllers/        # Logical controllers processing requests
-â”œâ”€â”€ middleware/         # Security, JWT auth, and validation filters
-â”œâ”€â”€ models/             # Mongoose database schemas
-â”œâ”€â”€ routes/             # API routing endpoints
-â”œâ”€â”€ socket/             # Socket.IO event handler for collaborative features
-â”œâ”€â”€ public/             # Serves the responsive front-end client
-â”œâ”€â”€ seed/               # Database seeder scripts
-â”œâ”€â”€ tests/              # Automated integration tests
-â”œâ”€â”€ .env.example        # Environment variable template
-â”œâ”€â”€ app.js              # Express app setup and config
-â”œâ”€â”€ server.js           # Server runner and listener
-â””â”€â”€ package.json        # Dependencies and execution scripts
-```
+**AURA Smart Dining** is a full-stack, AI-powered restaurant management platform that transforms the traditional dining experience into a seamless, touchless, and intelligent system. Customers can browse the menu, select their preferred table, and place real-time orders — all from their phone. Behind the scenes, every restaurant role (Admin, Manager, Chef, Cashier, Waiter) gets a dedicated live dashboard, all connected via WebSockets so updates sync instantly across the entire restaurant floor.
 
 ---
 
-## Security & Compliance
+## ? Features
 
-AURA implements top-tier security standards to protect users and servers:
-- **Helmet**: Secures the HTTP headers and configures strict Content Security Policies (CSP) to restrict remote script execution (like GIS and Socket.IO integrations).
-- **CORS**: Domain verification restricting API calls to authenticated origins.
-- **Rate-Limiting**: Mitigates DDoS attacks by limiting client IP requests.
-- **NoSQL Injection Protection**: MongoDB queries are sanitized automatically by Mongoose validator schemas.
-- **XSS Protection**: Secure HTTP-only cookies preventing cross-site scripting storage hijacking.
-- **Security Hashing**: Hashed user passwords using `bcryptjs`.
+### ?? Customer Experience
+- ?? **Interactive Table Selection** — Live floor plan grid; customers choose their preferred table before ordering
+- ??? **Full Menu Browsing** — Browse dishes by category with search and filters
+- ?? **AI Food Recommender** — Personalized dish suggestions powered by smart preference analysis
+- ?? **Real-Time Order Placement** — Add items to a shared table cart and place orders instantly
+- ?? **Private Member Dashboard** — Each member sees only their own order history, receipts, and analytics
+- ?? **Spending Analytics** — Total spend tracked per member with visit frequency
+- ?? **Favourite Dishes** — Most-ordered dishes highlighted for quick reordering
+- ?? **Waiter Assistance** — Call a waiter directly from the app with one tap
 
----
+### ?? Restaurant Operations
+- ? **Live WebSocket Sync** — Every order, table status, and kitchen update broadcasts instantly to all dashboards
+- ?? **Auto Table Vacancy on Payment** — Table automatically becomes vacant the moment the cashier marks a bill as paid
+- ?? **Role-Based Access Control** — Each staff role sees only their own portal; no cross-role data leakage
 
-## Environment Configuration
+### ??? Staff Dashboards
 
-Create a `.env` file in the root directory based on `.env.example`:
+| Role | Dashboard Features |
+|------|--------------------|
+| **Admin** | KPI stats, revenue charts, order analytics, user management |
+| **Manager** | Live table occupancy (20 tables), ingredient stock tracking, restock controls |
+| **Chef (KDS)** | Incoming kitchen orders, mark ready/in-progress controls |
+| **Cashier** | Active bills, payment processing, table clearance |
+| **Waiter** | Order tracking, table status, waiter call notifications |
 
-```env
-PORT=8080
-MONGODB_URI=your_mongodb_atlas_connection_string
-JWT_SECRET=your_jwt_secret_key_change_in_production
-GOOGLE_CLIENT_ID=686445090372-17hhr1l6fsbjots3e8kuse904cv9rq72.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=your_google_client_secret
-CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
-CLOUDINARY_API_KEY=your_cloudinary_api_key
-CLOUDINARY_API_SECRET=your_cloudinary_api_secret
-NODE_ENV=development
-FRONTEND_URL=http://localhost:8080
-```
+### ?? Inventory & Stock
+- ?? **Ingredient Stock Tracking** — Real-time quantity monitoring for all ingredients
+- ?? **Restock Controls** — Managers can adjust stock levels with +1, -1, +10 buttons
+- ?? **Low Stock Alerts** — Visual indicators for low and out-of-stock ingredients
 
----
-
-## Third-Party Setup Guides
-
-### MongoDB Atlas Setup
-1. Log in or create an account at [MongoDB Atlas](https://www.mongodb.com/cloud/atlas).
-2. Create a database cluster (the Shared free tier is sufficient).
-3. Under **Database Access**, create a user with read/write privileges.
-4. Under **Network Access**, whitelist the IP addresses that require access (`0.0.0.0/8` allows global cloud access).
-5. Click **Connect**, choose **Connect your application**, copy the connection string, and paste it into `MONGODB_URI` in `.env`.
-
-### Google OAuth 2.0 Setup
-1. Go to the [Google Cloud Console](https://console.cloud.google.com/).
-2. Select or create a project.
-3. Search for **APIs & Services** -> **OAuth consent screen**, choose "External", and complete the required fields.
-4. Go to **Credentials**, click **Create Credentials**, and select **OAuth client ID**.
-5. Select **Web application** as application type.
-6. Under **Authorized JavaScript origins**, add:
-   - `http://localhost:8080` (for development)
-   - `https://your-production-url.com` (for production)
-7. Save the configuration. Copy the **Client Secret** and add it to `GOOGLE_CLIENT_SECRET` in `.env`. (The Client ID is preconfigured as: `686445090372-17hhr1l6fsbjots3e8kuse904cv9rq72.apps.googleusercontent.com`).
-
-### Cloudinary Configuration
-1. Register at [Cloudinary](https://cloudinary.com/).
-2. From the Console Dashboard, copy your **Cloud Name**, **API Key**, and **API Secret**.
-3. Paste these values into the respective fields in `.env`.
+### ?? Authentication & Security
+- ?? **Member Sign In / Sign Up** — Secure JWT-based authentication with name/email/role encoded in token
+- ?? **Google OAuth** — One-click Google Sign-In support
+- ??? **Isolated Order History** — No two customers can ever see each other''s orders or receipts
+- ?? **Profile Persistence** — Customer name stored in MongoDB and JWT; always shows real name in dashboard
 
 ---
 
-## Database Seeding
+## ??? Tech Stack
 
-Populate the database with pre-arranged table configurations, category taxonomies, and gourmet menu items (with Indian Rupee formatting and pricing):
+### Frontend
+| Technology | Purpose |
+|-----------|---------|
+| **React 18** | UI framework |
+| **Vite** | Build tool & dev server |
+| **Vanilla CSS** | Styling with glassmorphism & animations |
+| **Socket.IO Client** | Real-time live updates |
+| **Font Awesome** | Icons |
 
+### Backend
+| Technology | Purpose |
+|-----------|---------|
+| **Node.js + Express** | REST API server |
+| **MongoDB + Mongoose** | Database & ODM |
+| **Socket.IO** | WebSocket real-time events |
+| **JWT (jsonwebtoken)** | Authentication tokens |
+| **bcryptjs** | Password hashing |
+| **Google Auth Library** | Google OAuth verification |
+
+### Infrastructure
+| Service | Purpose |
+|---------|---------|
+| **Render** | Full-stack deployment (web service) |
+| **MongoDB Atlas** | Cloud database |
+| **GitHub** | Version control & CI |
+
+---
+
+## ?? Getting Started
+
+### Prerequisites
+- Node.js v18+
+- npm v9+
+- MongoDB Atlas URI (or local MongoDB)
+
+### 1. Clone the Repository
 ```bash
-npm run seed
+git clone https://github.com/heetchheda06/AURA-Smart-Dining.git
+cd AURA-Smart-Dining
 ```
 
-This also creates system-wide default role accounts:
-- **Admin**: `admin@auradining.in` / `AdminPassword123`
-- **Waiter**: `waiter@auradining.in` / `WaiterPassword123`
-- **Customer**: `customer@auradining.in` / `CustomerPassword123`
+### 2. Install Dependencies
+```bash
+# Install backend dependencies
+npm install
+
+# Install frontend dependencies
+npm install --prefix client
+```
+
+### 3. Configure Environment Variables
+Create a `.env` file in the root directory:
+```env
+PORT=5000
+MONGODB_URI=your_mongodb_atlas_uri
+JWT_SECRET=your_jwt_secret_key
+GOOGLE_CLIENT_ID=your_google_oauth_client_id
+NODE_ENV=development
+```
+
+### 4. Run in Development
+```bash
+# Run backend (from root)
+npm run dev
+
+# Run frontend (in a separate terminal)
+npm run dev --prefix client
+```
+
+The app will be available at:
+- **Frontend**: `http://localhost:5173`
+- **Backend API**: `http://localhost:5000`
+
+### 5. Build for Production
+```bash
+npm run build --prefix client
+```
 
 ---
 
-## API Documentation
+## ?? Project Structure
 
-### 1. Authentication
-* **POST `/api/auth/register`**
-  - Payload: `{ "name": "...", "email": "...", "password": "...", "mobile": "..." }`
-  - Action: Registers member customer account. Returns JWT.
-* **POST `/api/auth/login`**
-  - Payload: `{ "email": "...", "password": "..." }`
-  - Action: Standard login verification. Returns JWT.
-* **POST `/api/auth/google`**
-  - Payload: `{ "idToken": "..." }`
-  - Action: Validates Google ID Token, logs in or registers user, returns JWT.
-* **POST `/api/auth/guest-login`**
-  - Payload: `{ "name": "...", "tableNum": 8 }`
-  - Action: Commences on-site session, updates table status, returns guest JWT.
-* **POST `/api/auth/logout`**
-  - Action: Clears secure cookies.
-* **GET `/api/auth/profile`**
-  - Header: `Authorization: Bearer <token>`
-  - Action: Returns authenticated profile.
-
-### 2. Menu & Categories
-* **GET `/api/categories`**
-  - Action: Returns menu categories.
-* **GET `/api/menu`**
-  - Query Params: `?category=sushi` or `?search=steak`
-  - Action: Returns filtered/searched menu items.
-* **POST `/api/menu`** (Admin only)
-  - Content-Type: `multipart/form-data`
-  - Body: `{ name, category, price, prep, image (file) }`
-
-### 3. Collaborative Cart
-* **GET `/api/cart/:tableNum`**
-  - Action: Gets table cart items.
-* **POST `/api/cart/:tableNum/add`**
-  - Body: `{ menuItemId, name, price, addedBy }`
-* **POST `/api/cart/:tableNum/update`**
-  - Body: `{ menuItemId, delta: 1 | -1 }`
-* **POST `/api/cart/:tableNum/clear`**
-
-### 4. Orders
-* **POST `/api/orders`** (Customer/Guest JWT Required)
-  - Action: Dispatches active cart items as an order to the kitchen.
-* **GET `/api/orders`**
-  - Action: Customer history / Staff view.
-* **PUT `/api/orders/:id/status`** (Waiter/Admin JWT Required)
-  - Body: `{ "status": "preparing" }`
-* **GET `/api/orders/:id/split/:count`**
-  - Action: Calculates and syncs split bill per person (formatted in â‚¹).
+```
+AURA-Smart-Dining/
++-- client/                    # React frontend (Vite)
+¦   +-- src/
+¦       +-- components/        # All UI components
+¦       ¦   +-- AdminDashboard.jsx
+¦       ¦   +-- ManagerDashboard.jsx
+¦       ¦   +-- ChefDashboard.jsx
+¦       ¦   +-- CashierDashboard.jsx
+¦       ¦   +-- AuthModal.jsx
+¦       ¦   +-- TableSelectModal.jsx
+¦       ¦   +-- UserOrdersModal.jsx
+¦       ¦   +-- ...
+¦       +-- data/              # Fallback data
+¦       +-- App.jsx            # Root component
++-- controllers/               # Express route controllers
+¦   +-- authController.js
+¦   +-- orderController.js
+¦   +-- tableController.js
+¦   +-- inventoryController.js
+¦   +-- adminController.js
++-- models/                    # Mongoose schemas
+¦   +-- User.js
+¦   +-- Order.js
+¦   +-- Table.js
+¦   +-- ...
++-- routes/                    # API route definitions
++-- middleware/                # Auth & error middleware
++-- public/                    # Built frontend assets (served by Express)
++-- server.js                  # Express + Socket.IO entry point
++-- render.yaml                # Render deployment config
++-- README.md
+```
 
 ---
 
-## Real-time Socket.IO Events
+## ?? Key API Endpoints
 
-Clients communicate via Socket.IO to coordinate tables:
-- `table:join`: Diners join room `table_room_{tableNum}`.
-- `user:joined` / `user:left`: Emitted to sync diner counts.
-- `cart:add` / `cart:update` / `cart:clear`: Triggers DB modification and broadcasts `cart:updated` to table room.
-- `table:status_changed`: Broadcasts live seating updates to all users (auto-updating floor plans).
-- `waiter:call`: Registers help calls and emits `waiter:request_new` to waitstaff monitoring dashboards.
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/auth/register` | Member registration |
+| `POST` | `/api/auth/login` | Member / Staff login |
+| `GET` | `/api/auth/profile` | Get logged-in user profile |
+| `GET` | `/api/menu` | Fetch menu items |
+| `GET` | `/api/tables` | Get all table statuses |
+| `PUT` | `/api/tables/:num/status` | Update table status |
+| `POST` | `/api/orders` | Place a new order |
+| `GET` | `/api/orders` | Get orders (filtered by role) |
+| `PUT` | `/api/orders/:id/status` | Update order status |
+| `GET` | `/api/inventory` | Get ingredient stock |
+| `POST` | `/api/inventory/:id/restock` | Adjust ingredient stock |
+| `GET` | `/api/admin/dashboard` | Admin KPI stats |
 
 ---
 
-## Production Deployment Guide
+## ?? Key Design Decisions
 
-AURA is fully cloud-ready and contains zero localhost dependencies.
+- **In-Memory Order Store** — Orders are cached in RAM as a fallback, ensuring Chef and Cashier dashboards always work even if MongoDB is temporarily unavailable
+- **JWT with Embedded Profile** — Customer name, email, and role are encoded inside the JWT so the dashboard always displays the correct name without an extra DB round-trip
+- **Per-Member Order Isolation** — The `/api/orders` endpoint intelligently filters by `userRef` or `customerName` for member customers, ensuring complete data privacy between accounts
+- **Socket.IO Room Architecture** — Each table has its own socket room (`table_room_X`) so cart and order updates only reach the relevant table's customers
+- **Auto Table Vacancy** — When a cashier marks payment as completed, the table status is automatically set to `free` and broadcast via socket to all active clients in real-time
 
-### Deploying to Render / Railway / Heroku
-1. Push the code to a private or public GitHub repository.
-2. Link the repository to your hosting provider.
-3. Configure the environment variables in the service dashboard.
-4. Set the build command to `npm install --legacy-peer-deps` (if peer conflict arises) or `npm install`.
-5. Set start command to `npm start`.
-6. Run the database seed once. Your AURA dining application is live globally!
+---
+
+## ?? Team
+
+| Name | Role |
+|------|------|
+| ?? **Heet Chheda** | Team Leader — Full Stack Development & System Architecture |
+| **Falgun Patel** | Backend Development & API Integration |
+| **Shardul Dalvi** | Frontend Development & UI/UX Design |
+| **Aryan Keni** | Database Design & Real-Time Features |
+
+---
+
+## ?? License
+
+This project was built for a Hackathon. All rights reserved © 2025 Team AURA.
+
+---
+
+<div align="center">
+  <strong>Built with ?? by Team AURA</strong><br/>
+  <em>Making every dining experience smarter, faster, and more delightful.</em>
+</div>
