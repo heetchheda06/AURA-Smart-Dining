@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import io from 'socket.io-client';
 
+const socket = io();
 const COLORS = ['#F59E0B', '#10B981', '#8B5CF6', '#EC4899', '#3B82F6', '#EF4444', '#06B6D4', '#84CC16'];
 
 export default function AdminDashboard({ onLogout, adminName, formatPrice }) {
@@ -12,6 +13,29 @@ export default function AdminDashboard({ onLogout, adminName, formatPrice }) {
   useEffect(() => {
     fetchDashboard();
     fetchAnalytics();
+
+    const handleOrderEvent = () => {
+      fetchDashboard();
+      fetchAnalytics();
+    };
+
+    socket.on('admin:new_order', handleOrderEvent);
+    socket.on('waiter:new_order', handleOrderEvent);
+    socket.on('order:placed', handleOrderEvent);
+    socket.on('order:status_updated', handleOrderEvent);
+
+    const interval = setInterval(() => {
+      fetchDashboard();
+      fetchAnalytics();
+    }, 5000);
+
+    return () => {
+      socket.off('admin:new_order', handleOrderEvent);
+      socket.off('waiter:new_order', handleOrderEvent);
+      socket.off('order:placed', handleOrderEvent);
+      socket.off('order:status_updated', handleOrderEvent);
+      clearInterval(interval);
+    };
   }, []);
 
   const fetchDashboard = async () => {

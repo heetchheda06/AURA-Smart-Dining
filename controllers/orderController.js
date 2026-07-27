@@ -75,7 +75,7 @@ exports.placeOrder = async (req, res, next) => {
         Order.create({
           tableNum,
           items: cartItems.map(item => ({
-            menuItem: mongoose.isValidObjectId(item.menuItem) ? item.menuItem : new mongoose.Types.ObjectId(),
+            menuItem: item.menuItem,
             name: item.name,
             price: item.price,
             qty: item.qty,
@@ -278,3 +278,5 @@ exports.splitBill = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.memoryOrders = memoryOrders;
