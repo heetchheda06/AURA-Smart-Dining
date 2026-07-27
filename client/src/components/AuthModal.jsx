@@ -196,42 +196,42 @@ export default function AuthModal({
         {/* ========= TAB 2: MEMBER LOGIN & SIGN UP ========= */}
         {activeTab === 'user' && (
           <div id="auth-tab-user" className="auth-tab-content">
-            <div style={{ display: 'flex', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '8px', padding: '4px', marginBottom: '20px' }}>
+            <div style={{ display: 'flex', background: '#0F172A', borderRadius: '12px', padding: '6px', marginBottom: '20px', border: '1px solid #1E3A5F' }}>
               <button
                 type="button"
                 onClick={() => setIsRegisterMode(false)}
                 style={{
                   flex: 1,
-                  padding: '8px',
-                  borderRadius: '6px',
+                  padding: '10px',
+                  borderRadius: '8px',
                   border: 'none',
-                  background: !isRegisterMode ? 'var(--accent-purple)' : 'transparent',
-                  color: '#FFF',
-                  fontWeight: 700,
-                  fontSize: '13px',
+                  background: !isRegisterMode ? 'linear-gradient(135deg, #1E3A5F, #2A4D7C)' : 'transparent',
+                  color: !isRegisterMode ? '#FFFFFF' : '#94A3B8',
+                  fontWeight: 800,
+                  fontSize: '14px',
                   cursor: 'pointer',
                   transition: 'all 0.2s ease'
                 }}
               >
-                Sign In
+                <i className="fa-solid fa-right-to-bracket" style={{ marginRight: '6px' }}></i> Sign In
               </button>
               <button
                 type="button"
                 onClick={() => setIsRegisterMode(true)}
                 style={{
                   flex: 1,
-                  padding: '8px',
-                  borderRadius: '6px',
+                  padding: '10px',
+                  borderRadius: '8px',
                   border: 'none',
-                  background: isRegisterMode ? 'var(--accent-purple)' : 'transparent',
-                  color: '#FFF',
-                  fontWeight: 700,
-                  fontSize: '13px',
+                  background: isRegisterMode ? 'linear-gradient(135deg, #F97316, #EA580C)' : 'transparent',
+                  color: isRegisterMode ? '#FFFFFF' : '#CBD5E1',
+                  fontWeight: 800,
+                  fontSize: '14px',
                   cursor: 'pointer',
                   transition: 'all 0.2s ease'
                 }}
               >
-                Sign Up (Create Account)
+                <i className="fa-solid fa-user-plus" style={{ marginRight: '6px' }}></i> Sign Up (New Member)
               </button>
             </div>
 
