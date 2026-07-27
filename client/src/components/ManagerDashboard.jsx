@@ -7,10 +7,19 @@ export default function ManagerDashboard({ onLogout, managerName = "AURA Manager
   const [activeTab, setActiveTab] = useState('tables'); // 'tables' or 'ingredients'
   const [tables, setTables] = useState([]);
   const [ingredients, setIngredients] = useState([]);
-  const [tableFilter, setTableFilter] = useState('vacant'); // 'vacant', 'occupied', 'all'
+  const [orders, setOrders] = useState([]);
+  
+  // Filters
+  const [tableFilter, setTableFilter] = useState('all'); // 'all', 'vacant', 'occupied'
   const [ingredientFilter, setIngredientFilter] = useState('all'); // 'all', 'low', 'out'
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+
   const [toastMessage, setToastMessage] = useState('');
   
+  // Selected Table Modal State for Live Session Tracking
+  const [selectedTable, setSelectedTable] = useState(null);
+
   // New Ingredient Modal State
   const [isAddIngredientOpen, setIsAddIngredientOpen] = useState(false);
   const [newIngName, setNewIngName] = useState('');
@@ -18,6 +27,7 @@ export default function ManagerDashboard({ onLogout, managerName = "AURA Manager
   const [newIngQty, setNewIngQty] = useState(10);
   const [newIngUnit, setNewIngUnit] = useState('kg');
   const [newIngMin, setNewIngMin] = useState(5);
+  const [newIngCost, setNewIngCost] = useState(100);
 
   const showToast = (msg) => {
     setToastMessage(msg);
@@ -47,6 +57,18 @@ export default function ManagerDashboard({ onLogout, managerName = "AURA Manager
     { num: 20, seats: 12, zone: "Family Dining Grand", status: "free" }
   ];
 
+  const fetchOrders = async () => {
+    try {
+      const res = await fetch('/api/orders');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) setOrders(data.data || []);
+      }
+    } catch (e) {
+      console.error("Error fetching live orders:", e);
+    }
+  };
+
   const fetchTables = async () => {
     try {
       let loadedTables = [];
@@ -69,6 +91,7 @@ export default function ManagerDashboard({ onLogout, managerName = "AURA Manager
         if (orderRes.ok) {
           const orderData = await orderRes.json();
           if (orderData.success && orderData.data) {
+            setOrders(orderData.data || []);
             const activeTableSet = new Set(
               orderData.data
                 .filter(o => o.paymentStatus !== 'paid' && !['completed', 'cancelled'].includes(String(o.status).toLowerCase()))
@@ -105,10 +128,12 @@ export default function ManagerDashboard({ onLogout, managerName = "AURA Manager
   useEffect(() => {
     fetchTables();
     fetchIngredients();
+    fetchOrders();
 
     const handleRefresh = () => {
       fetchTables();
       fetchIngredients();
+      fetchOrders();
     };
 
     socket.on('table:status_changed', handleRefresh);
@@ -117,7 +142,7 @@ export default function ManagerDashboard({ onLogout, managerName = "AURA Manager
     socket.on('order:status_updated', handleRefresh);
     socket.on('payment:completed', handleRefresh);
 
-    const interval = setInterval(handleRefresh, 5000);
+    const interval = setInterval(handleRefresh, 4000);
 
     return () => {
       socket.off('table:status_changed', handleRefresh);
@@ -143,8 +168,11 @@ export default function ManagerDashboard({ onLogout, managerName = "AURA Manager
       });
       const data = await res.json();
       if (data.success) {
-        showToast(`🪑 Table #${tableNum} status updated to: ${newStatus.toUpperCase()}`);
+        showToast(`🪑 Table #${tableNum} is now ${newStatus.toUpperCase()}`);
         fetchTables();
+        if (selectedTable && selectedTable.num === tableNum) {
+          setSelectedTable(prev => ({ ...prev, status: newStatus }));
+        }
       }
     } catch (err) {
       console.error(err);
@@ -152,8 +180,8 @@ export default function ManagerDashboard({ onLogout, managerName = "AURA Manager
     }
   };
 
-  // Restock ingredient delta action
-  const handleRestockIngredient = async (ingredientId, delta = 5) => {
+  // Adjust Ingredient Stock delta action (+ / -)
+  const handleAdjustStock = async (ingredientId, delta) => {
     try {
       const res = await fetch(`/api/inventory/${ingredientId}/restock`, {
         method: 'POST',
@@ -162,12 +190,12 @@ export default function ManagerDashboard({ onLogout, managerName = "AURA Manager
       });
       const data = await res.json();
       if (data.success) {
-        showToast(`📦 Restocked +${delta} ${data.data.unit} of ${data.data.name}!`);
+        showToast(`📦 Stock adjusted (${delta > 0 ? '+' + delta : delta}) for ${data.data.name}!`);
         fetchIngredients();
       }
     } catch (err) {
       console.error(err);
-      showToast("⚠️ Restock failed.");
+      showToast("⚠️ Stock update failed.");
     }
   };
 
@@ -185,12 +213,13 @@ export default function ManagerDashboard({ onLogout, managerName = "AURA Manager
           quantity: Number(newIngQty),
           unit: newIngUnit,
           minThreshold: Number(newIngMin),
+          cost_per_unit: Number(newIngCost),
           maxCapacity: Number(newIngQty) * 2
         })
       });
       const data = await res.json();
       if (data.success) {
-        showToast(`✨ Added ${newIngName} to inventory stock!`);
+        showToast(`✨ Added ${newIngName} to live inventory stock!`);
         setIsAddIngredientOpen(false);
         setNewIngName('');
         fetchIngredients();
@@ -202,7 +231,7 @@ export default function ManagerDashboard({ onLogout, managerName = "AURA Manager
     }
   };
 
-  // Filtered lists
+  // Filtered Table & Ingredient Calculations
   const vacantTablesCount = tables.filter(t => t.status === 'free').length;
   const occupiedTablesCount = tables.filter(t => t.status === 'occupied').length;
   const occupancyRate = tables.length > 0 ? Math.round((occupiedTablesCount / tables.length) * 100) : 0;
@@ -213,14 +242,40 @@ export default function ManagerDashboard({ onLogout, managerName = "AURA Manager
     return true;
   });
 
-  const lowStockCount = ingredients.filter(i => i.status === 'low_stock').length;
-  const outOfStockCount = ingredients.filter(i => i.status === 'out_of_stock').length;
+  const lowStockCount = ingredients.filter(i => {
+    const qty = i.current_stock !== undefined ? i.current_stock : i.quantity;
+    const thresh = i.reorder_threshold || i.minThreshold || 5;
+    return qty > 0 && qty <= thresh;
+  }).length;
+
+  const outOfStockCount = ingredients.filter(i => {
+    const qty = i.current_stock !== undefined ? i.current_stock : i.quantity;
+    return qty <= 0;
+  }).length;
+
+  const categories = ['all', ...Array.from(new Set(ingredients.map(i => i.category || 'Produce')))];
 
   const filteredIngredients = ingredients.filter(i => {
-    if (ingredientFilter === 'low') return i.status === 'low_stock';
-    if (ingredientFilter === 'out') return i.status === 'out_of_stock';
+    const curStock = i.current_stock !== undefined ? i.current_stock : i.quantity;
+    const threshold = i.reorder_threshold || i.minThreshold || 5;
+    
+    // Status Filter
+    if (ingredientFilter === 'low' && !(curStock > 0 && curStock <= threshold)) return false;
+    if (ingredientFilter === 'out' && curStock > 0) return false;
+    
+    // Category Filter
+    if (selectedCategory !== 'all' && i.category !== selectedCategory) return false;
+
+    // Search Query
+    if (searchQuery && !i.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+
     return true;
   });
+
+  // Get active order details for a table
+  const getActiveOrdersForTable = (tableNum) => {
+    return orders.filter(o => Number(o.tableNum) === Number(tableNum) && o.paymentStatus !== 'paid');
+  };
 
   return (
     <div className="admin-wrapper" style={{ background: '#0B0F19', minHeight: '100vh', color: '#111827' }}>
@@ -231,18 +286,23 @@ export default function ManagerDashboard({ onLogout, managerName = "AURA Manager
             <i className="fa-solid fa-user-tie"></i>
           </div>
           <div>
-            <h1 style={{ fontSize: '22px', fontWeight: 900, color: '#FFFFFF', margin: 0, letterSpacing: '0.5px' }}>
-              Manager Operations Control
-            </h1>
-            <span style={{ fontSize: '11px', background: '#D6EAF8', color: '#1E3A5F', padding: '2px 10px', borderRadius: '10px', fontWeight: 800, marginTop: '2px', display: 'inline-block' }}>
-              FLOOR & INVENTORY CONTROL PORTAL
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <h1 style={{ fontSize: '22px', fontWeight: 900, color: '#FFFFFF', margin: 0, letterSpacing: '0.5px' }}>
+                Manager Operations Control
+              </h1>
+              <span style={{ background: '#10B981', color: '#FFFFFF', fontSize: '10px', fontWeight: 900, padding: '2px 8px', borderRadius: '10px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#FFF', display: 'inline-block' }}></span> LIVE SOCKET SYNC
+              </span>
+            </div>
+            <span style={{ fontSize: '11px', color: '#D6EAF8', fontWeight: 800, marginTop: '2px', display: 'inline-block' }}>
+              LOGGED IN AS: {managerName.toUpperCase()} &bull; REAL-TIME FLOOR & STOCK ENGINE
             </span>
           </div>
         </div>
 
         <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
           <button 
-            onClick={fetchIngredients}
+            onClick={() => { fetchTables(); fetchIngredients(); fetchOrders(); showToast("🔄 Real-time data synced!"); }}
             style={{
               background: '#F97316',
               color: '#FFFFFF',
@@ -250,7 +310,7 @@ export default function ManagerDashboard({ onLogout, managerName = "AURA Manager
               borderRadius: '20px',
               padding: '10px 18px',
               fontSize: '13px',
-              fontWeight: 800,
+              fontWeight: 900,
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -258,7 +318,7 @@ export default function ManagerDashboard({ onLogout, managerName = "AURA Manager
               boxShadow: '0 4px 14px rgba(249, 115, 22, 0.4)'
             }}
           >
-            <i className="fa-solid fa-rotate"></i> Refresh Data
+            <i className="fa-solid fa-arrows-rotate"></i> Refresh Live Data
           </button>
           <button 
             onClick={onLogout}
@@ -309,7 +369,7 @@ export default function ManagerDashboard({ onLogout, managerName = "AURA Manager
             }}
           >
             <i className="fa-solid fa-chair" style={{ fontSize: '20px', color: activeTab === 'tables' ? '#F97316' : '#1E3A5F' }}></i>
-            1. Vacant & Floor Tables ({vacantTablesCount} Free)
+            1. Vacant & Floor Tables ({vacantTablesCount} Free / {tables.length} Total)
           </button>
 
           <button 
@@ -332,38 +392,80 @@ export default function ManagerDashboard({ onLogout, managerName = "AURA Manager
             }}
           >
             <i className="fa-solid fa-boxes-packing" style={{ fontSize: '20px', color: activeTab === 'ingredients' ? '#F97316' : '#1E3A5F' }}></i>
-            2. Ingredients & Stock Left ({ingredients.length} Items)
+            2. Live Ingredients & Stock ({ingredients.length} Tracked)
           </button>
         </div>
 
         {/* TAB 1: VACANT & OCCUPIED TABLES */}
         {activeTab === 'tables' && (
           <div>
-            {/* Table Metrics */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '24px' }}>
-              <div style={{ padding: '20px', borderRadius: '16px', border: '2px solid #10B981', background: '#F0FDF4', color: '#111827', boxShadow: '0 4px 15px rgba(16,185,129,0.1)' }}>
-                <div style={{ fontSize: '12px', color: '#065F46', fontWeight: 800, textTransform: 'uppercase' }}>Vacant / Free Tables</div>
+            {/* Table Metrics Row */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '20px' }}>
+              <div 
+                onClick={() => setTableFilter('vacant')}
+                style={{ cursor: 'pointer', padding: '20px', borderRadius: '16px', border: tableFilter === 'vacant' ? '3px solid #10B981' : '2px solid #6EE7B7', background: '#F0FDF4', color: '#111827', boxShadow: '0 4px 15px rgba(16,185,129,0.1)' }}
+              >
+                <div style={{ fontSize: '12px', color: '#065F46', fontWeight: 900, textTransform: 'uppercase' }}>Vacant / Free Tables</div>
                 <div style={{ fontSize: '34px', fontWeight: 900, color: '#10B981', margin: '4px 0' }}>{vacantTablesCount}</div>
-                <div style={{ fontSize: '12px', color: '#4B5563', fontWeight: 600 }}>Available for immediate seating</div>
+                <div style={{ fontSize: '12px', color: '#047857', fontWeight: 700 }}>Click to filter vacant tables</div>
               </div>
 
-              <div style={{ padding: '20px', borderRadius: '16px', border: '2px solid #EF4444', background: '#FEF2F2', color: '#111827', boxShadow: '0 4px 15px rgba(239,68,68,0.1)' }}>
-                <div style={{ fontSize: '12px', color: '#991B1B', fontWeight: 800, textTransform: 'uppercase' }}>Occupied Tables</div>
+              <div 
+                onClick={() => setTableFilter('occupied')}
+                style={{ cursor: 'pointer', padding: '20px', borderRadius: '16px', border: tableFilter === 'occupied' ? '3px solid #EF4444' : '2px solid #FCA5A5', background: '#FEF2F2', color: '#111827', boxShadow: '0 4px 15px rgba(239,68,68,0.1)' }}
+              >
+                <div style={{ fontSize: '12px', color: '#991B1B', fontWeight: 900, textTransform: 'uppercase' }}>Occupied Tables</div>
                 <div style={{ fontSize: '34px', fontWeight: 900, color: '#EF4444', margin: '4px 0' }}>{occupiedTablesCount}</div>
-                <div style={{ fontSize: '12px', color: '#4B5563', fontWeight: 600 }}>Currently dining customers</div>
+                <div style={{ fontSize: '12px', color: '#B91C1C', fontWeight: 700 }}>Currently dining & ordering</div>
               </div>
 
-              <div style={{ padding: '20px', borderRadius: '16px', border: '2px solid #F59E0B', background: '#FFFBEB', color: '#111827', boxShadow: '0 4px 15px rgba(245,158,11,0.1)' }}>
-                <div style={{ fontSize: '12px', color: '#92400E', fontWeight: 800, textTransform: 'uppercase' }}>Current Occupancy</div>
+              <div 
+                onClick={() => setTableFilter('all')}
+                style={{ cursor: 'pointer', padding: '20px', borderRadius: '16px', border: tableFilter === 'all' ? '3px solid #F59E0B' : '2px solid #FCD34D', background: '#FFFBEB', color: '#111827', boxShadow: '0 4px 15px rgba(245,158,11,0.1)' }}
+              >
+                <div style={{ fontSize: '12px', color: '#92400E', fontWeight: 900, textTransform: 'uppercase' }}>Current Occupancy</div>
                 <div style={{ fontSize: '34px', fontWeight: 900, color: '#D97706', margin: '4px 0' }}>{occupancyRate}%</div>
-                <div style={{ fontSize: '12px', color: '#4B5563', fontWeight: 600 }}>{tables.length} Total Floor Tables</div>
+                <div style={{ fontSize: '12px', color: '#B45309', fontWeight: 700 }}>{tables.length} Total Floor Tables (All)</div>
+              </div>
+            </div>
+
+            {/* Table Filter Controls */}
+            <div style={{ background: '#FFFFFF', padding: '14px 20px', borderRadius: '14px', marginBottom: '20px', border: '1.5px solid #D6EAF8', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+              <div style={{ fontSize: '15px', fontWeight: 900, color: '#1E3A5F', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <i className="fa-solid fa-map-location-dot" style={{ color: '#F97316' }}></i>
+                Live Floor Plan Grid ({filteredTables.length} Tables Shown)
+              </div>
+
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button 
+                  onClick={() => setTableFilter('all')}
+                  style={{ padding: '6px 14px', borderRadius: '10px', border: '1px solid #1E3A5F', background: tableFilter === 'all' ? '#1E3A5F' : '#FFFFFF', color: tableFilter === 'all' ? '#FFF' : '#1E3A5F', fontWeight: 900, fontSize: '12px', cursor: 'pointer' }}
+                >
+                  All ({tables.length})
+                </button>
+                <button 
+                  onClick={() => setTableFilter('vacant')}
+                  style={{ padding: '6px 14px', borderRadius: '10px', border: '1px solid #10B981', background: tableFilter === 'vacant' ? '#10B981' : '#F0FDF4', color: tableFilter === 'vacant' ? '#FFF' : '#065F46', fontWeight: 900, fontSize: '12px', cursor: 'pointer' }}
+                >
+                  🟢 Vacant ({vacantTablesCount})
+                </button>
+                <button 
+                  onClick={() => setTableFilter('occupied')}
+                  style={{ padding: '6px 14px', borderRadius: '10px', border: '1px solid #EF4444', background: tableFilter === 'occupied' ? '#EF4444' : '#FEF2F2', color: tableFilter === 'occupied' ? '#FFF' : '#991B1B', fontWeight: 900, fontSize: '12px', cursor: 'pointer' }}
+                >
+                  🔴 Occupied ({occupiedTablesCount})
+                </button>
               </div>
             </div>
 
             {/* Table Floor Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '18px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))', gap: '18px' }}>
               {filteredTables.map(t => {
                 const isVacant = t.status === 'free';
+                const tableOrders = getActiveOrdersForTable(t.num);
+                const orderTotal = tableOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+                const activeCust = tableOrders[0]?.customerName || 'Diner';
+
                 return (
                   <div 
                     key={t.num} 
@@ -373,42 +475,57 @@ export default function ManagerDashboard({ onLogout, managerName = "AURA Manager
                       border: `2px solid ${isVacant ? '#10B981' : '#EF4444'}`,
                       background: '#FFFFFF',
                       boxShadow: '0 4px 15px rgba(0,0,0,0.05)',
-                      color: '#111827'
+                      color: '#111827',
+                      position: 'relative'
                     }}
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                      <div style={{ fontSize: '18px', fontWeight: 900, color: '#1E3A5F' }}>Table #{t.num}</div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                      <div style={{ fontSize: '19px', fontWeight: 900, color: '#1E3A5F' }}>Table #{t.num}</div>
                       <span style={{ 
                         padding: '4px 10px', 
                         borderRadius: '20px', 
                         fontSize: '11px', 
                         fontWeight: 900,
                         background: isVacant ? '#DCFCE7' : '#FEE2E2',
-                        color: isVacant ? '#065F46' : '#991B1B'
+                        color: isVacant ? '#065F46' : '#991B1B',
+                        border: `1px solid ${isVacant ? '#6EE7B7' : '#FCA5A5'}`
                       }}>
                         {isVacant ? 'VACANT' : 'OCCUPIED'}
                       </span>
                     </div>
 
-                    <div style={{ fontSize: '13px', color: '#4B5563', marginBottom: '16px', fontWeight: 600 }}>
-                      <div><i className="fa-solid fa-users" style={{ width: '18px', color: '#1E3A5F' }}></i> Capacity: <strong>{t.seats} Seats</strong></div>
+                    <div style={{ fontSize: '13px', color: '#4B5563', marginBottom: '14px', fontWeight: 700, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <div><i className="fa-solid fa-users" style={{ width: '18px', color: '#1E3A5F' }}></i> Seating: <strong>{t.seats} Seats</strong></div>
                       <div><i className="fa-solid fa-layer-group" style={{ width: '18px', color: '#1E3A5F' }}></i> Zone: <strong>{t.zone}</strong></div>
+                      {!isVacant && tableOrders.length > 0 && (
+                        <div style={{ background: '#FEF3C7', border: '1px solid #FCD34D', padding: '6px 10px', borderRadius: '8px', marginTop: '6px', color: '#92400E', fontSize: '12px' }}>
+                          <i className="fa-solid fa-user-tag" style={{ marginRight: '6px' }}></i>
+                          <strong>{activeCust}</strong> &bull; Bill: <strong style={{ color: '#F97316' }}>{formatPrice(orderTotal)}</strong>
+                        </div>
+                      )}
                     </div>
 
                     <div style={{ display: 'flex', gap: '8px' }}>
+                      <button 
+                        onClick={() => setSelectedTable({ ...t, orders: tableOrders, activeCust, orderTotal })}
+                        style={{ flex: 1, padding: '10px', borderRadius: '10px', border: '1px solid #1E3A5F', background: '#D6EAF8', color: '#1E3A5F', fontSize: '12px', fontWeight: 900, cursor: 'pointer' }}
+                      >
+                        <i className="fa-solid fa-eye"></i> View Session
+                      </button>
+
                       {isVacant ? (
                         <button 
                           onClick={() => handleUpdateTableStatus(t.num, 'occupied')}
-                          style={{ flex: 1, padding: '10px', borderRadius: '10px', border: 'none', background: '#EF4444', color: '#FFFFFF', fontSize: '12px', fontWeight: 800, cursor: 'pointer' }}
+                          style={{ flex: 1, padding: '10px', borderRadius: '10px', border: 'none', background: '#EF4444', color: '#FFFFFF', fontSize: '12px', fontWeight: 900, cursor: 'pointer' }}
                         >
                           <i className="fa-solid fa-user-plus"></i> Mark Occupied
                         </button>
                       ) : (
                         <button 
                           onClick={() => handleUpdateTableStatus(t.num, 'free')}
-                          style={{ flex: 1, padding: '10px', borderRadius: '10px', border: 'none', background: '#10B981', color: '#FFFFFF', fontSize: '12px', fontWeight: 800, cursor: 'pointer' }}
+                          style={{ flex: 1, padding: '10px', borderRadius: '10px', border: 'none', background: '#10B981', color: '#FFFFFF', fontSize: '12px', fontWeight: 900, cursor: 'pointer' }}
                         >
-                          <i className="fa-solid fa-check"></i> Mark Vacant (Free)
+                          <i className="fa-solid fa-check"></i> Mark Vacant
                         </button>
                       )}
                     </div>
@@ -423,96 +540,70 @@ export default function ManagerDashboard({ onLogout, managerName = "AURA Manager
         {activeTab === 'ingredients' && (
           <div>
             {/* Stock Overview Cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '20px' }}>
               <div 
                 onClick={() => setIngredientFilter('all')}
-                style={{ cursor: 'pointer', padding: '20px', borderRadius: '16px', border: ingredientFilter === 'all' ? '3px solid #1E3A5F' : '2px solid #D6EAF8', background: '#FFFFFF', boxShadow: '0 4px 15px rgba(30,58,95,0.06)', color: '#111827' }}
+                style={{ cursor: 'pointer', padding: '18px', borderRadius: '16px', border: ingredientFilter === 'all' ? '3px solid #1E3A5F' : '2px solid #D6EAF8', background: '#FFFFFF', boxShadow: '0 4px 15px rgba(30,58,95,0.06)', color: '#111827' }}
               >
-                <div style={{ fontSize: '12px', color: '#1E3A5F', fontWeight: 800, textTransform: 'uppercase' }}>Total Tracked Ingredients</div>
-                <div style={{ fontSize: '34px', fontWeight: 900, color: '#1E3A5F', margin: '4px 0' }}>{ingredients.length}</div>
+                <div style={{ fontSize: '12px', color: '#1E3A5F', fontWeight: 900, textTransform: 'uppercase' }}>Total Tracked Ingredients</div>
+                <div style={{ fontSize: '32px', fontWeight: 900, color: '#1E3A5F', margin: '4px 0' }}>{ingredients.length}</div>
                 <div style={{ fontSize: '12px', color: '#4B5563', fontWeight: 700 }}>Click to view all items</div>
               </div>
 
               <div 
                 onClick={() => setIngredientFilter('low')}
-                style={{ cursor: 'pointer', padding: '20px', borderRadius: '16px', border: ingredientFilter === 'low' ? '3px solid #F59E0B' : '2px solid #FCD34D', background: '#FFFBEB', boxShadow: '0 4px 15px rgba(245,158,11,0.08)', color: '#111827' }}
+                style={{ cursor: 'pointer', padding: '18px', borderRadius: '16px', border: ingredientFilter === 'low' ? '3px solid #F59E0B' : '2px solid #FCD34D', background: '#FFFBEB', boxShadow: '0 4px 15px rgba(245,158,11,0.08)', color: '#111827' }}
               >
-                <div style={{ fontSize: '12px', color: '#92400E', fontWeight: 800, textTransform: 'uppercase' }}>Low Stock Warnings</div>
-                <div style={{ fontSize: '34px', fontWeight: 900, color: '#D97706', margin: '4px 0' }}>{lowStockCount}</div>
+                <div style={{ fontSize: '12px', color: '#92400E', fontWeight: 900, textTransform: 'uppercase' }}>Low Stock Warnings</div>
+                <div style={{ fontSize: '32px', fontWeight: 900, color: '#D97706', margin: '4px 0' }}>{lowStockCount}</div>
                 <div style={{ fontSize: '12px', color: '#D97706', fontWeight: 800 }}>⚠️ Click to filter low stock items</div>
               </div>
 
               <div 
                 onClick={() => setIngredientFilter('out')}
-                style={{ cursor: 'pointer', padding: '20px', borderRadius: '16px', border: ingredientFilter === 'out' ? '3px solid #EF4444' : '2px solid #FCA5A5', background: '#FEF2F2', boxShadow: '0 4px 15px rgba(239,68,68,0.08)', color: '#111827' }}
+                style={{ cursor: 'pointer', padding: '18px', borderRadius: '16px', border: ingredientFilter === 'out' ? '3px solid #EF4444' : '2px solid #FCA5A5', background: '#FEF2F2', boxShadow: '0 4px 15px rgba(239,68,68,0.08)', color: '#111827' }}
               >
-                <div style={{ fontSize: '12px', color: '#991B1B', fontWeight: 800, textTransform: 'uppercase' }}>Out of Stock</div>
-                <div style={{ fontSize: '34px', fontWeight: 900, color: '#DC2626', margin: '4px 0' }}>{outOfStockCount}</div>
+                <div style={{ fontSize: '12px', color: '#991B1B', fontWeight: 900, textTransform: 'uppercase' }}>Out of Stock</div>
+                <div style={{ fontSize: '32px', fontWeight: 900, color: '#DC2626', margin: '4px 0' }}>{outOfStockCount}</div>
                 <div style={{ fontSize: '12px', color: '#DC2626', fontWeight: 800 }}>🚨 Click to filter out of stock items</div>
               </div>
             </div>
 
-            {/* Controls Bar */}
-            <div style={{ background: '#FFFFFF', padding: '18px 24px', borderRadius: '16px', marginBottom: '20px', border: '1.5px solid #D6EAF8', boxShadow: '0 4px 15px rgba(0,0,0,0.04)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-              <h2 style={{ fontSize: '17px', fontWeight: 900, margin: 0, color: '#1E3A5F' }}>
-                <i className="fa-solid fa-cubes-stacked" style={{ color: '#F97316', marginRight: '8px' }}></i>
-                Real-Time Ingredient Stock Tracker ({filteredIngredients.length} Items Shown)
-              </h2>
+            {/* Interactive Search & Controls Bar */}
+            <div style={{ background: '#FFFFFF', padding: '18px 24px', borderRadius: '16px', marginBottom: '20px', border: '1.5px solid #D6EAF8', boxShadow: '0 4px 15px rgba(0,0,0,0.04)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
+              
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: '280px' }}>
+                <div style={{ position: 'relative', flex: 1 }}>
+                  <i className="fa-solid fa-magnifying-glass" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#64748B' }}></i>
+                  <input 
+                    type="text" 
+                    placeholder="Search ingredient by name..." 
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    style={{ width: '100%', padding: '10px 14px 10px 38px', borderRadius: '12px', border: '1.5px solid #CBD5E1', fontSize: '13px', fontWeight: 700, outline: 'none' }}
+                  />
+                </div>
+
+                <select 
+                  value={selectedCategory} 
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  style={{ padding: '10px 14px', borderRadius: '12px', border: '1.5px solid #CBD5E1', fontSize: '13px', fontWeight: 800, background: '#FFFFFF', color: '#1E3A5F' }}
+                >
+                  {categories.map((cat, idx) => (
+                    <option key={idx} value={cat}>Category: {cat.toUpperCase()}</option>
+                  ))}
+                </select>
+              </div>
 
               <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                 <button 
-                  onClick={() => setIngredientFilter('low')}
-                  style={{
-                    padding: '8px 16px',
-                    borderRadius: '20px',
-                    border: '1.5px solid #F59E0B',
-                    fontWeight: 800,
-                    fontSize: '12px',
-                    cursor: 'pointer',
-                    background: ingredientFilter === 'low' ? '#F59E0B' : '#FFFBEB',
-                    color: ingredientFilter === 'low' ? '#FFF' : '#B45309'
-                  }}
-                >
-                  ⚠️ Low Stock ({lowStockCount})
-                </button>
-                <button 
-                  onClick={() => setIngredientFilter('out')}
-                  style={{
-                    padding: '8px 16px',
-                    borderRadius: '20px',
-                    border: '1.5px solid #EF4444',
-                    fontWeight: 800,
-                    fontSize: '12px',
-                    cursor: 'pointer',
-                    background: ingredientFilter === 'out' ? '#EF4444' : '#FEF2F2',
-                    color: ingredientFilter === 'out' ? '#FFF' : '#B91C1C'
-                  }}
-                >
-                  🚨 Out of Stock ({outOfStockCount})
-                </button>
-                <button 
-                  onClick={() => setIngredientFilter('all')}
-                  style={{
-                    padding: '8px 16px',
-                    borderRadius: '20px',
-                    border: '1.5px solid #1E3A5F',
-                    fontWeight: 800,
-                    fontSize: '12px',
-                    cursor: 'pointer',
-                    background: ingredientFilter === 'all' ? '#1E3A5F' : '#D6EAF8',
-                    color: ingredientFilter === 'all' ? '#FFF' : '#1E3A5F'
-                  }}
-                >
-                  📋 All Items ({ingredients.length})
-                </button>
-                <button 
                   onClick={() => setIsAddIngredientOpen(true)}
                   style={{
-                    padding: '8px 18px',
+                    padding: '10px 20px',
                     borderRadius: '20px',
                     border: 'none',
                     fontWeight: 900,
-                    fontSize: '12px',
+                    fontSize: '13px',
                     cursor: 'pointer',
                     background: 'linear-gradient(135deg, #F97316, #EA580C)',
                     color: '#FFF',
@@ -524,37 +615,30 @@ export default function ManagerDashboard({ onLogout, managerName = "AURA Manager
               </div>
             </div>
 
-            {/* INGREDIENTS HIGH CONTRAST TABLE */}
+            {/* INGREDIENTS DYNAMIC STOCK TABLE */}
             <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '2px solid #D6EAF8', overflow: 'hidden', boxShadow: '0 6px 25px rgba(30,58,95,0.08)' }}>
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
                   <thead>
                     <tr style={{ background: '#1E3A5F', color: '#FFFFFF' }}>
-                      <th style={{ padding: '14px 16px', fontWeight: 900 }}>ID</th>
                       <th style={{ padding: '14px 16px', fontWeight: 900 }}>Ingredient Name</th>
                       <th style={{ padding: '14px 16px', fontWeight: 900 }}>Category</th>
-                      <th style={{ padding: '14px 16px', fontWeight: 900 }}>Initial Stock</th>
                       <th style={{ padding: '14px 16px', fontWeight: 900 }}>Current Stock</th>
-                      <th style={{ padding: '14px 16px', fontWeight: 900 }}>Reorder Threshold</th>
+                      <th style={{ padding: '14px 16px', fontWeight: 900 }}>Threshold</th>
                       <th style={{ padding: '14px 16px', fontWeight: 900 }}>Cost / Unit</th>
-                      <th style={{ padding: '14px 16px', fontWeight: 900 }}>Shelf Life</th>
                       <th style={{ padding: '14px 16px', fontWeight: 900 }}>Status</th>
-                      <th style={{ padding: '14px 16px', fontWeight: 900, textAlign: 'right' }}>Restock Action</th>
+                      <th style={{ padding: '14px 16px', fontWeight: 900, textAlign: 'right' }}>Dynamic Stock Adjuster (+ / -)</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredIngredients.map((ing, idx) => {
                       const curStock = ing.current_stock !== undefined ? ing.current_stock : ing.quantity;
-                      const initStock = ing.initial_stock || 50;
                       const threshold = ing.reorder_threshold || ing.minThreshold || 5;
-                      const isLow = ing.is_low_stock || ing.status === 'low_stock' || curStock <= threshold;
+                      const isLow = curStock > 0 && curStock <= threshold;
                       const isOut = curStock <= 0;
 
                       return (
                         <tr key={ing._id || ing.ingredient_id} style={{ borderBottom: '1px solid #E2E8F0', background: idx % 2 === 0 ? '#FFFFFF' : '#F8FAFC' }}>
-                          <td style={{ padding: '14px 16px', fontFamily: 'monospace', fontSize: '12px', fontWeight: 800, color: '#1E3A5F' }}>
-                            {ing.ingredient_id || 'ING'}
-                          </td>
                           <td style={{ padding: '14px 16px', fontWeight: 900, color: '#111827', fontSize: '14px' }}>
                             {ing.name}
                           </td>
@@ -562,9 +646,6 @@ export default function ManagerDashboard({ onLogout, managerName = "AURA Manager
                             <span style={{ background: '#D6EAF8', color: '#1E3A5F', padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 800 }}>
                               {ing.category}
                             </span>
-                          </td>
-                          <td style={{ padding: '14px 16px', color: '#111827', fontWeight: 700 }}>
-                            {initStock} {ing.unit}
                           </td>
                           <td style={{ padding: '14px 16px', fontWeight: 900, color: isOut ? '#DC2626' : isLow ? '#D97706' : '#059669', fontSize: '15px' }}>
                             {curStock} {ing.unit}
@@ -574,9 +655,6 @@ export default function ManagerDashboard({ onLogout, managerName = "AURA Manager
                           </td>
                           <td style={{ padding: '14px 16px', fontWeight: 900, color: '#F97316', fontSize: '14px' }}>
                             ₹{ing.cost_per_unit || 100}
-                          </td>
-                          <td style={{ padding: '14px 16px', color: '#4B5563', fontWeight: 600 }}>
-                            {ing.shelf_life_days || 30} days
                           </td>
                           <td style={{ padding: '14px 16px' }}>
                             <span style={{
@@ -592,22 +670,28 @@ export default function ManagerDashboard({ onLogout, managerName = "AURA Manager
                             </span>
                           </td>
                           <td style={{ padding: '14px 16px', textAlign: 'right' }}>
-                            <button 
-                              onClick={() => handleRestockIngredient(ing._id, 10)}
-                              style={{ 
-                                padding: '8px 14px', 
-                                borderRadius: '8px',
-                                border: 'none',
-                                background: 'linear-gradient(135deg, #10B981, #059669)',
-                                color: '#FFFFFF',
-                                fontSize: '12px',
-                                fontWeight: 900,
-                                cursor: 'pointer',
-                                boxShadow: '0 2px 8px rgba(16,185,129,0.3)'
-                              }}
-                            >
-                              +10 {ing.unit} Restock
-                            </button>
+                            <div style={{ display: 'inline-flex', gap: '6px', alignItems: 'center' }}>
+                              <button 
+                                onClick={() => handleAdjustStock(ing._id, -1)}
+                                style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', background: '#F1F5F9', color: '#111827', fontWeight: 900, cursor: 'pointer' }}
+                                title="Reduce stock by -1"
+                              >
+                                -1
+                              </button>
+                              <button 
+                                onClick={() => handleAdjustStock(ing._id, 1)}
+                                style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', background: '#F1F5F9', color: '#111827', fontWeight: 900, cursor: 'pointer' }}
+                                title="Add stock +1"
+                              >
+                                +1
+                              </button>
+                              <button 
+                                onClick={() => handleAdjustStock(ing._id, 10)}
+                                style={{ padding: '6px 12px', borderRadius: '8px', border: 'none', background: 'linear-gradient(135deg, #10B981, #059669)', color: '#FFFFFF', fontSize: '11px', fontWeight: 900, cursor: 'pointer', boxShadow: '0 2px 6px rgba(16,185,129,0.3)' }}
+                              >
+                                +10 Restock
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );
@@ -621,43 +705,129 @@ export default function ManagerDashboard({ onLogout, managerName = "AURA Manager
 
       </div>
 
+      {/* SELECTED TABLE LIVE SESSION MODAL */}
+      {selectedTable && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999 }}>
+          <div style={{ width: '560px', maxWidth: '92%', background: '#FFFFFF', border: '2px solid #D6EAF8', borderRadius: '24px', padding: '26px', boxShadow: '0 20px 60px rgba(0,0,0,0.2)', color: '#111827', position: 'relative' }}>
+            
+            <button 
+              onClick={() => setSelectedTable(null)} 
+              style={{ position: 'absolute', top: '18px', right: '18px', background: '#D6EAF8', border: 'none', color: '#1E3A5F', width: '36px', height: '36px', borderRadius: '50%', cursor: 'pointer', fontSize: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900 }}
+            >
+              <i className="fa-solid fa-xmark"></i>
+            </button>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '20px' }}>
+              <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: selectedTable.status === 'free' ? '#10B981' : '#EF4444', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFF', fontSize: '22px', fontWeight: 900 }}>
+                <i className="fa-solid fa-chair"></i>
+              </div>
+              <div>
+                <h3 style={{ fontSize: '22px', fontWeight: 900, color: '#1E3A5F', margin: 0 }}>
+                  Table #{selectedTable.num} Session
+                </h3>
+                <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 700 }}>
+                  Zone: {selectedTable.zone} &bull; Capacity: {selectedTable.seats} Seats
+                </span>
+              </div>
+            </div>
+
+            {/* Session Info */}
+            {selectedTable.status === 'free' ? (
+              <div style={{ padding: '24px', background: '#F0FDF4', borderRadius: '16px', border: '1.5px solid #6EE7B7', textAlign: 'center', marginBottom: '20px' }}>
+                <i className="fa-solid fa-circle-check" style={{ fontSize: '32px', color: '#10B981', marginBottom: '8px', display: 'block' }}></i>
+                <h4 style={{ fontSize: '16px', fontWeight: 900, color: '#065F46', margin: 0 }}>Table is Currently Vacant</h4>
+                <p style={{ fontSize: '13px', color: '#047857', marginTop: '4px', margin: 0 }}>Ready for immediate walk-in customer seating.</p>
+              </div>
+            ) : (
+              <div style={{ marginBottom: '20px' }}>
+                <div style={{ background: '#FEF3C7', border: '1.5px solid #FCD34D', borderRadius: '16px', padding: '16px', marginBottom: '16px' }}>
+                  <div style={{ fontSize: '12px', fontWeight: 900, color: '#92400E', textTransform: 'uppercase', marginBottom: '4px' }}>Active Dining Customer</div>
+                  <div style={{ fontSize: '18px', fontWeight: 900, color: '#111827' }}>{selectedTable.activeCust || 'Guest Diner'}</div>
+                  <div style={{ fontSize: '13px', fontWeight: 800, color: '#F97316', marginTop: '4px' }}>Running Bill: {formatPrice(selectedTable.orderTotal || 0)}</div>
+                </div>
+
+                {/* Orders List */}
+                <h4 style={{ fontSize: '14px', fontWeight: 900, color: '#1E3A5F', marginBottom: '10px' }}>Active Ordered Items:</h4>
+                <div style={{ maxHeight: '180px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {selectedTable.orders && selectedTable.orders.length > 0 ? (
+                    selectedTable.orders.map((ord, idx) => (
+                      <div key={idx} style={{ background: '#F8FAFC', padding: '10px 14px', borderRadius: '12px', border: '1px solid #D6EAF8', fontSize: '13px' }}>
+                        {(ord.items || []).map((it, iIdx) => (
+                          <div key={iIdx} style={{ display: 'flex', justifyContent: 'space-between', margin: '2px 0' }}>
+                            <span><strong>{it.qty}x</strong> {it.name}</span>
+                            <span style={{ fontWeight: 900, color: '#1E3A5F' }}>{formatPrice(it.price * it.qty)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ))
+                  ) : (
+                    <div style={{ fontSize: '13px', color: '#64748B' }}>No active unpaid orders recorded for this table.</div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Quick Actions */}
+            <div style={{ display: 'flex', gap: '10px' }}>
+              {selectedTable.status === 'free' ? (
+                <button 
+                  onClick={() => handleUpdateTableStatus(selectedTable.num, 'occupied')}
+                  style={{ flex: 1, padding: '12px', background: '#EF4444', color: '#FFF', border: 'none', borderRadius: '12px', fontWeight: 900, cursor: 'pointer' }}
+                >
+                  <i className="fa-solid fa-user-plus"></i> Mark Table Occupied
+                </button>
+              ) : (
+                <button 
+                  onClick={() => handleUpdateTableStatus(selectedTable.num, 'free')}
+                  style={{ flex: 1, padding: '12px', background: '#10B981', color: '#FFF', border: 'none', borderRadius: '12px', fontWeight: 900, cursor: 'pointer' }}
+                >
+                  <i className="fa-solid fa-check"></i> Clear Table & Mark Vacant
+                </button>
+              )}
+            </div>
+
+          </div>
+        </div>
+      )}
+
       {/* Add New Ingredient Modal */}
       {isAddIngredientOpen && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999 }}>
-          <div className="glass" style={{ width: '400px', padding: '24px', borderRadius: '16px', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
-            <h3 style={{ marginTop: 0, color: '#FFF', fontSize: '18px', fontWeight: 800 }}>Add New Ingredient to Stock</h3>
+          <div className="glass" style={{ width: '420px', padding: '26px', borderRadius: '20px', border: '2px solid #D6EAF8', background: '#FFFFFF', color: '#111827', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
+            <h3 style={{ marginTop: 0, color: '#1E3A5F', fontSize: '20px', fontWeight: 900, marginBottom: '18px' }}>Add New Ingredient to Stock</h3>
             <form onSubmit={handleAddIngredientSubmit}>
               <div style={{ marginBottom: '14px' }}>
-                <label style={{ fontSize: '12px', color: '#9CA3AF', display: 'block', marginBottom: '4px' }}>Ingredient Name</label>
-                <input type="text" value={newIngName} onChange={(e) => setNewIngName(e.target.value)} required placeholder="e.g. Fresh Butter" style={{ width: '100%', padding: '8px', borderRadius: '6px', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.1)', color: '#FFF' }} />
+                <label style={{ fontSize: '12px', color: '#1E3A5F', fontWeight: 800, display: 'block', marginBottom: '4px' }}>Ingredient Name</label>
+                <input type="text" value={newIngName} onChange={(e) => setNewIngName(e.target.value)} required placeholder="e.g. Fresh Amul Butter" style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1.5px solid #CBD5E1', color: '#111827', fontSize: '13px', fontWeight: 700 }} />
               </div>
               <div style={{ marginBottom: '14px' }}>
-                <label style={{ fontSize: '12px', color: '#9CA3AF', display: 'block', marginBottom: '4px' }}>Category</label>
-                <select value={newIngCategory} onChange={(e) => setNewIngCategory(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '6px', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.1)', color: '#FFF' }}>
-                  <option value="Produce" style={{ color: '#000' }}>Produce</option>
-                  <option value="Meat & Seafood" style={{ color: '#000' }}>Meat & Seafood</option>
-                  <option value="Dairy & Oils" style={{ color: '#000' }}>Dairy & Oils</option>
-                  <option value="Beverages & Teas" style={{ color: '#000' }}>Beverages & Teas</option>
-                  <option value="Pantry" style={{ color: '#000' }}>Pantry</option>
+                <label style={{ fontSize: '12px', color: '#1E3A5F', fontWeight: 800, display: 'block', marginBottom: '4px' }}>Category</label>
+                <select value={newIngCategory} onChange={(e) => setNewIngCategory(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1.5px solid #CBD5E1', color: '#111827', fontSize: '13px', fontWeight: 700 }}>
+                  <option value="Produce">Produce</option>
+                  <option value="Meat & Seafood">Meat & Seafood</option>
+                  <option value="Dairy & Oils">Dairy & Oils</option>
+                  <option value="Beverages & Teas">Beverages & Teas</option>
+                  <option value="Pantry">Pantry</option>
+                  <option value="Spices">Spices</option>
                 </select>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px' }}>
                 <div>
-                  <label style={{ fontSize: '12px', color: '#9CA3AF', display: 'block', marginBottom: '4px' }}>Initial Qty</label>
-                  <input type="number" value={newIngQty} onChange={(e) => setNewIngQty(e.target.value)} required style={{ width: '100%', padding: '8px', borderRadius: '6px', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.1)', color: '#FFF' }} />
+                  <label style={{ fontSize: '12px', color: '#1E3A5F', fontWeight: 800, display: 'block', marginBottom: '4px' }}>Initial Qty</label>
+                  <input type="number" value={newIngQty} onChange={(e) => setNewIngQty(e.target.value)} required style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1.5px solid #CBD5E1', color: '#111827', fontSize: '13px', fontWeight: 700 }} />
                 </div>
                 <div>
-                  <label style={{ fontSize: '12px', color: '#9CA3AF', display: 'block', marginBottom: '4px' }}>Unit</label>
-                  <select value={newIngUnit} onChange={(e) => setNewIngUnit(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '6px', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.1)', color: '#FFF' }}>
-                    <option value="kg" style={{ color: '#000' }}>kg</option>
-                    <option value="L" style={{ color: '#000' }}>L</option>
-                    <option value="units" style={{ color: '#000' }}>units</option>
+                  <label style={{ fontSize: '12px', color: '#1E3A5F', fontWeight: 800, display: 'block', marginBottom: '4px' }}>Unit</label>
+                  <select value={newIngUnit} onChange={(e) => setNewIngUnit(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1.5px solid #CBD5E1', color: '#111827', fontSize: '13px', fontWeight: 700 }}>
+                    <option value="kg">kg</option>
+                    <option value="liters">liters</option>
+                    <option value="units">units</option>
                   </select>
                 </div>
               </div>
               <div style={{ display: 'flex', gap: '10px' }}>
-                <button type="submit" style={{ flex: 1, padding: '10px', background: '#10B981', color: '#FFF', border: 'none', borderRadius: '6px', fontWeight: 800, cursor: 'pointer' }}>Save Ingredient</button>
-                <button type="button" onClick={() => setIsAddIngredientOpen(false)} style={{ flex: 1, padding: '10px', background: 'rgba(255,255,255,0.1)', color: '#FFF', border: 'none', borderRadius: '6px', fontWeight: 800, cursor: 'pointer' }}>Cancel</button>
+                <button type="submit" style={{ flex: 1, padding: '12px', background: '#F97316', color: '#FFF', border: 'none', borderRadius: '10px', fontWeight: 900, cursor: 'pointer' }}>Save Ingredient</button>
+                <button type="button" onClick={() => setIsAddIngredientOpen(false)} style={{ flex: 1, padding: '12px', background: '#D6EAF8', color: '#1E3A5F', border: 'none', borderRadius: '10px', fontWeight: 900, cursor: 'pointer' }}>Cancel</button>
               </div>
             </form>
           </div>
