@@ -131,39 +131,38 @@ export default function ChefDashboard({ onLogout, chefName = "Executive Chef Mar
   const completedCount = orders.filter(o => ['served', 'completed'].includes(o.status)).length;
 
   return (
-    <div className="admin-wrapper" style={{ background: '#090D16', minHeight: '100vh', color: '#F3F4F6' }}>
+    <div className="admin-wrapper" style={{ background: '#F8FAFC', minHeight: '100vh', color: '#111827' }}>
       
       {/* Kitchen Display System Header */}
-      <header className="admin-header glass" style={{ borderBottom: '1px solid rgba(239, 68, 68, 0.3)', padding: '16px 28px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <header style={{ background: '#1E3A5F', color: '#FFFFFF', padding: '16px 28px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 4px 20px rgba(30, 58, 95, 0.25)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <div className="brand-logo" style={{ background: 'linear-gradient(135deg, #EF4444 0%, #B91C1C 100%)', width: '42px', height: '42px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', color: '#fff' }}>
+          <div style={{ background: '#F97316', width: '42px', height: '42px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', color: '#FFF', boxShadow: '0 4px 12px rgba(249, 115, 22, 0.4)' }}>
             <i className="fa-solid fa-fire-burner"></i>
           </div>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h1 style={{ fontSize: '20px', fontWeight: 800, margin: 0, fontFamily: 'Playfair Display, serif', color: '#FFF' }}>AURA Kitchen Display System (KDS)</h1>
-              <span style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#FCA5A5', border: '1px solid rgba(239, 68, 68, 0.4)', padding: '2px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: 700 }}>
+              <h1 style={{ fontSize: '22px', fontWeight: 900, margin: 0, color: '#FFF', letterSpacing: '0.5px' }}>AURA Kitchen Display System (KDS)</h1>
+              <span style={{ background: '#D6EAF8', color: '#1E3A5F', padding: '2px 10px', borderRadius: '10px', fontSize: '11px', fontWeight: 900 }}>
                 EXECUTIVE CHEF VIEW
               </span>
             </div>
-            <p style={{ fontSize: '12px', color: '#9CA3AF', margin: 0 }}>Logged in as: <strong>{chefName}</strong> &bull; Kitchen Display Only</p>
+            <p style={{ fontSize: '12px', color: '#CBD5E1', margin: '2px 0 0 0' }}>Logged in as: <strong>{chefName}</strong> &bull; Real-Time Order Stream</p>
           </div>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <span style={{ fontSize: '12px', background: 'rgba(239, 68, 68, 0.15)', color: '#FCA5A5', padding: '6px 12px', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700 }}>
-            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#EF4444', display: 'inline-block' }}></span>
+          <span style={{ fontSize: '12px', background: '#D6EAF8', color: '#1E3A5F', padding: '6px 14px', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 900 }}>
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#F97316', display: 'inline-block' }}></span>
             {pendingCount + preparingCount} Live Tickets In Kitchen
           </span>
           <button 
-            className="btn-action" 
             onClick={() => { fetchOrders(); showToast("🔄 Kitchen tickets refreshed!"); }} 
-            style={{ background: '#D6EAF8', borderColor: '#1E3A5F', color: '#1E3A5F', fontWeight: 800 }}
+            style={{ background: '#F97316', color: '#FFFFFF', border: 'none', borderRadius: '20px', padding: '10px 18px', fontSize: '13px', fontWeight: 900, cursor: 'pointer', boxShadow: '0 4px 14px rgba(249,115,22,0.4)' }}
             title="Refresh Kitchen Tickets"
           >
             <i className="fa-solid fa-arrows-rotate"></i> Refresh Tickets
           </button>
-          <button className="btn-action" onClick={onLogout} style={{ background: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.2)', color: '#FFF' }}>
+          <button onClick={onLogout} style={{ background: '#D6EAF8', color: '#1E3A5F', border: '1px solid #BEE3F8', borderRadius: '20px', padding: '10px 18px', fontSize: '13px', fontWeight: 800, cursor: 'pointer' }}>
             <i className="fa-solid fa-right-from-bracket"></i> Switch Account
           </button>
         </div>
@@ -173,27 +172,28 @@ export default function ChefDashboard({ onLogout, chefName = "Executive Chef Mar
 
         {/* Toast Alert */}
         {toastMessage && (
-          <div style={{ position: 'fixed', top: '80px', right: '28px', background: 'linear-gradient(135deg, #EF4444, #B91C1C)', color: '#FFF', padding: '12px 20px', borderRadius: '10px', fontWeight: 600, boxShadow: '0 10px 25px rgba(0,0,0,0.5)', zIndex: 10000, display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ position: 'fixed', top: '80px', right: '28px', background: '#F97316', color: '#FFF', padding: '12px 20px', borderRadius: '10px', fontWeight: 800, boxShadow: '0 10px 25px rgba(0,0,0,0.2)', zIndex: 10000, display: 'flex', alignItems: 'center', gap: '10px' }}>
             <i className="fa-solid fa-bell"></i> {toastMessage}
           </div>
         )}
 
         {/* Status Filter Tabs */}
-        <div style={{ display: 'flex', gap: '10px', marginBottom: '24px' }}>
+        <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>
           <button 
             onClick={() => setStatusFilter('active')}
             style={{
               padding: '12px 20px',
-              borderRadius: '10px',
-              border: 'none',
-              fontWeight: 800,
-              fontSize: '13px',
+              borderRadius: '12px',
+              border: statusFilter === 'active' ? '2px solid #1E3A5F' : '1px solid #CBD5E1',
+              fontWeight: 900,
+              fontSize: '14px',
               cursor: 'pointer',
-              background: statusFilter === 'active' ? 'linear-gradient(135deg, #EF4444, #B91C1C)' : 'rgba(255,255,255,0.05)',
-              color: '#FFF'
+              background: statusFilter === 'active' ? '#1E3A5F' : '#FFFFFF',
+              color: statusFilter === 'active' ? '#FFF' : '#1E3A5F',
+              boxShadow: statusFilter === 'active' ? '0 4px 15px rgba(30,58,95,0.25)' : 'none'
             }}
           >
-            <i className="fa-solid fa-fire" style={{ marginRight: '6px' }}></i>
+            <i className="fa-solid fa-fire" style={{ marginRight: '6px', color: '#F97316' }}></i>
             Active Kitchen Queue ({pendingCount + preparingCount})
           </button>
 
@@ -201,13 +201,13 @@ export default function ChefDashboard({ onLogout, chefName = "Executive Chef Mar
             onClick={() => setStatusFilter('pending')}
             style={{
               padding: '12px 20px',
-              borderRadius: '10px',
-              border: 'none',
-              fontWeight: 800,
-              fontSize: '13px',
+              borderRadius: '12px',
+              border: statusFilter === 'pending' ? '2px solid #F59E0B' : '1px solid #CBD5E1',
+              fontWeight: 900,
+              fontSize: '14px',
               cursor: 'pointer',
-              background: statusFilter === 'pending' ? '#F59E0B' : 'rgba(255,255,255,0.05)',
-              color: statusFilter === 'pending' ? '#FFF' : '#9CA3AF'
+              background: statusFilter === 'pending' ? '#F59E0B' : '#FFFBEB',
+              color: statusFilter === 'pending' ? '#FFF' : '#B45309'
             }}
           >
             <i className="fa-solid fa-clock" style={{ marginRight: '6px' }}></i>
@@ -218,13 +218,13 @@ export default function ChefDashboard({ onLogout, chefName = "Executive Chef Mar
             onClick={() => setStatusFilter('preparing')}
             style={{
               padding: '12px 20px',
-              borderRadius: '10px',
-              border: 'none',
-              fontWeight: 800,
-              fontSize: '13px',
+              borderRadius: '12px',
+              border: statusFilter === 'preparing' ? '2px solid #1E3A5F' : '1px solid #CBD5E1',
+              fontWeight: 900,
+              fontSize: '14px',
               cursor: 'pointer',
-              background: statusFilter === 'preparing' ? '#3B82F6' : 'rgba(255,255,255,0.05)',
-              color: statusFilter === 'preparing' ? '#FFF' : '#9CA3AF'
+              background: statusFilter === 'preparing' ? '#1E3A5F' : '#D6EAF8',
+              color: statusFilter === 'preparing' ? '#FFF' : '#1E3A5F'
             }}
           >
             <i className="fa-solid fa-kitchen-set" style={{ marginRight: '6px' }}></i>
@@ -235,13 +235,13 @@ export default function ChefDashboard({ onLogout, chefName = "Executive Chef Mar
             onClick={() => setStatusFilter('completed')}
             style={{
               padding: '12px 20px',
-              borderRadius: '10px',
-              border: 'none',
-              fontWeight: 800,
-              fontSize: '13px',
+              borderRadius: '12px',
+              border: statusFilter === 'completed' ? '2px solid #10B981' : '1px solid #CBD5E1',
+              fontWeight: 900,
+              fontSize: '14px',
               cursor: 'pointer',
-              background: statusFilter === 'completed' ? '#10B981' : 'rgba(255,255,255,0.05)',
-              color: statusFilter === 'completed' ? '#FFF' : '#9CA3AF'
+              background: statusFilter === 'completed' ? '#10B981' : '#F0FDF4',
+              color: statusFilter === 'completed' ? '#FFF' : '#065F46'
             }}
           >
             <i className="fa-solid fa-circle-check" style={{ marginRight: '6px' }}></i>
@@ -251,10 +251,10 @@ export default function ChefDashboard({ onLogout, chefName = "Executive Chef Mar
 
         {/* Tickets Grid */}
         {filteredOrders.length === 0 ? (
-          <div className="glass" style={{ padding: '60px', textAlign: 'center', borderRadius: '16px', color: '#6B7280' }}>
-            <i className="fa-solid fa-utensils" style={{ fontSize: '48px', marginBottom: '16px', color: '#374151' }}></i>
-            <h3 style={{ margin: 0, color: '#9CA3AF' }}>No kitchen tickets in this view</h3>
-            <p style={{ fontSize: '13px', marginTop: '6px' }}>New customer orders placed at tables will pop up here live!</p>
+          <div style={{ padding: '60px', textAlign: 'center', borderRadius: '16px', color: '#111827', background: '#FFFFFF', border: '2px solid #D6EAF8' }}>
+            <i className="fa-solid fa-utensils" style={{ fontSize: '48px', marginBottom: '16px', color: '#F97316' }}></i>
+            <h3 style={{ margin: 0, color: '#1E3A5F', fontWeight: 900 }}>No kitchen tickets in this view</h3>
+            <p style={{ fontSize: '13px', marginTop: '6px', color: '#4B5563', fontWeight: 600 }}>New customer orders placed at tables will pop up here live!</p>
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
@@ -268,26 +268,26 @@ export default function ChefDashboard({ onLogout, chefName = "Executive Chef Mar
               return (
                 <div 
                   key={order._id}
-                  className="glass"
                   style={{
                     borderRadius: '16px',
                     padding: '20px',
-                    border: '2px solid',
-                    borderColor: isPending ? '#F59E0B' : isPreparing ? '#3B82F6' : '#10B981',
-                    background: isPending ? 'rgba(245, 158, 11, 0.05)' : isPreparing ? 'rgba(59, 130, 246, 0.05)' : 'rgba(16, 185, 129, 0.05)',
+                    border: `2.5px solid ${isPending ? '#F59E0B' : isPreparing ? '#1E3A5F' : '#10B981'}`,
+                    background: '#FFFFFF',
+                    boxShadow: '0 6px 20px rgba(30, 58, 95, 0.08)',
                     display: 'flex',
                     flexDirection: 'column',
-                    justify: 'space-between'
+                    justifyContent: 'space-between',
+                    color: '#111827'
                   }}
                 >
                   <div>
                     {/* Ticket Header */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '12px', marginBottom: '14px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1.5px solid #E2E8F0', paddingBottom: '12px', marginBottom: '14px' }}>
                       <div>
-                        <div style={{ fontSize: '22px', fontWeight: 900, color: '#FFF' }}>
+                        <div style={{ fontSize: '22px', fontWeight: 900, color: '#1E3A5F' }}>
                           Table #{order.tableNum}
                         </div>
-                        <div style={{ fontSize: '11px', color: '#9CA3AF', fontFamily: 'monospace' }}>
+                        <div style={{ fontSize: '11px', color: '#64748B', fontFamily: 'monospace', fontWeight: 800 }}>
                           TICKET #{order._id.substring(order._id.length - 6).toUpperCase()}
                         </div>
                       </div>
@@ -297,13 +297,14 @@ export default function ChefDashboard({ onLogout, chefName = "Executive Chef Mar
                           padding: '4px 10px',
                           borderRadius: '20px',
                           fontSize: '11px',
-                          fontWeight: 800,
-                          background: isPending ? 'rgba(245, 158, 11, 0.2)' : isPreparing ? 'rgba(59, 130, 246, 0.2)' : 'rgba(16, 185, 129, 0.2)',
-                          color: isPending ? '#FCD34D' : isPreparing ? '#93C5FD' : '#6EE7B7'
+                          fontWeight: 900,
+                          background: isPending ? '#FEF3C7' : isPreparing ? '#D6EAF8' : '#DCFCE7',
+                          color: isPending ? '#92400E' : isPreparing ? '#1E3A5F' : '#065F46',
+                          border: `1px solid ${isPending ? '#FCD34D' : isPreparing ? '#93C5FD' : '#6EE7B7'}`
                         }}>
                           {isPending ? 'PENDING COOK' : isPreparing ? 'IN PREPARATION' : 'READY TO SERVE'}
                         </span>
-                        <div style={{ fontSize: '11px', color: '#FCA5A5', marginTop: '4px', fontWeight: 600 }}>
+                        <div style={{ fontSize: '11px', color: '#F97316', marginTop: '4px', fontWeight: 800 }}>
                           <i className="fa-solid fa-stopwatch"></i> {minutesAgo} min{minutesAgo > 1 ? 's' : ''} ago
                         </div>
                       </div>
@@ -311,7 +312,7 @@ export default function ChefDashboard({ onLogout, chefName = "Executive Chef Mar
 
                     {/* Dish Items List */}
                     <div style={{ marginBottom: '18px' }}>
-                      <div style={{ fontSize: '11px', color: '#9CA3AF', textTransform: 'uppercase', fontWeight: 700, marginBottom: '8px' }}>
+                      <div style={{ fontSize: '11px', color: '#1E3A5F', textTransform: 'uppercase', fontWeight: 900, marginBottom: '8px' }}>
                         Dishes to Prepare ({order.items.reduce((s, i) => s + i.qty, 0)} items)
                       </div>
 
@@ -320,21 +321,21 @@ export default function ChefDashboard({ onLogout, chefName = "Executive Chef Mar
                           key={idx}
                           style={{
                             display: 'flex',
-                            alignItems: 'flex-start',
+                            alignItems: 'center',
                             gap: '10px',
-                            padding: '8px 10px',
-                            background: 'rgba(0,0,0,0.3)',
-                            borderRadius: '8px',
-                            marginBottom: '6px',
-                            borderLeft: '3px solid #EF4444'
+                            padding: '10px 12px',
+                            background: '#D6EAF8',
+                            borderRadius: '10px',
+                            marginBottom: '8px',
+                            borderLeft: '4px solid #1E3A5F'
                           }}
                         >
-                          <span style={{ background: '#EF4444', color: '#FFF', padding: '2px 8px', borderRadius: '4px', fontWeight: 900, fontSize: '13px' }}>
+                          <span style={{ background: '#1E3A5F', color: '#FFFFFF', padding: '3px 9px', borderRadius: '6px', fontWeight: 900, fontSize: '13px' }}>
                             {item.qty}x
                           </span>
                           <div>
-                            <div style={{ fontWeight: 800, color: '#FFF', fontSize: '14px' }}>{item.name}</div>
-                            <div style={{ fontSize: '11px', color: '#9CA3AF' }}>Requested by: {item.addedBy || 'Customer'}</div>
+                            <div style={{ fontWeight: 900, color: '#111827', fontSize: '15px' }}>{item.name}</div>
+                            <div style={{ fontSize: '11px', color: '#1E3A5F', fontWeight: 700 }}>Requested by: {item.addedBy || 'Customer'}</div>
                           </div>
                         </div>
                       ))}
@@ -348,18 +349,18 @@ export default function ChefDashboard({ onLogout, chefName = "Executive Chef Mar
                         onClick={() => handleUpdateStatus(order._id, 'preparing')}
                         style={{
                           width: '100%',
-                          padding: '12px',
-                          borderRadius: '10px',
+                          padding: '14px',
+                          borderRadius: '12px',
                           border: 'none',
-                          background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
-                          color: '#FFF',
-                          fontWeight: 800,
-                          fontSize: '13px',
+                          background: 'linear-gradient(135deg, #F97316 0%, #EA580C 100%)',
+                          color: '#FFFFFF',
+                          fontWeight: 900,
+                          fontSize: '14px',
                           cursor: 'pointer',
-                          boxShadow: '0 4px 12px rgba(245, 158, 11, 0.4)'
+                          boxShadow: '0 4px 14px rgba(249, 115, 22, 0.4)'
                         }}
                       >
-                        <i className="fa-solid fa-[#FFF] fa-fire-burner"></i> Start Cooking Order
+                        <i className="fa-solid fa-fire-burner"></i> Start Cooking Order
                       </button>
                     )}
 
@@ -368,15 +369,15 @@ export default function ChefDashboard({ onLogout, chefName = "Executive Chef Mar
                         onClick={() => handleUpdateStatus(order._id, 'served')}
                         style={{
                           width: '100%',
-                          padding: '12px',
-                          borderRadius: '10px',
+                          padding: '14px',
+                          borderRadius: '12px',
                           border: 'none',
                           background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
-                          color: '#FFF',
-                          fontWeight: 800,
-                          fontSize: '13px',
+                          color: '#FFFFFF',
+                          fontWeight: 900,
+                          fontSize: '14px',
                           cursor: 'pointer',
-                          boxShadow: '0 4px 12px rgba(16, 185, 129, 0.4)'
+                          boxShadow: '0 4px 14px rgba(16, 185, 129, 0.4)'
                         }}
                       >
                         <i className="fa-solid fa-bell-concierge"></i> Mark Order Ready for Table
@@ -384,7 +385,7 @@ export default function ChefDashboard({ onLogout, chefName = "Executive Chef Mar
                     )}
 
                     {isReady && (
-                      <div style={{ textAlign: 'center', fontSize: '12px', color: '#34D399', padding: '8px', background: 'rgba(16, 185, 129, 0.1)', borderRadius: '8px', fontWeight: 700 }}>
+                      <div style={{ textAlign: 'center', fontSize: '13px', color: '#065F46', padding: '10px', background: '#DCFCE7', borderRadius: '10px', fontWeight: 900, border: '1px solid #6EE7B7' }}>
                         <i className="fa-solid fa-circle-check"></i> Prepared & Delivered
                       </div>
                     )}
