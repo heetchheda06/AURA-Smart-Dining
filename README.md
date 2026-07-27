@@ -1,223 +1,370 @@
-# ??? AURA � Smart Dining Platform
+# 🍽️ AURA – Smart Dining Platform
 
-> **AI-Powered Restaurant Management & Ordering System**
-> Live Demo: [https://aura-smart-dining.onrender.com](https://aura-smart-dining.onrender.com)
+> ### AI-Powered Restaurant Management & Smart Ordering System
 
----
-
-## ?? About the Project
-
-**AURA Smart Dining** is a full-stack, AI-powered restaurant management platform that transforms the traditional dining experience into a seamless, touchless, and intelligent system. Customers can browse the menu, select their preferred table, and place real-time orders � all from their phone. Behind the scenes, every restaurant role (Admin, Manager, Chef, Cashier, Waiter) gets a dedicated live dashboard, all connected via WebSockets so updates sync instantly across the entire restaurant floor.
+AURA is a modern, full-stack restaurant management platform designed to transform the traditional dining experience into a smart, digital, and real-time system. Customers can browse the menu, choose their preferred table, place orders, and track them live, while restaurant staff manage operations through dedicated dashboards synchronized using WebSockets.
 
 ---
 
-## ? Features
+## 🌐 Live Demo
 
-### ?? Customer Experience
-- ?? **Interactive Table Selection** � Live floor plan grid; customers choose their preferred table before ordering
-- ??? **Full Menu Browsing** � Browse dishes by category with search and filters
-- ?? **AI Food Recommender** � Personalized dish suggestions powered by smart preference analysis
-- ?? **Real-Time Order Placement** � Add items to a shared table cart and place orders instantly
-- ?? **Private Member Dashboard** � Each member sees only their own order history, receipts, and analytics
-- ?? **Spending Analytics** � Total spend tracked per member with visit frequency
-- ?? **Favourite Dishes** � Most-ordered dishes highlighted for quick reordering
-- ?? **Waiter Assistance** � Call a waiter directly from the app with one tap
+### 🚀 Website
 
-### ?? Restaurant Operations
-- ? **Live WebSocket Sync** � Every order, table status, and kitchen update broadcasts instantly to all dashboards
-- ?? **Auto Table Vacancy on Payment** � Table automatically becomes vacant the moment the cashier marks a bill as paid
-- ?? **Role-Based Access Control** � Each staff role sees only their own portal; no cross-role data leakage
+**https://aura-smart-dining.onrender.com/**
 
-### ??? Staff Dashboards
+### 🔐 Admin Login
 
-| Role | Dashboard Features |
-|------|--------------------|
-| **Admin** | KPI stats, revenue charts, order analytics, user management |
-| **Manager** | Live table occupancy (20 tables), ingredient stock tracking, restock controls |
-| **Chef (KDS)** | Incoming kitchen orders, mark ready/in-progress controls |
-| **Cashier** | Active bills, payment processing, table clearance |
-| **Waiter** | Order tracking, table status, waiter call notifications |
+| Credential | Value |
+|------------|-------|
+| **Email** | `admin@auradining.in` |
+| **Password** | `AdminPassword123` |
 
-### ?? Inventory & Stock
-- ?? **Ingredient Stock Tracking** � Real-time quantity monitoring for all ingredients
-- ?? **Restock Controls** � Managers can adjust stock levels with +1, -1, +10 buttons
-- ?? **Low Stock Alerts** � Visual indicators for low and out-of-stock ingredients
-
-### ?? Authentication & Security
-- ?? **Member Sign In / Sign Up** � Secure JWT-based authentication with name/email/role encoded in token
-- ?? **Google OAuth** � One-click Google Sign-In support
-- ??? **Isolated Order History** � No two customers can ever see each other''s orders or receipts
-- ?? **Profile Persistence** � Customer name stored in MongoDB and JWT; always shows real name in dashboard
+> Use the above credentials to explore the Admin Dashboard.
 
 ---
 
-## ??? Tech Stack
+# 📖 About the Project
 
-### Frontend
-| Technology | Purpose |
-|-----------|---------|
-| **React 18** | UI framework |
-| **Vite** | Build tool & dev server |
-| **Vanilla CSS** | Styling with glassmorphism & animations |
-| **Socket.IO Client** | Real-time live updates |
-| **Font Awesome** | Icons |
+AURA Smart Dining is a **Full Stack Restaurant Management System** built to simplify restaurant operations and enhance customer experience through automation and real-time communication.
 
-### Backend
-| Technology | Purpose |
-|-----------|---------|
-| **Node.js + Express** | REST API server |
-| **MongoDB + Mongoose** | Database & ODM |
-| **Socket.IO** | WebSocket real-time events |
-| **JWT (jsonwebtoken)** | Authentication tokens |
-| **bcryptjs** | Password hashing |
-| **Google Auth Library** | Google OAuth verification |
+The platform enables customers to:
 
-### Infrastructure
-| Service | Purpose |
-|---------|---------|
-| **Render** | Full-stack deployment (web service) |
-| **MongoDB Atlas** | Cloud database |
-| **GitHub** | Version control & CI |
+- Browse a digital menu
+- Select their preferred dining table
+- Place orders instantly
+- Receive live order updates
+- Track previous orders
+- View spending analytics
+- Get AI-powered food recommendations
+
+Restaurant staff have dedicated dashboards for:
+
+- 👑 Admin
+- 📋 Manager
+- 👨‍🍳 Chef
+- 💳 Cashier
+- 🍽️ Waiter
+
+Using **Socket.IO**, every dashboard stays synchronized in real time, ensuring efficient communication between customers and staff.
 
 ---
 
-## ?? Getting Started
+# ✨ Features
 
-### Prerequisites
+## 👤 Customer Features
+
+- 🪑 Interactive Table Selection
+- 🍽️ Digital Menu Browsing
+- 🔍 Search & Filter Menu Items
+- 🤖 AI Food Recommendation System
+- 🛒 Real-Time Order Placement
+- 📊 Personal Dashboard
+- ❤️ Favourite Dishes
+- 💰 Spending Analytics
+- 🧾 Order History
+- 🔔 Call Waiter Feature
+
+---
+
+## 🏨 Restaurant Operations
+
+- ⚡ Real-Time WebSocket Synchronization
+- 📈 Live Order Tracking
+- 🪑 Automatic Table Status Updates
+- 🔒 Role-Based Access Control
+- 📊 Restaurant Analytics
+
+---
+
+## 👨‍🍳 Staff Dashboards
+
+### 👑 Admin Dashboard
+
+- Revenue Analytics
+- User Management
+- Sales Reports
+- Restaurant KPIs
+- Dashboard Overview
+
+### 📋 Manager Dashboard
+
+- Table Occupancy
+- Inventory Management
+- Ingredient Stock Tracking
+- Restock Controls
+
+### 👨‍🍳 Chef Dashboard
+
+- Kitchen Display System (KDS)
+- Incoming Orders
+- Update Order Status
+
+### 💳 Cashier Dashboard
+
+- Billing
+- Payment Processing
+- Bill Generation
+- Automatic Table Clearance
+
+### 🍽️ Waiter Dashboard
+
+- Order Tracking
+- Waiter Assistance Requests
+- Customer Notifications
+
+---
+
+## 📦 Inventory Management
+
+- Ingredient Stock Tracking
+- Live Inventory Monitoring
+- Restocking Controls
+- Low Stock Alerts
+
+---
+
+## 🔐 Authentication & Security
+
+- JWT Authentication
+- Secure Password Encryption (bcryptjs)
+- Role-Based Authorization
+- Protected REST APIs
+- Secure Member Profiles
+- Individual Customer Order History
+
+---
+
+# 🛠️ Technology Stack
+
+## Frontend
+
+- React 18
+- Vite
+- Vanilla CSS
+- Font Awesome
+- Socket.IO Client
+
+---
+
+## Backend
+
+- Node.js
+- Express.js
+- MongoDB
+- Mongoose
+- Socket.IO
+- JWT (jsonwebtoken)
+- bcryptjs
+
+---
+
+## Deployment
+
+- Render
+- MongoDB Atlas
+- GitHub
+
+---
+
+# 📂 Project Structure
+
+```text
+AURA-Smart-Dining
+│
+├── client/
+│   ├── public/
+│   ├── src/
+│   │   ├── assets/
+│   │   ├── components/
+│   │   ├── data/
+│   │   ├── pages/
+│   │   ├── utils/
+│   │   └── App.jsx
+│
+├── config/
+├── controllers/
+├── middleware/
+├── models/
+├── routes/
+├── socket/
+├── public/
+├── server.js
+├── package.json
+├── render.yaml
+└── README.md
+```
+
+---
+
+# 🚀 Getting Started
+
+## Prerequisites
+
 - Node.js v18+
-- npm v9+
-- MongoDB Atlas URI (or local MongoDB)
+- npm
+- MongoDB Atlas (or Local MongoDB)
 
-### 1. Clone the Repository
+---
+
+## Clone Repository
+
 ```bash
 git clone https://github.com/heetchheda06/AURA-Smart-Dining.git
+
 cd AURA-Smart-Dining
 ```
 
-### 2. Install Dependencies
-```bash
-# Install backend dependencies
-npm install
+---
 
-# Install frontend dependencies
+## Install Dependencies
+
+### Backend
+
+```bash
+npm install
+```
+
+### Frontend
+
+```bash
 npm install --prefix client
 ```
 
-### 3. Configure Environment Variables
-Create a `.env` file in the root directory:
+---
+
+## Environment Variables
+
+Create a `.env` file in the project root.
+
 ```env
 PORT=5000
-MONGODB_URI=your_mongodb_atlas_uri
-JWT_SECRET=your_jwt_secret_key
-GOOGLE_CLIENT_ID=your_google_oauth_client_id
+
+MONGODB_URI=your_mongodb_uri
+
+JWT_SECRET=your_jwt_secret
+
 NODE_ENV=development
 ```
 
-### 4. Run in Development
-```bash
-# Run backend (from root)
-npm run dev
+---
 
-# Run frontend (in a separate terminal)
+## Run the Project
+
+### Start Backend
+
+```bash
+npm run dev
+```
+
+### Start Frontend
+
+```bash
 npm run dev --prefix client
 ```
 
-The app will be available at:
-- **Frontend**: `http://localhost:5173`
-- **Backend API**: `http://localhost:5000`
+---
 
-### 5. Build for Production
+## Build for Production
+
 ```bash
 npm run build --prefix client
 ```
 
 ---
 
-## ?? Project Structure
-
-```
-AURA-Smart-Dining/
-+-- client/                    # React frontend (Vite)
-�   +-- src/
-�       +-- components/        # All UI components
-�       �   +-- AdminDashboard.jsx
-�       �   +-- ManagerDashboard.jsx
-�       �   +-- ChefDashboard.jsx
-�       �   +-- CashierDashboard.jsx
-�       �   +-- AuthModal.jsx
-�       �   +-- TableSelectModal.jsx
-�       �   +-- UserOrdersModal.jsx
-�       �   +-- ...
-�       +-- data/              # Fallback data
-�       +-- App.jsx            # Root component
-+-- controllers/               # Express route controllers
-�   +-- authController.js
-�   +-- orderController.js
-�   +-- tableController.js
-�   +-- inventoryController.js
-�   +-- adminController.js
-+-- models/                    # Mongoose schemas
-�   +-- User.js
-�   +-- Order.js
-�   +-- Table.js
-�   +-- ...
-+-- routes/                    # API route definitions
-+-- middleware/                # Auth & error middleware
-+-- public/                    # Built frontend assets (served by Express)
-+-- server.js                  # Express + Socket.IO entry point
-+-- render.yaml                # Render deployment config
-+-- README.md
-```
-
----
-
-## ?? Key API Endpoints
+# 🔌 API Endpoints
 
 | Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/api/auth/register` | Member registration |
-| `POST` | `/api/auth/login` | Member / Staff login |
-| `GET` | `/api/auth/profile` | Get logged-in user profile |
-| `GET` | `/api/menu` | Fetch menu items |
-| `GET` | `/api/tables` | Get all table statuses |
-| `PUT` | `/api/tables/:num/status` | Update table status |
-| `POST` | `/api/orders` | Place a new order |
-| `GET` | `/api/orders` | Get orders (filtered by role) |
-| `PUT` | `/api/orders/:id/status` | Update order status |
-| `GET` | `/api/inventory` | Get ingredient stock |
-| `POST` | `/api/inventory/:id/restock` | Adjust ingredient stock |
-| `GET` | `/api/admin/dashboard` | Admin KPI stats |
+|---------|----------|-------------|
+| POST | `/api/auth/register` | Register Member |
+| POST | `/api/auth/login` | Login |
+| GET | `/api/auth/profile` | User Profile |
+| GET | `/api/menu` | Fetch Menu |
+| GET | `/api/tables` | Get Table Status |
+| PUT | `/api/tables/:id/status` | Update Table Status |
+| POST | `/api/orders` | Place Order |
+| GET | `/api/orders` | Fetch Orders |
+| PUT | `/api/orders/:id/status` | Update Order Status |
+| GET | `/api/inventory` | Inventory Details |
+| POST | `/api/inventory/:id/restock` | Restock Ingredients |
+| GET | `/api/admin/dashboard` | Dashboard Statistics |
 
 ---
 
-## ?? Key Design Decisions
+# ⚙️ System Highlights
 
-- **In-Memory Order Store** � Orders are cached in RAM as a fallback, ensuring Chef and Cashier dashboards always work even if MongoDB is temporarily unavailable
-- **JWT with Embedded Profile** � Customer name, email, and role are encoded inside the JWT so the dashboard always displays the correct name without an extra DB round-trip
-- **Per-Member Order Isolation** � The `/api/orders` endpoint intelligently filters by `userRef` or `customerName` for member customers, ensuring complete data privacy between accounts
-- **Socket.IO Room Architecture** � Each table has its own socket room (`table_room_X`) so cart and order updates only reach the relevant table's customers
-- **Auto Table Vacancy** � When a cashier marks payment as completed, the table status is automatically set to `free` and broadcast via socket to all active clients in real-time
-
----
-
-## ?? Team
-
-| Name | Role |
-|------|------|
-| ?? **Heet Chheda** | Team Leader � Full Stack Development & System Architecture |
-| **Falgun Patel** | Backend Development & API Integration |
-| **Shardul Dalvi** | Frontend Development & UI/UX Design |
-| **Aryan Keni** | Database Design & Real-Time Features |
+- ⚡ Socket.IO Real-Time Communication
+- 🔐 JWT Authentication
+- 🛡️ Role-Based Access Control
+- 📦 Inventory Management System
+- 👨‍🍳 Kitchen Display System (KDS)
+- 📊 Live Dashboard Synchronization
+- 🪑 Automatic Table Status Updates
+- 📈 Analytics Dashboard
+- 🌐 RESTful API Architecture
+- ☁️ Cloud Database with MongoDB Atlas
 
 ---
 
-## ?? License
+# 📈 Future Enhancements
 
-This project was built for a Hackathon. All rights reserved � 2025 Team AURA.
+- 📱 Android & iOS Mobile Application
+- 💳 Online Payment Gateway
+- 📷 QR Code Table Ordering
+- 🤖 AI Chat Assistant
+- 📊 Advanced Business Analytics
+- 🌍 Multi-language Support
+- 🎁 Customer Loyalty Program
+- 🚚 Delivery & Takeaway Module
+- 📅 Online Table Reservation
+
+---
+
+# 👥 Team
+
+| Member | College |
+|---------|---------|
+| **Heet Chheda** | MCT Rajiv Gandhi Institute of Technology |
+| **Shardul Dalvi** | MCT Rajiv Gandhi Institute of Technology |
+| **Aryan Keni** | MCT Rajiv Gandhi Institute of Technology |
+| **Falgun Patel** | Universal College of Engineering, Mumbai |
+
+---
+
+# 📜 License
+
+This project was developed as part of a **Hackathon**.
+
+© **2025 Team AURA**. All Rights Reserved.
+
+---
+
+# ⭐ Support
+
+If you found this project helpful, consider giving it a **⭐ Star** on GitHub.
 
 ---
 
 <div align="center">
-  <strong>Built with ?? by Team AURA</strong><br/>
-  <em>Making every dining experience smarter, faster, and more delightful.</em>
+
+# 🍽️ AURA Smart Dining Platform
+
+### Smart • Fast • Digital Dining Experience
+
+🌐 **Live Website**
+
+https://aura-smart-dining.onrender.com/
+
+---
+
+### 🔐 Admin Credentials
+
+**Email:** `admin@auradining.in`
+
+**Password:** `AdminPassword123`
+
+---
+
+**Built with ❤️ by Team AURA**
+
 </div>
