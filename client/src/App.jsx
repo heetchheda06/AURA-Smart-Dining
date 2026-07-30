@@ -847,11 +847,22 @@ export default function App() {
         onUserRegister={handleUserRegister}
         onAdminLogin={handleAdminLogin}
         onGoogleLogin={(user, token) => {
+          const userNameStr = (user && user.name && user.name !== 'Member' && user.name !== 'Google Member') ? user.name : 'Heet Chheda';
           localStorage.setItem('token', token);
-          showToast(`👋 Welcome, ${user.name}! Please choose your dining table.`);
+          localStorage.setItem('user_name', userNameStr);
+          if (user && user.email) localStorage.setItem('user_email', user.email);
+
+          setActiveCustomerSession({
+            isLoggedIn: true,
+            customerName: userNameStr,
+            tableNum: activeCustomerSession.tableNum || 2,
+            loginType: 'member'
+          });
+
+          showToast(`👋 Welcome, ${userNameStr}! Please choose your dining table.`);
           setIsAuthModalOpen(false);
           setCurrentRole('customer');
-          setPendingCustomerInfo({ name: user.name, loginType: 'member', openDashboard: false });
+          setPendingCustomerInfo({ name: userNameStr, loginType: 'member', openDashboard: false });
           setIsTableSelectOpen(true);
         }}
         onOpenFloorplan={handleOpenFloorplan}
