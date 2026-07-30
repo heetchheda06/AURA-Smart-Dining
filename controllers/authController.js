@@ -10,9 +10,12 @@ const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID || '686445090372-17
 // Helper to format human name from email address
 const formatNameFromEmail = (email) => {
   if (!email) return 'Member Customer';
-  const prefix = email.split('@')[0].replace(/[0-9_]+/g, ' ').replace(/\./g, ' ').trim();
-  if (!prefix) return 'Member Customer';
-  return prefix.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
+  // Split on @ to get local part, then split on dots to get name parts
+  const localPart = email.split('@')[0];
+  // Split on dot, underscore, digits — keep only alphabetic parts
+  const parts = localPart.split(/[._0-9]+/).filter(p => p.length > 0);
+  if (parts.length === 0) return 'Member Customer';
+  return parts.map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
 };
 
 // Helper to generate JWT token — encodes name, email, role so profile works even without DB
@@ -187,9 +190,16 @@ exports.googleAuth = async (req, res, next) => {
     if (credential) {
       try {
         const payloadBase64 = credential.split('.')[1];
-        const decodedJson = JSON.parse(Buffer.from(payloadBase64, 'base64').toString('utf-8'));
+        // Add padding if needed for base64 decoding
+        const padded = payloadBase64 + '=='.substring(0, (4 - payloadBase64.length % 4) % 4);
+        const decodedJson = JSON.parse(Buffer.from(padded.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf-8'));
         if (decodedJson.email) email = decodedJson.email;
-        if (decodedJson.name) name = decodedJson.name;
+        // Prefer full name, fall back to given_name + family_name
+        if (decodedJson.name) {
+          name = decodedJson.name;
+        } else if (decodedJson.given_name || decodedJson.family_name) {
+          name = [decodedJson.given_name, decodedJson.family_name].filter(Boolean).join(' ');
+        }
         if (decodedJson.sub) googleId = decodedJson.sub;
         if (decodedJson.picture) picture = decodedJson.picture;
       } catch (e) {
@@ -211,6 +221,10 @@ exports.googleAuth = async (req, res, next) => {
           provider: 'google',
           avatar: picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=8B5CF6&color=FFF`
         }).catch(() => null);
+      } else if (name && name !== 'Member Customer' && user.name !== name) {
+        // Update name from Google JWT if it changed or was incorrectly stored
+        user.name = name;
+        await user.save().catch(() => {});
       }
       if (user) {
         return sendTokenResponse(user, 200, res);

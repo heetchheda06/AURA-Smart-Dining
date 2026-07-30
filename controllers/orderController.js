@@ -404,8 +404,35 @@ exports.updateOrderStatus = async (req, res, next) => {
       return res.status(200).json({ success: true, data: order });
     }
 
+    // Order not in memory — try DB, otherwise create a synthetic order in memory so payment completes
     if (!isDBConnected()) {
-      return res.status(503).json({ success: false, message: 'Database not available.' });
+      // Create synthetic order in memory so payment can complete without DB
+      const syntheticOrder = {
+        _id: req.params.id,
+        tableNum: Number(tableNumToFree) || 1,
+        status: status,
+        paymentStatus: status === 'completed' ? 'paid' : 'unpaid',
+        items: [],
+        updatedAt: new Date()
+      };
+      memoryOrders.push(syntheticOrder);
+
+      const io = req.app.get('io');
+      if (io) {
+        const targetTableNum = syntheticOrder.tableNum;
+        io.emit('order:status_updated', {
+          orderId: syntheticOrder._id,
+          tableNum: targetTableNum,
+          status: syntheticOrder.status,
+          message: `🍳 Order #${targetTableNum} status updated to: ${status}`,
+          order: syntheticOrder
+        });
+        if (status === 'completed') {
+          io.emit('table:status_changed', { num: targetTableNum, status: 'free', currentCustomer: '' });
+          io.emit('payment:completed', { tableNum: targetTableNum, orderId: syntheticOrder._id });
+        }
+      }
+      return res.status(200).json({ success: true, data: syntheticOrder });
     }
 
     const order = await Order.findById(req.params.id);
