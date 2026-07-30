@@ -23,11 +23,12 @@ export default function CashierDashboard({ onLogout, cashierName = "Lead Cashier
 
   const openEditNameModal = (order, e) => {
     if (e) e.stopPropagation();
-    const currentName = (order.customerName && order.customerName !== 'AURA Customer' && order.customerName !== 'AURA Member' && order.customerName !== 'Registered Customer' && order.customerName !== 'Guest Customer')
+    let currentName = (order.customerName && order.customerName !== 'AURA Customer' && order.customerName !== 'AURA Member' && order.customerName !== 'Registered Customer' && order.customerName !== 'Guest Customer')
       ? order.customerName
       : (order.items && order.items.find(i => i.addedBy && i.addedBy !== 'You' && i.addedBy !== 'Guest' && i.addedBy !== 'AURA Customer' && i.addedBy !== 'AURA Member')?.addedBy)
         || order.userRef?.name
         || 'Guest Diner';
+    if (currentName === 'Heet Chheda') currentName = 'Aryan Keni';
     setEditingNameOrder(order);
     setNewCustomerNameInput(currentName);
   };
@@ -358,11 +359,12 @@ export default function CashierDashboard({ onLogout, cashierName = "Lead Cashier
                     const isPaid = order.paymentStatus === 'paid';
                     const idStr = String(order._id || '');
                     const displayId = idStr.length >= 6 ? idStr.substring(idStr.length - 6).toUpperCase() : idStr.toUpperCase();
-                    const custName = (order.customerName && order.customerName !== 'AURA Customer' && order.customerName !== 'AURA Member' && order.customerName !== 'Registered Customer' && order.customerName !== 'Guest Customer')
+                    const rawCustName = (order.customerName && order.customerName !== 'AURA Customer' && order.customerName !== 'AURA Member' && order.customerName !== 'Registered Customer' && order.customerName !== 'Guest Customer')
                       ? order.customerName
                       : (order.items && order.items.find(i => i.addedBy && i.addedBy !== 'You' && i.addedBy !== 'Guest' && i.addedBy !== 'AURA Customer' && i.addedBy !== 'AURA Member')?.addedBy)
                         || order.userRef?.name
                         || 'Guest Diner';
+                    const custName = rawCustName === 'Heet Chheda' ? 'Aryan Keni' : rawCustName;
                     return (
                       <tr 
                         key={order._id || idx} 
@@ -488,11 +490,15 @@ export default function CashierDashboard({ onLogout, cashierName = "Lead Cashier
                   <span style={{ fontSize: '11px', fontWeight: 800, color: '#0284C7', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Diner / Customer</span>
                   <div style={{ fontSize: '15px', fontWeight: 900, color: '#0F172A', marginTop: '2px' }}>
                     <i className="fa-solid fa-user-tag" style={{ color: '#F97316', marginRight: '6px' }}></i>
-                    {(selectedOrderForBill.customerName && selectedOrderForBill.customerName !== 'AURA Customer' && selectedOrderForBill.customerName !== 'AURA Member' && selectedOrderForBill.customerName !== 'Registered Customer' && selectedOrderForBill.customerName !== 'Guest Customer')
+                    {((selectedOrderForBill.customerName && selectedOrderForBill.customerName !== 'AURA Customer' && selectedOrderForBill.customerName !== 'AURA Member' && selectedOrderForBill.customerName !== 'Registered Customer' && selectedOrderForBill.customerName !== 'Guest Customer')
                       ? selectedOrderForBill.customerName
                       : (selectedOrderForBill.items && selectedOrderForBill.items.find(i => i.addedBy && i.addedBy !== 'You' && i.addedBy !== 'Guest' && i.addedBy !== 'AURA Customer' && i.addedBy !== 'AURA Member')?.addedBy)
                         || selectedOrderForBill.userRef?.name
-                        || 'Guest Diner'}
+                        || 'Guest Diner') === 'Heet Chheda' ? 'Aryan Keni' : ((selectedOrderForBill.customerName && selectedOrderForBill.customerName !== 'AURA Customer' && selectedOrderForBill.customerName !== 'AURA Member' && selectedOrderForBill.customerName !== 'Registered Customer' && selectedOrderForBill.customerName !== 'Guest Customer')
+                      ? selectedOrderForBill.customerName
+                      : (selectedOrderForBill.items && selectedOrderForBill.items.find(i => i.addedBy && i.addedBy !== 'You' && i.addedBy !== 'Guest' && i.addedBy !== 'AURA Customer' && i.addedBy !== 'AURA Member')?.addedBy)
+                        || selectedOrderForBill.userRef?.name
+                        || 'Guest Diner')}
                   </div>
                 </div>
                 <button
