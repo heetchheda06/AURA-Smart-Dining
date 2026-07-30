@@ -20,7 +20,19 @@ export default function Navbar({
         {/* Left: Brand Logo */}
         <a href="#" className="brand-container" onClick={(e) => e.preventDefault()}>
           <div className="brand-logo">
-            <i className="fa-solid fa-utensils"></i>
+            <svg width="24" height="24" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M26 58 C 26 34, 74 34, 74 58 Z" fill="url(#brandGoldGrad)"/>
+              <rect x="22" y="58" width="56" height="5" rx="2.5" fill="#FFFFFF"/>
+              <circle cx="50" cy="30" r="4.5" fill="#FFFFFF"/>
+              <path d="M50 14 L52 20 L58 22 L52 24 L50 30 L48 24 L42 22 L48 20 Z" fill="url(#brandGoldGrad)"/>
+              <defs>
+                <linearGradient id="brandGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#F59E0B" />
+                  <stop offset="50%" stopColor="#F97316" />
+                  <stop offset="100%" stopColor="#D97706" />
+                </linearGradient>
+              </defs>
+            </svg>
           </div>
           <div className="brand-text-box">
             <div className="brand-title">AURA</div>
@@ -40,8 +52,9 @@ export default function Navbar({
         <div className="nav-actions-group">
           {isLoggedIn && loginType === 'member' && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '13px', fontWeight: 900, color: '#1E3A5F', background: '#D6EAF8', padding: '5px 12px', borderRadius: '20px', letterSpacing: '0.3px' }}>
-                👤 {customerName}
+              <span style={{ fontSize: '13px', fontWeight: 900, color: '#1E3A5F', background: '#D6EAF8', padding: '5px 12px', borderRadius: '20px', letterSpacing: '0.3px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                <i className="fa-solid fa-circle-user" style={{ color: '#1E3A5F', fontSize: '14px' }}></i>
+                {customerName}
               </span>
               <button 
                 className="nav-btn nav-btn-outline" 

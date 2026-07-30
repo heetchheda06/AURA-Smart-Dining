@@ -104,16 +104,22 @@ header.navbar-header {
 }
 
 .brand-logo {
-    width: 40px;
-    height: 40px;
-    background: linear-gradient(135deg, #1E3A5F, #2A4D7C);
+    width: 42px;
+    height: 42px;
+    background: linear-gradient(135deg, #1E3A5F 0%, #0F172A 100%);
+    border: 1.5px solid rgba(249, 115, 22, 0.4);
     border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #FFF;
-    font-size: 18px;
-    box-shadow: 0 4px 15px rgba(30, 58, 95, 0.25);
+    box-shadow: 0 4px 20px rgba(30, 58, 95, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+}
+
+.brand-logo:hover {
+    transform: translateY(-1px) scale(1.04);
+    border-color: #F97316;
+    box-shadow: 0 6px 25px rgba(249, 115, 22, 0.35);
 }
 
 .brand-text-box {

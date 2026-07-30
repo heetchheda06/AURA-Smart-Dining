@@ -152,7 +152,7 @@ export default function MenuGrid({
           onClick={() => setDietaryFilter('Jain')}
           style={{ padding: '6px 14px', borderRadius: '20px', fontSize: '12px', fontWeight: 700, borderColor: '#F59E0B', color: dietaryFilter === 'Jain' ? '#FFF' : '#D97706', background: dietaryFilter === 'Jain' ? 'linear-gradient(135deg, #F59E0B, #D97706)' : '#FEF3C7', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
         >
-          <span>🙏</span> Jain Category
+          <i className="fa-solid fa-seedling" style={{ color: dietaryFilter === 'Jain' ? '#FFF' : '#D97706' }}></i> Jain Category
         </button>
       </div>
 
@@ -310,7 +310,7 @@ export default function MenuGrid({
                               alignItems: 'center',
                               gap: '4px'
                             }}>
-                              <span>🙏</span> 100% Jain
+                              <i className="fa-solid fa-seedling" style={{ color: '#059669', fontSize: '11px' }}></i> 100% Jain
                             </span>
                           );
                         }
@@ -328,7 +328,7 @@ export default function MenuGrid({
                               alignItems: 'center',
                               gap: '4px'
                             }}>
-                              <span>🙏</span> Jain Option Available
+                              <i className="fa-solid fa-leaf" style={{ color: '#D97706', fontSize: '11px' }}></i> Jain Option Available
                             </span>
                           );
                         }
