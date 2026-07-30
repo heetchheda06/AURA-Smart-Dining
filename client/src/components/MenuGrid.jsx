@@ -71,8 +71,17 @@ export default function MenuGrid({
       // Cuisine matching
       const matchesCuisine = selectedCuisine === 'All' || item.cuisine === selectedCuisine;
 
-      // Dietary type matching
-      const isJainItem = item.isJain || item.jainAvailable || item.dietary_type === 'Jain' || (item.desc && item.desc.toLowerCase().includes('jain'));
+      // Check if item is Jain eligible
+      const nameLower = (item.name || '').toLowerCase();
+      const descLower = (item.desc || '').toLowerCase();
+      const isNonVeg = item.dietary_type === 'Non-Veg' || nameLower.includes('chicken') || nameLower.includes('mutton') || nameLower.includes('fish') || nameLower.includes('wings') || nameLower.includes('egg');
+      const hasGarlicOrOnionOnly = nameLower.includes('garlic naan') || nameLower.includes('chicken 65') || nameLower.includes('seekh');
+
+      const isJainItem = item.isJain === true || 
+        item.jainAvailable === true || 
+        item.dietary_type === 'Jain' || 
+        descLower.includes('jain') || 
+        (!isNonVeg && !hasGarlicOrOnionOnly);
 
       const matchesDiet = dietaryFilter === 'All' || 
         (dietaryFilter === 'Veg' && (item.dietary_type === 'Veg' || item.dietary_type === 'Vegan')) ||

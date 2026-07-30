@@ -105,20 +105,30 @@ exports.getMenuItems = async (req, res, next) => {
         const s = search.toLowerCase();
         filtered = filtered.filter(item => item.name.toLowerCase().includes(s) || (item.ingredients && item.ingredients.toLowerCase().includes(s)));
       }
-      menuItems = filtered.map((item, idx) => ({
-        _id: item.dish_id || `dsh-${idx}`,
-        name: item.name,
-        category: item.category,
-        cuisine: item.cuisine || 'Indian',
-        dietary_type: item.dietary_type || 'Veg',
-        price: item.price,
-        prep_time_minutes: item.prep_time_minutes || 15,
-        rating: 4.8,
-        prep: `${item.prep_time_minutes || 15} mins`,
-        tag: item.tags ? item.tags.split(',')[0] : 'popular',
-        image: item.image || 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80',
-        desc: item.ingredients ? `Ingredients: ${item.ingredients}` : 'Chef special delicacy cooked to perfection.'
-      }));
+      menuItems = filtered.map((item, idx) => {
+        const nameLower = (item.name || '').toLowerCase();
+        const descLower = (item.desc || (item.ingredients ? `Ingredients: ${item.ingredients}` : '')).toLowerCase();
+        const isNonVeg = item.dietary_type === 'Non-Veg' || nameLower.includes('chicken') || nameLower.includes('mutton') || nameLower.includes('fish') || nameLower.includes('wings') || nameLower.includes('egg');
+        const hasGarlicOrOnionOnly = nameLower.includes('garlic naan') || nameLower.includes('chicken 65') || nameLower.includes('seekh');
+        const isJainEligible = item.isJain === true || item.jainAvailable === true || item.dietary_type === 'Jain' || descLower.includes('jain') || (!isNonVeg && !hasGarlicOrOnionOnly);
+
+        return {
+          _id: item.dish_id || `dsh-${idx}`,
+          name: item.name,
+          category: item.category,
+          cuisine: item.cuisine || 'Indian',
+          dietary_type: item.dietary_type || 'Veg',
+          isJain: item.isJain || (isJainEligible && (nameLower.includes('naan') || nameLower.includes('jamun') || nameLower.includes('brownie') || nameLower.includes('chai') || nameLower.includes('coffee') || nameLower.includes('soda') || nameLower.includes('mojito'))),
+          jainAvailable: isJainEligible,
+          price: item.price,
+          prep_time_minutes: item.prep_time_minutes || 15,
+          rating: 4.8,
+          prep: `${item.prep_time_minutes || 15} mins`,
+          tag: item.tags ? item.tags.split(',')[0] : 'popular',
+          image: item.image || 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80',
+          desc: item.desc || (item.ingredients ? `Ingredients: ${item.ingredients}` : 'Chef special delicacy cooked to perfection.')
+        };
+      });
     }
 
     res.status(200).json({ success: true, count: menuItems.length, data: menuItems });
