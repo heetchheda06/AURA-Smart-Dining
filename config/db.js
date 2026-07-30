@@ -31,7 +31,9 @@ const connectDB = async () => {
       // Auto-seed database if empty
       try {
         const { autoSeedIfEmpty } = require('../seed/seeder');
+        const { seedHistoricalOrdersIfEmpty } = require('../seed/historicalOrdersSeeder');
         await autoSeedIfEmpty();
+        await seedHistoricalOrdersIfEmpty();
       } catch (seedErr) {
         console.warn('⚠️ Seeder warning:', seedErr.message);
       }
