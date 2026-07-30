@@ -542,20 +542,38 @@ export default function App() {
   };
 
   // Add Item to cart
-  const handleAddToCart = (itemId) => {
+  // Accepts either: a string itemId, or a full item object (e.g. from AI Sommelier)
+  const handleAddToCart = (itemIdOrObj) => {
     if (!activeCustomerSession.isLoggedIn) {
       showToast("⚠️ Please login/allot a table first.");
       setIsAuthModalOpen(true);
       return;
     }
-    
-    const itemObj = menuItems.find(i => i._id === itemId || i.dish_id === itemId);
+
+    let itemObj;
+
+    // If it's a full object (passed from Sommelier), use it directly
+    if (itemIdOrObj && typeof itemIdOrObj === 'object') {
+      // Try to find the real menu item first (to get accurate data)
+      const foundInMenu = menuItems.find(
+        i => i._id === itemIdOrObj._id || 
+             i._id === itemIdOrObj.dish_id || 
+             i.dish_id === itemIdOrObj._id ||
+             i.dish_id === itemIdOrObj.dish_id ||
+             (i.name && itemIdOrObj.name && i.name === itemIdOrObj.name)
+      );
+      itemObj = foundInMenu || itemIdOrObj;
+    } else {
+      // It's a string ID — find in menu
+      itemObj = menuItems.find(i => i._id === itemIdOrObj || i.dish_id === itemIdOrObj);
+    }
+
     if (!itemObj) return;
 
-    const itemKey = itemObj._id || itemObj.dish_id;
+    const itemKey = itemObj._id || itemObj.dish_id || itemObj.name;
 
     setCart(prev => {
-      const existingIndex = prev.findIndex(item => item.menuItemId === itemKey);
+      const existingIndex = prev.findIndex(item => item.menuItemId === itemKey || item.name === itemObj.name);
       if (existingIndex > -1) {
         const updated = [...prev];
         updated[existingIndex] = {
