@@ -82,30 +82,14 @@ export default function Navbar({
             onClick={onOpenReviews} 
             title="Customer Reviews & Ratings"
             style={{
-              borderColor: '#F97316',
+              borderColor: '#8B5CF6',
               color: '#1E3A5F',
-              background: '#FFF7ED',
+              background: '#F3E8FF',
               fontWeight: 900
             }}
           >
-            <i className="fa-solid fa-star" style={{ color: '#F97316' }}></i>
+            <i className="fa-solid fa-star" style={{ color: '#8B5CF6' }}></i>
             <span className="btn-label" style={{ fontWeight: 900 }}>Customer Reviews</span>
-          </button>
-
-          <button 
-            className="nav-btn nav-btn-outline" 
-            onClick={onOpenAiAnalyzer} 
-            title="AURA Customer Review Analyzer"
-            style={{
-              borderColor: '#8B5CF6',
-              color: '#FFF',
-              background: 'linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%)',
-              fontWeight: 900,
-              boxShadow: '0 4px 14px rgba(139, 92, 246, 0.4)'
-            }}
-          >
-            <i className="fa-solid fa-wand-magic-sparkles" style={{ color: '#FFF' }}></i>
-            <span className="btn-label" style={{ fontWeight: 900, color: '#FFF' }}>🤖 AURA Review Analyzer</span>
           </button>
 
           <button className="nav-btn nav-btn-outline" onClick={onOpenWaiter} title="Call Waiter Assistance">
