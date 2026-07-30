@@ -37,7 +37,7 @@ const sampleItemsPool = [
   { name: "Sweet Corn Veg Soup", price: 170, category: "Soups & Salads" }
 ];
 
-// Generates 45 historical orders spanning 4 days ago to today
+// Generates 46 historical orders spanning 4 days ago to today
 const generateHistoricalOrders = () => {
   const orders = [];
   const now = new Date();
@@ -88,8 +88,10 @@ const generateHistoricalOrders = () => {
       const total = Math.round((subtotal + tax) * 100) / 100;
       const customer = sampleCustomers[orderIndex % sampleCustomers.length];
       const tableNum = (orderIndex % 20) + 1;
+      const orderId = new mongoose.Types.ObjectId();
 
       orders.push({
+        _id: orderId,
         tableNum: tableNum,
         roundsCount: 1,
         items: items,
@@ -127,4 +129,4 @@ const seedHistoricalOrdersIfEmpty = async () => {
   }
 };
 
-module.exports = { seedHistoricalOrdersIfEmpty };
+module.exports = { generateHistoricalOrders, seedHistoricalOrdersIfEmpty };

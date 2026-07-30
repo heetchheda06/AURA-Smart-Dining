@@ -4,8 +4,10 @@ const Cart = require('../models/Cart');
 const Table = require('../models/Table');
 const Notification = require('../models/Notification');
 
+const { generateHistoricalOrders } = require('../seed/historicalOrdersSeeder');
+
 // ── In-Memory Order Store (fallback when MongoDB is not connected) ─────────────
-const memoryOrders = [];
+const memoryOrders = generateHistoricalOrders();
 let memoryOrderIdCounter = 1;
 
 const isDBConnected = () => mongoose.connection.readyState === 1;
