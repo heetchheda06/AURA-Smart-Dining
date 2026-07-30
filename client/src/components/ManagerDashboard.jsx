@@ -30,6 +30,55 @@ export default function ManagerDashboard({ onLogout, managerName = "AURA Manager
   const [newIngMin, setNewIngMin] = useState(5);
   const [newIngCost, setNewIngCost] = useState(100);
 
+  // Live Checkout Sessions State
+  const [checkoutSessions, setCheckoutSessions] = useState([]);
+
+  const fetchCheckoutSessions = async () => {
+    try {
+      const res = await fetch('/api/checkout/sessions');
+      const data = await res.json();
+      if (data.success) {
+        setCheckoutSessions(data.sessions || []);
+      }
+    } catch (e) {}
+  };
+
+  const handleReopenSession = async (tableNum) => {
+    try {
+      const res = await fetch('/api/checkout/reopen-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tableNum })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast(`🔓 Session reopened for Table #${tableNum}!`);
+        fetchCheckoutSessions();
+        fetchTables();
+      }
+    } catch (e) {
+      showToast('⚠️ Error reopening session.');
+    }
+  };
+
+  const handleForceEndSession = async (tableNum) => {
+    try {
+      const res = await fetch('/api/checkout/force-end-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tableNum })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast(`⚡ Session ended & Table #${tableNum} marked free!`);
+        fetchCheckoutSessions();
+        fetchTables();
+      }
+    } catch (e) {
+      showToast('⚠️ Error force ending session.');
+    }
+  };
+
   const showToast = (msg) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(''), 3500);
