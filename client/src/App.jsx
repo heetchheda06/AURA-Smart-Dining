@@ -393,6 +393,10 @@ export default function App() {
       const data = await res.json();
       if (data.success) {
         localStorage.setItem('token', data.token);
+        if (data.user && data.user.name) {
+          localStorage.setItem('user_name', data.user.name);
+          setActiveCustomerSession(prev => ({ ...prev, customerName: data.user.name, loginType: 'member', isLoggedIn: true }));
+        }
         showToast(`🎉 Registration successful! Welcome to AURA, ${data.user.name}!`);
         setIsAuthModalOpen(false);
         setCurrentRole('customer');
@@ -418,6 +422,10 @@ export default function App() {
       const data = await res.json();
       if (data.success) {
         localStorage.setItem('token', data.token);
+        if (data.user && data.user.name) {
+          localStorage.setItem('user_name', data.user.name);
+          setActiveCustomerSession(prev => ({ ...prev, customerName: data.user.name, loginType: 'member', isLoggedIn: true }));
+        }
         showToast(`👋 Welcome back, ${data.user.name}!`);
         setIsAuthModalOpen(false);
         setStaffName(data.user.name);

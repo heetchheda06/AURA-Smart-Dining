@@ -7,11 +7,23 @@ const mongoose = require('mongoose');
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID || '686445090372-17hhr1l6fsbjots3e8kuse904cv9rq72.apps.googleusercontent.com');
 
+// Helper to format human name from email address
+const formatNameFromEmail = (email) => {
+  if (!email) return 'Member Customer';
+  const prefix = email.split('@')[0].replace(/[0-9_]+/g, ' ').replace(/\./g, ' ').trim();
+  if (!prefix) return 'Member Customer';
+  return prefix.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
+};
+
 // Helper to generate JWT token — encodes name, email, role so profile works even without DB
 const generateToken = (user) => {
+  const name = (user.name && user.name !== 'AURA Customer' && user.name !== 'Registered Customer')
+    ? user.name 
+    : formatNameFromEmail(user.email);
+
   const payload = {
     id: user._id || user.id || 'demo_user_id',
-    name: user.name || '',
+    name: name,
     email: user.email || '',
     role: user.role || 'customer'
   };
@@ -23,13 +35,16 @@ const generateToken = (user) => {
 // Send response helper
 const sendTokenResponse = (user, statusCode, res) => {
   const token = generateToken(user);
+  const displayName = (user.name && user.name !== 'AURA Customer' && user.name !== 'Registered Customer')
+    ? user.name 
+    : formatNameFromEmail(user.email);
 
   res.status(statusCode).json({
     success: true,
     token,
     user: {
       id: user._id || user.id || 'demo_user_id',
-      name: user.name,
+      name: displayName,
       email: user.email,
       mobile: user.mobile,
       profileImage: user.profileImage || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80',
@@ -54,6 +69,8 @@ exports.register = async (req, res, next) => {
       });
     }
 
+    const userName = name && name.trim() ? name.trim() : formatNameFromEmail(normalizedEmail);
+
     if (mongoose.connection.readyState === 1) {
       const userExists = await User.findOne({ email: normalizedEmail });
       if (userExists) {
@@ -61,7 +78,7 @@ exports.register = async (req, res, next) => {
       }
 
       const user = await User.create({
-        name: name ? name.trim() : 'Registered Customer',
+        name: userName,
         email: normalizedEmail,
         password,
         mobile: mobile ? mobile.trim() : undefined,
@@ -75,7 +92,7 @@ exports.register = async (req, res, next) => {
     // Fail-safe fallback if DB connection is disconnected/buffering
     const demoUser = {
       id: `usr_${Date.now()}`,
-      name: name ? name.trim() : 'Registered Customer',
+      name: userName,
       email: normalizedEmail,
       mobile,
       role: 'customer',
@@ -87,7 +104,7 @@ exports.register = async (req, res, next) => {
     console.error("Registration fallback active:", error.message);
     const demoUser = {
       id: `usr_${Date.now()}`,
-      name: req.body.name || 'Registered Customer',
+      name: req.body.name || formatNameFromEmail(req.body.email),
       email: req.body.email || 'customer@auradining.in',
       role: 'customer',
       provider: 'local'
@@ -128,7 +145,7 @@ exports.login = async (req, res, next) => {
 
     // Preset Role Fallback for instant staff & admin access
     let role = 'customer';
-    let name = 'AURA Customer';
+    let name = formatNameFromEmail(normalizedEmail);
     if (normalizedEmail.includes('admin')) { role = 'admin'; name = 'AURA Admin'; }
     else if (normalizedEmail.includes('manager')) { role = 'manager'; name = 'AURA Manager'; }
     else if (normalizedEmail.includes('chef')) { role = 'chef'; name = 'Executive Chef Mario'; }
@@ -147,7 +164,7 @@ exports.login = async (req, res, next) => {
     console.error("Login fallback active:", error.message);
     const demoUser = {
       id: `usr_${Date.now()}`,
-      name: 'AURA Member',
+      name: formatNameFromEmail(req.body.email),
       email: req.body.email || 'customer@auradining.in',
       role: req.body.email && req.body.email.includes('admin') ? 'admin' : 'customer',
       provider: 'local'
@@ -163,7 +180,7 @@ exports.googleAuth = async (req, res, next) => {
   try {
     const { email: bodyEmail, name: bodyName, googleId: bodyId } = req.body;
     let email = bodyEmail || 'Askheet@gmail.com';
-    let name = bodyName || 'Askheet (Google Member)';
+    let name = bodyName || formatNameFromEmail(email);
     let googleId = bodyId || 'google_123456';
 
     const demoUser = {
@@ -235,7 +252,7 @@ exports.getProfile = async (req, res, next) => {
           success: true,
           user: {
             id: freshUser._id,
-            name: freshUser.name,
+            name: freshUser.name || formatNameFromEmail(freshUser.email),
             email: freshUser.email,
             mobile: freshUser.mobile,
             role: freshUser.role,
@@ -245,12 +262,16 @@ exports.getProfile = async (req, res, next) => {
         });
       }
     }
-    // Fallback: return from JWT-decoded req.user (has name/email/role from token)
+    
+    const displayName = (req.user.name && req.user.name !== 'AURA Customer' && req.user.name !== 'Registered Customer')
+      ? req.user.name 
+      : formatNameFromEmail(req.user.email);
+
     return res.status(200).json({
       success: true,
       user: {
         id: req.user._id || req.user.id,
-        name: req.user.name,
+        name: displayName,
         email: req.user.email,
         role: req.user.role
       }

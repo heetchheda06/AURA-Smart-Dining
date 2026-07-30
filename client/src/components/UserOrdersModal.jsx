@@ -134,7 +134,11 @@ export default function UserOrdersModal({ isOpen, onClose, customerName, formatP
           <div style={{ flex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
               <h3 style={{ fontSize: '22px', fontWeight: 900, color: '#FFFFFF', margin: 0, letterSpacing: '0.3px' }}>
-                {realName || customerName || 'Valued Member'}
+                {(realName && realName !== 'AURA Customer' && realName !== 'AURA Member' && realName !== 'Guest Customer') 
+                  ? realName 
+                  : (customerName && customerName !== 'AURA Customer' && customerName !== 'Guest Customer')
+                    ? customerName 
+                    : (localStorage.getItem('user_name') || 'Valued Member')}
               </h3>
               <span style={{ background: '#F97316', color: '#FFFFFF', padding: '3px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 900 }}>
                 👑 MEMBER DASHBOARD
