@@ -212,13 +212,6 @@ export default function OrderModal({
             <i className="fa-solid fa-paper-plane"></i> Send Order to Kitchen
           </button>
           
-          <button 
-            style={{ width: '100%', justifyContent: 'center', padding: '12px', borderRadius: '16px', fontSize: '13px', border: 'none', background: '#1E3A5F', color: '#FFF', fontWeight: 900, cursor: cart.length === 0 ? 'not-allowed' : 'pointer', opacity: cart.length === 0 ? 0.6 : 1, display: 'flex', alignItems: 'center', gap: '8px' }} 
-            onClick={() => onSplitBill(total)}
-            disabled={cart.length === 0}
-          >
-            <i className="fa-solid fa-calculator"></i> Split Bill per Person
-          </button>
         </div>
 
         {/* AI Sommelier Recommendations */}

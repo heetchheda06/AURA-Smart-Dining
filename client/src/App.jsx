@@ -22,6 +22,7 @@ import AIRecommender from './components/AIRecommender';
 import TableSelectModal from './components/TableSelectModal';
 import CustomerReviewsModal from './components/CustomerReviewsModal';
 import AiReviewAnalyzerModal from './components/AiReviewAnalyzerModal';
+import AiSommelierModal from './components/AiSommelierModal';
 import { fallbackMenu } from './data/fallbackMenu';
 
 // Initialize socket connection at module level
@@ -64,6 +65,7 @@ export default function App() {
   const [isQueueOpen, setIsQueueOpen] = useState(false);
   const [isTableFreedOpen, setIsTableFreedOpen] = useState(false);
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
+  const [isSommelierOpen, setIsSommelierOpen] = useState(false);
 
   // --- Table Selection Modal ---
   const [isTableSelectOpen, setIsTableSelectOpen] = useState(false);
@@ -642,20 +644,7 @@ export default function App() {
 
   // Smart Sommelier Pairings
   const handleGetRecommendation = () => {
-    if (cart.length === 0) {
-      showToast("🍷 Sommelier: Add items to your cart so I can recommend pairings!");
-      return;
-    }
-    const itemsInCart = cart.map(i => i.name.toLowerCase());
-    let recommendation = "🍷 Sommelier: Pair your dishes with our house vintage red wine.";
-    if (itemsInCart.some(name => name.includes('steak') || name.includes('beef') || name.includes('salmon'))) {
-      recommendation = "🍷 Sommelier: I recommend pairing the Wagyu / Salmon with our 2018 Napa Cabernet Sauvignon.";
-    } else if (itemsInCart.some(name => name.includes('sushi') || name.includes('fish'))) {
-      recommendation = "🍶 Sommelier: Enhance the sushi flavors with a glass of chilled Junmai Daiginjo Sake.";
-    } else if (itemsInCart.some(name => name.includes('chocolate') || name.includes('dessert'))) {
-      recommendation = "🥂 Sommelier: Finish your meal with a sparkling French Champagne or Sweet Port Wine.";
-    }
-    showToast(recommendation);
+    setIsSommelierOpen(true);
   };
 
   // Dispatch assistance request
@@ -998,6 +987,16 @@ export default function App() {
       <AiReviewAnalyzerModal 
         isOpen={isAiAnalyzerModalOpen}
         onClose={() => setIsAiAnalyzerModalOpen(false)}
+      />
+
+      {/* AI Smart Sommelier Wine & Cocktail Pairing Modal */}
+      <AiSommelierModal 
+        isOpen={isSommelierOpen}
+        onClose={() => setIsSommelierOpen(false)}
+        cart={cart}
+        menuItems={menuItems}
+        onAddToCart={handleAddToCart}
+        formatPrice={formatPrice}
       />
 
       {/* Toast Notification Container */}

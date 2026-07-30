@@ -183,28 +183,6 @@ export default function CartSidebar({
             <i className="fa-solid fa-paper-plane"></i> Send Order to Kitchen
           </button>
 
-          <button 
-            onClick={() => onSplitBill(total)}
-            style={{
-              width: '100%',
-              background: '#1E3A5F',
-              color: '#FFFFFF',
-              border: 'none',
-              borderRadius: '20px',
-              padding: '12px',
-              marginTop: '10px',
-              fontSize: '13px',
-              fontWeight: 900,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px',
-              boxShadow: '0 3px 12px rgba(30, 58, 95, 0.2)'
-            }} 
-          >
-            <i className="fa-solid fa-calculator"></i> Split Bill per Person
-          </button>
         </div>
       </div>
 

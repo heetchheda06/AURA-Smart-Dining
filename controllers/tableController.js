@@ -36,19 +36,33 @@ const isDBConnected = () => mongoose.connection.readyState === 1;
 // @access  Public
 exports.getTables = async (req, res, next) => {
   try {
-    let tables = [];
+    let dbTables = [];
     if (isDBConnected()) {
-      tables = await Table.find().sort({ num: 1 }).lean();
+      dbTables = await Table.find().sort({ num: 1 }).lean().catch(() => []);
     }
     
-    if (!tables || tables.length === 0) {
-      tables = default20Tables;
-    } else if (tables.length < 20) {
-      const existingNums = new Set(tables.map(t => t.num));
-      const missing = default20Tables.filter(dt => !existingNums.has(dt.num));
-      tables = [...tables, ...missing].sort((a, b) => a.num - b.num);
-    }
-    res.status(200).json({ success: true, count: tables.length, data: tables });
+    // Create a map keyed by Number(t.num)
+    const existingMap = new Map();
+    (dbTables || []).forEach(t => {
+      existingMap.set(Number(t.num), t);
+    });
+
+    // Merge with default20Tables to ensure 20 items exist with accurate memory & DB statuses
+    const mergedTables = default20Tables.map(dt => {
+      const dbTable = existingMap.get(Number(dt.num));
+      if (dbTable) {
+        return {
+          ...dt,
+          ...dbTable,
+          num: Number(dbTable.num),
+          status: dbTable.status || dt.status,
+          currentCustomer: dbTable.currentCustomer || dt.currentCustomer || ''
+        };
+      }
+      return dt;
+    });
+
+    res.status(200).json({ success: true, count: mergedTables.length, data: mergedTables });
   } catch (error) {
     res.status(200).json({ success: true, count: default20Tables.length, data: default20Tables });
   }
@@ -67,11 +81,12 @@ exports.updateTableStatus = async (req, res, next) => {
       try {
         table = await Table.findOne({ num: tableNum });
         if (!table) {
-          const def = default20Tables.find(t => t.num === tableNum) || { num: tableNum, seats: 4, zone: "Main Hall", status };
+          const def = default20Tables.find(t => Number(t.num) === tableNum) || { num: tableNum, seats: 4, zone: "Main Hall", status };
           table = await Table.create({ 
             ...def, 
+            num: tableNum,
             status, 
-            currentCustomer: status === 'free' ? '' : (customerName || ''),
+            currentCustomer: status === 'free' ? '' : (customerName || 'Diner'),
             loginType: status === 'free' ? '' : (loginType || ''),
             userId: status === 'free' ? '' : (userId || ''),
             occupiedAt: status === 'free' ? null : new Date()
@@ -84,9 +99,9 @@ exports.updateTableStatus = async (req, res, next) => {
             table.userId = '';
             table.occupiedAt = null;
           } else {
-            if (customerName !== undefined) table.currentCustomer = customerName;
-            if (loginType !== undefined) table.loginType = loginType;
-            if (userId !== undefined) table.userId = userId;
+            if (customerName) table.currentCustomer = customerName;
+            if (loginType) table.loginType = loginType;
+            if (userId) table.userId = userId;
             if (!table.occupiedAt) table.occupiedAt = new Date();
           }
           await table.save();
@@ -97,7 +112,7 @@ exports.updateTableStatus = async (req, res, next) => {
     }
 
     // Always update fallback memory array status
-    const memMatch = default20Tables.find(t => t.num === tableNum);
+    const memMatch = default20Tables.find(t => Number(t.num) === tableNum);
     if (memMatch) {
       memMatch.status = status;
       if (status === 'free') {

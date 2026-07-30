@@ -93,12 +93,13 @@ export default function ManagerDashboard({ onLogout, managerName = "AURA Manager
         }
       }
       
-      if (loadedTables.length < 20) {
-        const existingMap = new Map(loadedTables.map(t => [t.num, t]));
-        loadedTables = default20Tables.map(dt => existingMap.get(dt.num) || dt);
-      }
+      const existingMap = new Map((loadedTables || []).map(t => [Number(t.num), t]));
+      loadedTables = default20Tables.map(dt => {
+        const dbT = existingMap.get(Number(dt.num));
+        return dbT ? { ...dt, ...dbT, num: Number(dt.num) } : dt;
+      });
 
-      // Cross-check live active orders so any table with an unpaid order is marked OCCUPIED
+      // Cross-check live active orders so any table with an unpaid order or customer is marked OCCUPIED
       try {
         const orderRes = await fetch('/api/orders');
         if (orderRes.ok) {
@@ -114,11 +115,12 @@ export default function ManagerDashboard({ onLogout, managerName = "AURA Manager
 
             loadedTables = loadedTables.map(t => {
               const activeCustName = activeTableMap.get(Number(t.num));
-              if (activeCustName) {
+              const isOccupied = t.status === 'occupied' || Boolean(activeCustName) || Boolean(t.currentCustomer && t.currentCustomer.trim() !== '');
+              if (isOccupied) {
                 return { 
                   ...t, 
                   status: 'occupied', 
-                  currentCustomer: t.currentCustomer || activeCustName 
+                  currentCustomer: t.currentCustomer || activeCustName || 'Seated Diner'
                 };
               }
               return t;
