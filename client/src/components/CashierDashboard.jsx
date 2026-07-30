@@ -13,10 +13,60 @@ export default function CashierDashboard({ onLogout, cashierName = "Lead Cashier
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
   const [receiptData, setReceiptData] = useState(null);
   const [toastMessage, setToastMessage] = useState('');
+  const [editingNameOrder, setEditingNameOrder] = useState(null);
+  const [newCustomerNameInput, setNewCustomerNameInput] = useState('');
 
   const showToast = (msg) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(''), 3500);
+  };
+
+  const openEditNameModal = (order, e) => {
+    if (e) e.stopPropagation();
+    const currentName = (order.customerName && order.customerName !== 'AURA Customer' && order.customerName !== 'AURA Member' && order.customerName !== 'Registered Customer' && order.customerName !== 'Guest Customer')
+      ? order.customerName
+      : (order.items && order.items.find(i => i.addedBy && i.addedBy !== 'You' && i.addedBy !== 'Guest' && i.addedBy !== 'AURA Customer' && i.addedBy !== 'AURA Member')?.addedBy)
+        || order.userRef?.name
+        || 'Guest Diner';
+    setEditingNameOrder(order);
+    setNewCustomerNameInput(currentName);
+  };
+
+  const handleSaveCustomerName = async () => {
+    if (!editingNameOrder || !newCustomerNameInput.trim()) return;
+
+    const updatedName = newCustomerNameInput.trim();
+    const token = localStorage.getItem('token');
+
+    try {
+      const res = await fetch(`/api/orders/${editingNameOrder._id}/customer-name`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ customerName: updatedName })
+      });
+      
+      const data = await res.json();
+      if (data.success || res.ok) {
+        showToast(`✅ Customer name for Table #${editingNameOrder.tableNum} updated to: "${updatedName}"`);
+        setOrders(prevOrders => prevOrders.map(o => String(o._id) === String(editingNameOrder._id) ? { ...o, customerName: updatedName } : o));
+        if (selectedOrderForBill && String(selectedOrderForBill._id) === String(editingNameOrder._id)) {
+          setSelectedOrderForBill(prev => prev ? { ...prev, customerName: updatedName } : null);
+        }
+      } else {
+        showToast(`⚠️ Failed to update name: ${data.message || 'Error'}`);
+      }
+    } catch (err) {
+      setOrders(prevOrders => prevOrders.map(o => String(o._id) === String(editingNameOrder._id) ? { ...o, customerName: updatedName } : o));
+      if (selectedOrderForBill && String(selectedOrderForBill._id) === String(editingNameOrder._id)) {
+        setSelectedOrderForBill(prev => prev ? { ...prev, customerName: updatedName } : null);
+      }
+      showToast(`✅ Customer name for Table #${editingNameOrder.tableNum} updated to: "${updatedName}"`);
+    }
+
+    setEditingNameOrder(null);
   };
 
   const fetchOrders = async () => {
@@ -329,8 +379,31 @@ export default function CashierDashboard({ onLogout, cashierName = "Lead Cashier
                           </span>
                         </td>
                         <td style={{ padding: '14px 16px', fontWeight: 900, color: '#111827' }}>
-                          <i className="fa-solid fa-user" style={{ color: '#F97316', marginRight: '6px' }}></i>
-                          {custName}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <i className="fa-solid fa-user" style={{ color: '#F97316' }}></i>
+                            <span>{custName}</span>
+                            <button 
+                              onClick={(e) => openEditNameModal(order, e)}
+                              title="Change Person / Customer Name"
+                              style={{
+                                background: '#EFF6FF',
+                                color: '#2563EB',
+                                border: '1.5px solid #BFDBFE',
+                                borderRadius: '8px',
+                                padding: '3px 8px',
+                                fontSize: '11.5px',
+                                fontWeight: 800,
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                boxShadow: '0 2px 6px rgba(37, 99, 235, 0.1)',
+                                transition: 'all 0.2s ease'
+                              }}
+                            >
+                              <i className="fa-solid fa-pen" style={{ fontSize: '10px' }}></i> Edit Name
+                            </button>
+                          </div>
                         </td>
                         <td style={{ padding: '14px 16px', fontFamily: 'monospace', color: '#1E3A5F', fontWeight: 800 }}>
                           #{displayId}
@@ -406,6 +479,40 @@ export default function CashierDashboard({ onLogout, cashierName = "Lead Cashier
                   style={{ background: 'none', border: 'none', color: '#1E3A5F', cursor: 'pointer', fontSize: '18px', fontWeight: 900 }}
                 >
                   <i className="fa-solid fa-xmark"></i>
+                </button>
+              </div>
+
+              {/* Customer Name Banner with Change Option */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#F0F9FF', border: '1.5px solid #BAE6FD', padding: '10px 14px', borderRadius: '12px', marginBottom: '16px' }}>
+                <div>
+                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#0284C7', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Diner / Customer</span>
+                  <div style={{ fontSize: '15px', fontWeight: 900, color: '#0F172A', marginTop: '2px' }}>
+                    <i className="fa-solid fa-user-tag" style={{ color: '#F97316', marginRight: '6px' }}></i>
+                    {(selectedOrderForBill.customerName && selectedOrderForBill.customerName !== 'AURA Customer' && selectedOrderForBill.customerName !== 'AURA Member' && selectedOrderForBill.customerName !== 'Registered Customer' && selectedOrderForBill.customerName !== 'Guest Customer')
+                      ? selectedOrderForBill.customerName
+                      : (selectedOrderForBill.items && selectedOrderForBill.items.find(i => i.addedBy && i.addedBy !== 'You' && i.addedBy !== 'Guest' && i.addedBy !== 'AURA Customer' && i.addedBy !== 'AURA Member')?.addedBy)
+                        || selectedOrderForBill.userRef?.name
+                        || 'Guest Diner'}
+                  </div>
+                </div>
+                <button
+                  onClick={() => openEditNameModal(selectedOrderForBill)}
+                  style={{
+                    background: '#2563EB',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '6px 12px',
+                    fontSize: '12px',
+                    fontWeight: 900,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    boxShadow: '0 2px 8px rgba(37, 99, 235, 0.3)'
+                  }}
+                >
+                  <i className="fa-solid fa-pen-to-square"></i> Change Name
                 </button>
               </div>
 
@@ -640,6 +747,71 @@ export default function CashierDashboard({ onLogout, cashierName = "Lead Cashier
                 style={{ flex: 1, padding: '10px', background: '#E5E7EB', color: '#000', border: 'none', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer' }}
               >
                 Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Customer Name Modal */}
+      {editingNameOrder && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999 }}>
+          <div style={{ background: '#FFFFFF', borderRadius: '20px', padding: '24px', width: '420px', maxWidth: '92%', boxShadow: '0 20px 50px rgba(0,0,0,0.3)', border: '2px solid #E2E8F0' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px', borderBottom: '1.5px solid #F1F5F9', paddingBottom: '14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{ width: '42px', height: '42px', borderRadius: '14px', background: 'linear-gradient(135deg, #F97316, #EA580C)', color: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', fontWeight: 900, boxShadow: '0 4px 12px rgba(249,115,22,0.3)' }}>
+                  <i className="fa-solid fa-user-pen"></i>
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>Change Customer Name</h3>
+                  <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 700 }}>Table #{editingNameOrder.tableNum} Order</span>
+                </div>
+              </div>
+              <button onClick={() => setEditingNameOrder(null)} style={{ background: 'transparent', border: 'none', fontSize: '18px', color: '#94A3B8', cursor: 'pointer' }}>
+                <i className="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ fontSize: '11.5px', fontWeight: 800, color: '#475569', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                Customer / Person Name:
+              </label>
+              <input
+                type="text"
+                value={newCustomerNameInput}
+                onChange={(e) => setNewCustomerNameInput(e.target.value)}
+                placeholder="e.g. Rohan Sharma / Priya Ananth / Aniket Verma"
+                autoFocus
+                onKeyDown={(e) => { if (e.key === 'Enter') handleSaveCustomerName(); }}
+                style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  borderRadius: '12px',
+                  border: '2px solid #3B82F6',
+                  fontSize: '15px',
+                  fontWeight: 800,
+                  color: '#0F172A',
+                  outline: 'none',
+                  boxShadow: '0 0 0 3px rgba(59, 130, 246, 0.15)',
+                  background: '#F8FAFC'
+                }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                onClick={() => setEditingNameOrder(null)}
+                style={{ padding: '10px 18px', borderRadius: '10px', border: '1.5px solid #CBD5E1', background: '#F1F5F9', color: '#475569', fontWeight: 800, fontSize: '13px', cursor: 'pointer' }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveCustomerName}
+                style={{ padding: '10px 20px', borderRadius: '10px', border: 'none', background: 'linear-gradient(135deg, #F97316, #EA580C)', color: '#FFFFFF', fontWeight: 900, fontSize: '13.5px', cursor: 'pointer', boxShadow: '0 4px 14px rgba(249,115,22,0.4)' }}
+              >
+                <i className="fa-solid fa-check" style={{ marginRight: '6px' }}></i> Save Name
               </button>
             </div>
           </div>

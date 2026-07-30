@@ -565,6 +565,52 @@ exports.splitBill = async (req, res, next) => {
         formattedAmount: `₹${splitAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`
       }
     });
+exports.updateCustomerName = async (req, res, next) => {
+  try {
+    const { customerName } = req.body;
+    if (!customerName || !customerName.trim()) {
+      return res.status(400).json({ success: false, message: 'Customer name is required.' });
+    }
+
+    const newName = customerName.trim();
+    const orderIdStr = String(req.params.id);
+
+    // 1. Update in memory orders array
+    const memOrder = memoryOrders.find(o => String(o._id) === orderIdStr);
+    if (memOrder) {
+      memOrder.customerName = newName;
+      if (memOrder.items) {
+        memOrder.items.forEach(i => {
+          if (i.addedBy === 'Diner' || i.addedBy === 'Guest' || i.addedBy === 'You' || i.addedBy === 'AURA Customer' || i.addedBy === 'AURA Member') {
+            i.addedBy = newName;
+          }
+        });
+      }
+    }
+
+    // 2. Update MongoDB if connected
+    if (isDBConnected()) {
+      try {
+        await Order.findByIdAndUpdate(orderIdStr, { customerName: newName });
+      } catch (dbErr) {
+        console.warn('DB name update warning:', dbErr.message);
+      }
+    }
+
+    // 3. Emit Socket event if connected
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('order:customer_name_updated', {
+        orderId: orderIdStr,
+        customerName: newName
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Customer name updated successfully!',
+      customerName: newName
+    });
   } catch (error) {
     next(error);
   }

@@ -13,7 +13,20 @@ const sampleCustomers = [
   { name: "Pooja Malhotra", type: "member" },
   { name: "Heet Chheda", type: "member" },
   { name: "Aditya Roy", type: "guest" },
-  { name: "Divya Nair", type: "member" }
+  { name: "Divya Nair", type: "member" },
+  { name: "Aarav Sen", type: "member" },
+  { name: "Ananya Iyer", type: "guest" },
+  { name: "Kabir Malhotra", type: "member" },
+  { name: "Ishaan Verma", type: "guest" },
+  { name: "Tarun Rao", type: "member" },
+  { name: "Meera Deshmukh", type: "member" },
+  { name: "Riya Kapoor", type: "guest" },
+  { name: "Siddharth Jain", type: "member" },
+  { name: "Kavya Reddy", type: "member" },
+  { name: "Gaurav Singhal", type: "guest" },
+  { name: "Tanvi Agarwal", type: "member" },
+  { name: "Nikhil Saxena", type: "member" },
+  { name: "Shruti Bose", type: "guest" }
 ];
 
 const sampleItemsPool = [
