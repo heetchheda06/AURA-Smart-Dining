@@ -64,7 +64,7 @@ export default function AuthModal({
     }
   };
 
-  // Load Google GIS Script
+  // Load Google GIS Script & Setup Clients
   useEffect(() => {
     if (!isOpen) return;
 
@@ -85,66 +85,65 @@ export default function AuthModal({
         completeGoogleLogin(googleName, googleEmail, picture);
       } catch (err) {
         console.error("Google auth callback error:", err);
-        completeGoogleLogin('Heet Chheda', 'heet.chheda06@gmail.com');
       }
     };
 
-    const script = document.createElement('script');
-    script.src = 'https://accounts.google.com/gsi/client';
-    script.async = true;
-    script.defer = true;
-    script.onload = () => {
-      if (window.google?.accounts) {
-        try {
-          // Initialize One-Tap & Credential ID Client
-          if (window.google.accounts.id) {
-            window.google.accounts.id.initialize({
-              client_id: GOOGLE_CLIENT_ID,
-              callback: handleGoogleCredentialResponse
-            });
-            window.google.accounts.id.prompt();
-          }
-
-          // Initialize Official Google OAuth 2.0 Token Client for Popup
-          if (window.google.accounts.oauth2) {
-            tokenClientRef.current = window.google.accounts.oauth2.initTokenClient({
-              client_id: GOOGLE_CLIENT_ID,
-              scope: 'openid profile email',
-              callback: async (tokenResponse) => {
-                if (tokenResponse && tokenResponse.access_token) {
-                  try {
-                    const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-                      headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
-                    });
-                    const userInfo = await userInfoRes.json();
-                    if (userInfo && (userInfo.name || userInfo.email)) {
-                      completeGoogleLogin(userInfo.name || 'Google User', userInfo.email || 'user@gmail.com', userInfo.picture);
-                      return;
-                    }
-                  } catch (err) {
-                    console.error("Userinfo fetch error:", err);
-                  }
-                }
-                completeGoogleLogin('Heet Chheda', 'heet.chheda06@gmail.com');
-              }
-            });
-          }
-        } catch (e) {
-          console.error("GSI Init error:", e);
+    const setupGoogleClients = () => {
+      if (!window.google?.accounts) return;
+      try {
+        // 1. Initialize Google ID Client
+        if (window.google.accounts.id) {
+          window.google.accounts.id.initialize({
+            client_id: GOOGLE_CLIENT_ID,
+            callback: handleGoogleCredentialResponse
+          });
+          window.google.accounts.id.prompt();
         }
-      }
-    };
-    document.body.appendChild(script);
 
-    return () => {
-      if (document.body.contains(script)) {
-        document.body.removeChild(script);
+        // 2. Initialize Official Google OAuth 2.0 Token Client for Popup
+        if (window.google.accounts.oauth2) {
+          tokenClientRef.current = window.google.accounts.oauth2.initTokenClient({
+            client_id: GOOGLE_CLIENT_ID,
+            scope: 'openid profile email',
+            callback: async (tokenResponse) => {
+              if (tokenResponse && tokenResponse.access_token) {
+                try {
+                  const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                    headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
+                  });
+                  const userInfo = await userInfoRes.json();
+                  if (userInfo && (userInfo.name || userInfo.email)) {
+                    const profileName = userInfo.name || userInfo.given_name || (userInfo.email ? userInfo.email.split('@')[0] : 'Heet Chheda');
+                    const profileEmail = userInfo.email || 'heet.chheda06@gmail.com';
+                    completeGoogleLogin(profileName, profileEmail, userInfo.picture);
+                    return;
+                  }
+                } catch (err) {
+                  console.error("Userinfo fetch error:", err);
+                }
+              }
+            }
+          });
+        }
+      } catch (e) {
+        console.error("GSI setup error:", e);
       }
     };
+
+    if (window.google?.accounts) {
+      setupGoogleClients();
+    } else {
+      const script = document.createElement('script');
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      script.onload = setupGoogleClients;
+      document.body.appendChild(script);
+    }
   }, [isOpen]);
 
   const handleGoogleSignInClick = () => {
-    // 1. Try Google OAuth 2.0 Popup Client
+    // 1. Try Official Google OAuth 2.0 Token Client
     if (tokenClientRef.current) {
       try {
         tokenClientRef.current.requestAccessToken();
@@ -157,17 +156,10 @@ export default function AuthModal({
     // 2. Try Google ID Prompt
     if (window.google?.accounts?.id) {
       try {
-        window.google.accounts.id.prompt((notification) => {
-          if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-            completeGoogleLogin('Heet Chheda', 'heet.chheda06@gmail.com');
-          }
-        });
+        window.google.accounts.id.prompt();
         return;
       } catch (e) {}
     }
-
-    // 3. Fallback
-    completeGoogleLogin('Heet Chheda', 'heet.chheda06@gmail.com');
   };
 
   if (!isOpen) return null;
