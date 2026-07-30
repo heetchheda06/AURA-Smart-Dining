@@ -79,7 +79,7 @@ export default function Navbar({
           <button 
             className="nav-btn nav-btn-outline" 
             onClick={onOpenReviews} 
-            title="Customer Reviews & Gemini AI Analytics"
+            title="Customer Reviews & Ratings"
             style={{
               borderColor: '#8B5CF6',
               color: '#1E3A5F',
@@ -88,7 +88,7 @@ export default function Navbar({
             }}
           >
             <i className="fa-solid fa-star" style={{ color: '#8B5CF6' }}></i>
-            <span className="btn-label" style={{ fontWeight: 900 }}>Reviews & AI</span>
+            <span className="btn-label" style={{ fontWeight: 900 }}>Customer Reviews</span>
           </button>
 
           <button className="nav-btn nav-btn-outline" onClick={onOpenWaiter} title="Call Waiter Assistance">
