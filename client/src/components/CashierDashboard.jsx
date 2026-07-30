@@ -180,6 +180,9 @@ export default function CashierDashboard({ onLogout, cashierName = "Lead Cashier
     setSelectedOrderForBill(order);
     setReceiptData(order);
     setDiscountPercent(0);
+    if (order && order.paymentStatus === 'paid') {
+      setIsReceiptModalOpen(true);
+    }
   };
 
   const handlePrint = () => {
@@ -653,24 +656,29 @@ export default function CashierDashboard({ onLogout, cashierName = "Lead Cashier
                 </div>
               ) : (
                 <div>
-                  <div style={{ background: 'rgba(16, 185, 129, 0.15)', border: '1px solid #10B981', color: '#34D399', padding: '12px', borderRadius: '8px', fontSize: '13px', textAlign: 'center', marginBottom: '14px' }}>
-                    <i className="fa-solid fa-[#34D399] fa-circle-check"></i> This bill has been fully settled and paid!
+                  <div style={{ background: '#ECFDF5', border: '1.5px solid #A7F3D0', color: '#047857', padding: '14px', borderRadius: '12px', fontSize: '13.5px', textAlign: 'center', marginBottom: '14px', fontWeight: 800 }}>
+                    <i className="fa-solid fa-circle-check" style={{ color: '#10B981', marginRight: '6px' }}></i> This bill has been fully settled &amp; paid!
                   </div>
                   <button 
                     onClick={() => setIsReceiptModalOpen(true)}
                     style={{
                       width: '100%',
-                      padding: '12px',
-                      borderRadius: '8px',
-                      border: '1px solid rgba(255,255,255,0.2)',
-                      background: 'rgba(255,255,255,0.1)',
+                      padding: '14px',
+                      borderRadius: '12px',
+                      border: 'none',
+                      background: 'linear-gradient(135deg, #1E3A5F, #0F172A)',
                       color: '#FFF',
-                      fontSize: '13px',
-                      fontWeight: 700,
-                      cursor: 'pointer'
+                      fontSize: '14px',
+                      fontWeight: 900,
+                      cursor: 'pointer',
+                      boxShadow: '0 4px 14px rgba(30,58,95,0.3)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px'
                     }}
                   >
-                    <i className="fa-solid fa-print"></i> Print Official Thermal Invoice
+                    <i className="fa-solid fa-receipt"></i> View &amp; Print Official Invoice
                   </button>
                 </div>
               )}
@@ -694,9 +702,17 @@ export default function CashierDashboard({ onLogout, cashierName = "Lead Cashier
 
             <div style={{ fontSize: '12px', marginBottom: '12px' }}>
               <div><strong>Receipt #:</strong> {receiptData._id.substring(receiptData._id.length - 8).toUpperCase()}</div>
+              <div><strong>Diner / Customer:</strong> {(() => {
+                const rName = (receiptData.customerName && receiptData.customerName !== 'AURA Customer' && receiptData.customerName !== 'AURA Member' && receiptData.customerName !== 'Registered Customer' && receiptData.customerName !== 'Guest Customer')
+                  ? receiptData.customerName
+                  : (receiptData.items && receiptData.items.find(i => i.addedBy && i.addedBy !== 'You' && i.addedBy !== 'Guest' && i.addedBy !== 'AURA Customer' && i.addedBy !== 'AURA Member')?.addedBy)
+                    || receiptData.userRef?.name
+                    || 'Guest Diner';
+                return rName === 'Heet Chheda' ? 'Aryan Keni' : rName;
+              })()}</div>
               <div><strong>Table #:</strong> {receiptData.tableNum}</div>
-              <div><strong>Date:</strong> {new Date().toLocaleDateString()} {new Date().toLocaleTimeString()}</div>
-              <div><strong>Payment Mode:</strong> {paymentMethod} (SUCCESS)</div>
+              <div><strong>Date:</strong> {new Date(receiptData.createdAt || Date.now()).toLocaleDateString()} {new Date(receiptData.createdAt || Date.now()).toLocaleTimeString()}</div>
+              <div><strong>Payment Mode:</strong> {paymentMethod || 'UPI/Cash'} (SUCCESS)</div>
               <div><strong>Cashier:</strong> {cashierName}</div>
             </div>
 
