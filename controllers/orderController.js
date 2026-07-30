@@ -5,7 +5,6 @@ const Table = require('../models/Table');
 const Notification = require('../models/Notification');
 
 // ── In-Memory Order Store (fallback when MongoDB is not connected) ─────────────
-// This keeps orders alive in RAM so Chef/Cashier dashboards work even without DB
 const memoryOrders = [];
 let memoryOrderIdCounter = 1;
 
@@ -19,23 +18,115 @@ const createMemoryOrder = (data) => {
     updatedAt: new Date()
   };
   memoryOrders.unshift(order); // newest first
-  // Keep only last 100 orders in memory
   if (memoryOrders.length > 100) memoryOrders.pop();
   return order;
+};
+
+// Helper: Consolidate active unpaid orders for the same table into ONE single bill
+const consolidateUnpaidOrdersPerTable = async (ordersList) => {
+  if (!ordersList || ordersList.length === 0) return ordersList;
+
+  const unpaidByTable = new Map();
+  const result = [];
+
+  ordersList.forEach(order => {
+    const isUnpaid = order && order.paymentStatus !== 'paid' && !['completed', 'cancelled'].includes(String(order.status).toLowerCase());
+    if (isUnpaid && order.tableNum) {
+      const key = Number(order.tableNum);
+      if (!unpaidByTable.has(key)) {
+        unpaidByTable.set(key, []);
+      }
+      unpaidByTable.get(key).push(order);
+    } else if (order) {
+      result.push(order);
+    }
+  });
+
+  for (const [tNum, group] of unpaidByTable.entries()) {
+    if (group.length === 1) {
+      result.push(group[0]);
+    } else if (group.length > 1) {
+      // Sort oldest first (so primary order ID remains stable)
+      group.sort((a, b) => new Date(a.createdAt || 0) - new Date(b.createdAt || 0));
+      const primary = { ...group[0] };
+      const duplicates = group.slice(1);
+
+      if (primary.items) {
+        primary.items = [...primary.items];
+      } else {
+        primary.items = [];
+      }
+
+      duplicates.forEach(dup => {
+        (dup.items || []).forEach(dupItem => {
+          const matchIdx = primary.items.findIndex(pItem => 
+            String(pItem.menuItem || pItem._id) === String(dupItem.menuItem) ||
+            (pItem.name && dupItem.name && pItem.name.trim().toLowerCase() === dupItem.name.trim().toLowerCase())
+          );
+          if (matchIdx > -1) {
+            primary.items[matchIdx].qty = (primary.items[matchIdx].qty || 1) + (dupItem.qty || 1);
+          } else {
+            primary.items.push(dupItem);
+          }
+        });
+      });
+
+      const subtotal = primary.items.reduce((sum, i) => sum + ((i.price || 0) * (i.qty || 1)), 0);
+      const tax = Math.round(subtotal * 0.10 * 100) / 100;
+      const total = Math.round((subtotal + tax) * 100) / 100;
+
+      primary.subtotal = subtotal;
+      primary.tax = tax;
+      primary.total = total;
+      primary.updatedAt = new Date();
+
+      // Save primary in DB & delete duplicates
+      if (isDBConnected()) {
+        try {
+          if (mongoose.isValidObjectId(String(primary._id))) {
+            await Order.findByIdAndUpdate(primary._id, {
+              items: primary.items,
+              subtotal,
+              tax,
+              total
+            });
+          }
+          const dupDbIds = duplicates.map(d => d._id).filter(id => id && mongoose.isValidObjectId(String(id)));
+          if (dupDbIds.length > 0) {
+            await Order.deleteMany({ _id: { $in: dupDbIds } });
+          }
+        } catch (e) {}
+      }
+
+      // Sync memoryOrders
+      const primaryMemIdx = memoryOrders.findIndex(m => String(m._id) === String(primary._id));
+      if (primaryMemIdx !== -1) {
+        memoryOrders[primaryMemIdx] = primary;
+      }
+      duplicates.forEach(dup => {
+        const dupMemIdx = memoryOrders.findIndex(m => String(m._id) === String(dup._id));
+        if (dupMemIdx !== -1) {
+          memoryOrders.splice(dupMemIdx, 1);
+        }
+      });
+
+      result.push(primary);
+    }
+  }
+
+  return result.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
 };
 
 // @desc    Place order from active table cart
 // @route   POST /api/orders
 // @access  Public / Private (Customer/Guest)
 exports.placeOrder = async (req, res, next) => {
-  const tableNum = req.user?.tableNum || req.body?.tableNum;
+  const tableNum = Number(req.user?.tableNum || req.body?.tableNum);
   if (!tableNum) {
     return res.status(400).json({ success: false, message: 'Table number is required to place an order.' });
   }
 
-  // 1. Build cart items from request body (frontend always sends them)
   let cartItems = [];
-
   if (req.body.items && req.body.items.length > 0) {
     cartItems = req.body.items.map(item => ({
       menuItem: item.menuItemId || item._id || item.menuItem || new mongoose.Types.ObjectId().toString(),
@@ -50,32 +141,97 @@ exports.placeOrder = async (req, res, next) => {
     return res.status(400).json({ success: false, message: 'Your cart is empty. Please add items before ordering.' });
   }
 
-  // 2. Calculate bill
-  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
-  const tax = Math.round(subtotal * 0.10 * 100) / 100;
-  const total = Math.round((subtotal + tax) * 100) / 100;
-
+  const custName = req.user?.name || req.body?.customerName || cartItems[0]?.addedBy || 'Guest Diner';
   const isGuestUser = req.user ? req.user.isGuest : true;
   const sessionType = isGuestUser ? 'guest' : 'member';
 
-  // 3. Emit socket FIRST — kitchen gets notified immediately regardless of DB
-  const io = req.app.get('io');
+  let order = null;
+  let isMerged = false;
 
-  // 4. Try MongoDB — but don't wait forever
-  let order;
-  let savedToDb = false;
-
+  // Check for existing UNPAID active order for this table
+  let existingDbOrder = null;
   if (isDBConnected()) {
     try {
-      const isValidObjId = (id) => id && mongoose.isValidObjectId(String(id)) && typeof id === 'object';
-      const userRef = (!isGuestUser && isValidObjId(req.user?._id)) ? req.user._id : undefined;
-      const guestRef = (isGuestUser && isValidObjId(req.user?._id)) ? req.user._id : undefined;
-      const customerName = req.user?.name || req.body?.customerName || cartItems[0]?.addedBy || 'Guest Diner';
+      existingDbOrder = await Order.findOne({
+        tableNum,
+        paymentStatus: 'unpaid',
+        status: { $nin: ['completed', 'cancelled'] }
+      });
+    } catch (e) {}
+  }
 
-      order = await Promise.race([
-        Order.create({
+  let existingMemOrder = memoryOrders.find(o => 
+    Number(o.tableNum) === tableNum && 
+    o.paymentStatus === 'unpaid' && 
+    !['completed', 'cancelled'].includes(String(o.status).toLowerCase())
+  );
+
+  const existingOrder = existingDbOrder || existingMemOrder;
+
+  if (existingOrder) {
+    isMerged = true;
+    
+    // Append or increment item quantities in existing unpaid bill for this table
+    cartItems.forEach(newItem => {
+      const matchIndex = existingOrder.items.findIndex(existingItem => 
+        String(existingItem.menuItem || existingItem._id) === String(newItem.menuItem) ||
+        (existingItem.name && newItem.name && existingItem.name.trim().toLowerCase() === newItem.name.trim().toLowerCase())
+      );
+      if (matchIndex > -1) {
+        existingOrder.items[matchIndex].qty += newItem.qty;
+      } else {
+        existingOrder.items.push({
+          menuItem: newItem.menuItem,
+          name: newItem.name,
+          price: newItem.price,
+          qty: newItem.qty,
+          addedBy: newItem.addedBy
+        });
+      }
+    });
+
+    const subtotal = existingOrder.items.reduce((sum, i) => sum + (i.price * i.qty), 0);
+    const tax = Math.round(subtotal * 0.10 * 100) / 100;
+    const total = Math.round((subtotal + tax) * 100) / 100;
+
+    existingOrder.subtotal = subtotal;
+    existingOrder.tax = tax;
+    existingOrder.total = total;
+    existingOrder.customerName = custName;
+
+    if (existingDbOrder) {
+      try {
+        await existingDbOrder.save();
+        order = existingDbOrder;
+      } catch (e) {
+        order = existingOrder;
+      }
+    } else {
+      order = existingOrder;
+    }
+
+    const plain = order.toObject ? order.toObject() : order;
+    const memIdx = memoryOrders.findIndex(o => String(o._id) === String(plain._id));
+    if (memIdx !== -1) {
+      memoryOrders[memIdx] = plain;
+    } else {
+      memoryOrders.unshift(plain);
+    }
+  } else {
+    // Create new order as no active unpaid order exists for this table
+    const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
+    const tax = Math.round(subtotal * 0.10 * 100) / 100;
+    const total = Math.round((subtotal + tax) * 100) / 100;
+
+    if (isDBConnected()) {
+      try {
+        const isValidObjId = (id) => id && mongoose.isValidObjectId(String(id)) && typeof id === 'object';
+        const userRef = (!isGuestUser && isValidObjId(req.user?._id)) ? req.user._id : undefined;
+        const guestRef = (isGuestUser && isValidObjId(req.user?._id)) ? req.user._id : undefined;
+
+        order = await Order.create({
           tableNum,
-          customerName,
+          customerName: custName,
           items: cartItems.map(item => ({
             menuItem: item.menuItem,
             name: item.name,
@@ -91,67 +247,54 @@ exports.placeOrder = async (req, res, next) => {
           userRef,
           guestRef,
           paymentStatus: 'unpaid'
-        }),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('DB write timeout')), 8000))
-      ]);
-      savedToDb = true;
+        });
+      } catch (dbErr) {
+        order = null;
+      }
+    }
 
-      // Background cleanup — non-blocking
-      Cart.findOne({ tableNum }).then(cart => {
-        if (cart) { cart.items = []; cart.save().catch(() => {}); }
-      }).catch(() => {});
-      Table.findOneAndUpdate({ num: tableNum }, { status: 'occupied' }).catch(() => {});
-      Notification.create({
-        recipientRole: 'waiter',
+    if (!order) {
+      order = createMemoryOrder({
         tableNum,
-        message: `🛎️ New Order at Table #${tableNum} — ${customerName} (₹${total.toLocaleString('en-IN')})`
-      }).catch(() => {});
-
-    } catch (dbErr) {
-      console.warn(`⚠️ DB write failed (${dbErr.message}), falling back to in-memory order.`);
-      savedToDb = false;
+        customerName: custName,
+        items: cartItems,
+        subtotal,
+        tax,
+        total,
+        status: 'pending',
+        sessionType,
+        paymentStatus: 'unpaid'
+      });
+    } else {
+      const plainOrder = order.toObject ? order.toObject() : order;
+      const exists = memoryOrders.some(o => String(o._id) === String(plainOrder._id));
+      if (!exists) {
+        memoryOrders.unshift(plainOrder);
+        if (memoryOrders.length > 100) memoryOrders.pop();
+      }
     }
   }
 
-  // 5. Fallback & RAM Store Sync: Ensure order is in memoryOrders so RAM store is ALWAYS complete
-  if (!savedToDb || !order) {
-    const custName = req.user?.name || req.body?.customerName || cartItems[0]?.addedBy || 'Guest Diner';
-    order = createMemoryOrder({
-      tableNum: Number(tableNum),
-      customerName: custName,
-      items: cartItems,
-      subtotal,
-      tax,
-      total,
-      status: 'pending',
-      sessionType,
-      paymentStatus: 'unpaid'
-    });
-    console.log(`📋 Order stored in memory (DB unavailable): Table #${tableNum} ${custName} ₹${total}`);
-  } else {
-    const plainOrder = order.toObject ? order.toObject() : order;
-    const exists = memoryOrders.some(o => String(o._id) === String(plainOrder._id));
-    if (!exists) {
-      memoryOrders.unshift(plainOrder);
-      if (memoryOrders.length > 100) memoryOrders.pop();
-    }
-  }
+  // Cleanup cart & ensure table is marked occupied with live customer name
+  Cart.findOne({ tableNum }).then(cart => {
+    if (cart) { cart.items = []; cart.save().catch(() => {}); }
+  }).catch(() => {});
+  Table.findOneAndUpdate({ num: tableNum }, { status: 'occupied', currentCustomer: custName }).catch(() => {});
 
-  // 6. Socket notifications (always fires — whether DB or memory)
+  // Socket notifications
+  const io = req.app.get('io');
   if (io) {
     const plain = order.toObject ? order.toObject() : order;
-    // Global broadcasts to all open staff/admin portals
     io.emit('order:placed', plain);
-    io.emit('chef:new_order', { order: plain });
-    io.emit('admin:new_order', { tableNum, orderId: plain._id, total, order: plain });
-    io.emit('waiter:new_order', { tableNum, orderId: plain._id, total, order: plain });
+    io.emit('chef:new_order', { order: plain, isMerged });
+    io.emit('admin:new_order', { tableNum, orderId: plain._id, total: plain.total, order: plain });
+    io.emit('waiter:new_order', { tableNum, orderId: plain._id, total: plain.total, order: plain });
 
-    // Table room specific broadcasts
     io.to(`table_room_${tableNum}`).emit('order:placed', plain);
     io.to(`table_room_${tableNum}`).emit('cart:updated', { tableNum, items: [] });
   }
 
-  res.status(201).json({ success: true, data: order, savedToDb });
+  res.status(201).json({ success: true, data: order, isMerged });
 };
 
 // @desc    Get order details
@@ -159,8 +302,7 @@ exports.placeOrder = async (req, res, next) => {
 // @access  Private
 exports.getOrderDetails = async (req, res, next) => {
   try {
-    // Check memory first
-    const memOrder = memoryOrders.find(o => o._id === req.params.id);
+    const memOrder = memoryOrders.find(o => String(o._id) === String(req.params.id));
     if (memOrder) return res.status(200).json({ success: true, data: memOrder });
 
     if (!isDBConnected()) {
@@ -182,7 +324,6 @@ exports.updateOrderStatus = async (req, res, next) => {
     const { status } = req.body;
     const tableNumToFree = req.body.tableNum;
 
-    // Check memory orders first
     const memIdx = memoryOrders.findIndex(o => String(o._id) === String(req.params.id));
     if (memIdx !== -1) {
       memoryOrders[memIdx].status = status;
@@ -277,7 +418,7 @@ exports.updateOrderStatus = async (req, res, next) => {
   }
 };
 
-// @desc    Get orders
+// @desc    Get orders (with single consolidated bill per table session)
 // @route   GET /api/orders
 // @access  Private
 exports.getOrders = async (req, res, next) => {
@@ -312,7 +453,6 @@ exports.getOrders = async (req, res, next) => {
       const userName = user.name;
       const userId = user._id;
 
-      // Filter memory orders by customerName or userRef
       allOrders = memoryOrders.filter(o =>
         (o.customerName && o.customerName.trim().toLowerCase() === userName.trim().toLowerCase()) ||
         (o.userRef && String(o.userRef) === String(userId)) ||
@@ -356,7 +496,10 @@ exports.getOrders = async (req, res, next) => {
       }
     }
 
-    res.status(200).json({ success: true, count: allOrders.length, data: allOrders });
+    // Consolidate any active unpaid orders per table so there's always 1 unified bill per table session
+    const consolidatedOrders = await consolidateUnpaidOrdersPerTable(allOrders);
+
+    res.status(200).json({ success: true, count: consolidatedOrders.length, data: consolidatedOrders });
   } catch (error) {
     res.status(200).json({ success: true, count: 0, data: [] });
   }
@@ -367,7 +510,7 @@ exports.getOrders = async (req, res, next) => {
 // @access  Private
 exports.splitBill = async (req, res, next) => {
   try {
-    const memOrder = memoryOrders.find(o => o._id === req.params.id);
+    const memOrder = memoryOrders.find(o => String(o._id) === String(req.params.id));
     const order = memOrder || (isDBConnected() ? await Order.findById(req.params.id) : null);
 
     if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
