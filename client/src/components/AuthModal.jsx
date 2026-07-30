@@ -212,7 +212,13 @@ export default function AuthModal({
 
         {activeTab === 'user' && (
           <div id="auth-tab-user" className="auth-tab-content">
-            {/* Google Sign-In button removed — requires Google Cloud Console setup */}
+            {/* Official Google Sign-In Button */}
+            <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'center' }}>
+              <div 
+                id="google-signin-btn-container" 
+                style={{ width: '100%', minHeight: '44px', display: 'flex', justifyContent: 'center' }}
+              ></div>
+            </div>
 
             <div style={{ display: 'flex', alignItems: 'center', margin: '16px 0' }}>
               <div style={{ flex: 1, height: '1px', background: '#334155' }}></div>
