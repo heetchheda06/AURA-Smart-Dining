@@ -178,17 +178,52 @@ exports.login = async (req, res, next) => {
 // @access  Public
 exports.googleAuth = async (req, res, next) => {
   try {
-    const { email: bodyEmail, name: bodyName, googleId: bodyId } = req.body;
-    let email = bodyEmail || 'Askheet@gmail.com';
-    let name = bodyName || formatNameFromEmail(email);
-    let googleId = bodyId || 'google_123456';
+    const { credential, email: bodyEmail, name: bodyName, googleId: bodyId, picture: bodyPicture } = req.body;
+    let email = bodyEmail;
+    let name = bodyName;
+    let googleId = bodyId;
+    let picture = bodyPicture;
+
+    if (credential) {
+      try {
+        const payloadBase64 = credential.split('.')[1];
+        const decodedJson = JSON.parse(Buffer.from(payloadBase64, 'base64').toString('utf-8'));
+        if (decodedJson.email) email = decodedJson.email;
+        if (decodedJson.name) name = decodedJson.name;
+        if (decodedJson.sub) googleId = decodedJson.sub;
+        if (decodedJson.picture) picture = decodedJson.picture;
+      } catch (e) {
+        console.error("JWT Decode error:", e.message);
+      }
+    }
+
+    email = email ? email.toLowerCase().trim() : 'customer@auradining.in';
+    name = name || formatNameFromEmail(email);
+
+    if (mongoose.connection.readyState === 1) {
+      let user = await User.findOne({ email }).catch(() => null);
+      if (!user) {
+        user = await User.create({
+          name: name,
+          email: email,
+          password: `g_oauth_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+          role: 'customer',
+          provider: 'google',
+          avatar: picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=8B5CF6&color=FFF`
+        }).catch(() => null);
+      }
+      if (user) {
+        return sendTokenResponse(user, 200, res);
+      }
+    }
 
     const demoUser = {
-      id: googleId,
+      id: googleId || `google_${Date.now()}`,
       name: name,
       email: email,
       role: 'customer',
-      provider: 'google'
+      provider: 'google',
+      avatar: picture
     };
 
     return sendTokenResponse(demoUser, 200, res);
@@ -196,8 +231,8 @@ exports.googleAuth = async (req, res, next) => {
     console.error("Google Auth error:", error.message);
     return sendTokenResponse({
       id: 'google_fallback_123',
-      name: 'Askheet (Google Member)',
-      email: 'Askheet@gmail.com',
+      name: 'Google Member Customer',
+      email: 'customer@auradining.in',
       role: 'customer',
       provider: 'google'
     }, 200, res);
