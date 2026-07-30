@@ -33,8 +33,8 @@ export default function App() {
   const [isAiAnalyzerModalOpen, setIsAiAnalyzerModalOpen] = useState(false);
   const [activeCustomerSession, setActiveCustomerSession] = useState({
     isLoggedIn: false,
-    customerName: "Guest Customer",
-    tableNum: 8,
+    customerName: localStorage.getItem('user_name') || "Guest Customer",
+    tableNum: localStorage.getItem('user_table') ? parseInt(localStorage.getItem('user_table')) : 5,
     seats: 4,
     status: "active_dining",
     loginType: "guest"
@@ -235,10 +235,11 @@ export default function App() {
         }
 
         setCurrentRole('customer');
+        const savedTableNum = localStorage.getItem('user_table') ? parseInt(localStorage.getItem('user_table')) : (user.tableNum || 5);
         const newSession = {
           isLoggedIn: true,
           customerName: user.name,
-          tableNum: user.tableNum || 8,
+          tableNum: savedTableNum,
           seats: 4,
           status: "active_dining",
           loginType: user.isGuest ? "guest" : "member"
@@ -346,6 +347,8 @@ export default function App() {
   // Allot Table session
   const allotTableToCustomer = (name, tableNum, seats, zone, loginType = "guest") => {
     setIsAuthModalOpen(false);
+    localStorage.setItem('user_name', name);
+    localStorage.setItem('user_table', tableNum);
     const newSession = {
       isLoggedIn: true,
       customerName: name,
@@ -428,7 +431,6 @@ export default function App() {
         localStorage.setItem('token', data.token);
         if (data.user && data.user.name) {
           localStorage.setItem('user_name', data.user.name);
-          setActiveCustomerSession(prev => ({ ...prev, customerName: data.user.name, loginType: 'member', isLoggedIn: true }));
         }
         showToast(`👋 Welcome back, ${data.user.name}!`);
         setIsAuthModalOpen(false);

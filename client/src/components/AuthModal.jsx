@@ -87,25 +87,28 @@ export default function AuthModal({
   }, [isOpen]);
 
   const handleCustomGoogleSignIn = async () => {
+    const inputEmail = userEmail || 'member@auradining.in';
+    let derivedName = userName || (inputEmail.includes('@') ? inputEmail.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : 'Valued Member');
+
     try {
       const res = await fetch('/api/auth/google', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: 'Heet Chheda',
-          email: 'Askheet@gmail.com',
-          googleId: 'g_user_100146'
+          name: derivedName,
+          email: inputEmail,
+          googleId: `g_user_${Date.now()}`
         })
       });
       const data = await res.json();
       if (data.success && onGoogleLogin) {
         onGoogleLogin(data.user || data.data, data.token);
       } else if (onGoogleLogin) {
-        onGoogleLogin({ name: 'Heet Chheda', email: 'Askheet@gmail.com' }, 'token_google_demo');
+        onGoogleLogin({ name: derivedName, email: inputEmail }, 'token_google_demo');
       }
     } catch (e) {
       if (onGoogleLogin) {
-        onGoogleLogin({ name: 'Heet Chheda', email: 'Askheet@gmail.com' }, 'token_google_demo');
+        onGoogleLogin({ name: derivedName, email: inputEmail }, 'token_google_demo');
       }
     }
   };
