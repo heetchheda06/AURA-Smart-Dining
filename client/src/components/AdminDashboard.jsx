@@ -188,7 +188,7 @@ export default function AdminDashboard({ onLogout, adminName, formatPrice }) {
             }}
             title="Open AURA Customer Review Analyzer"
           >
-            <i className="fa-solid fa-wand-magic-sparkles"></i> 🤖 AURA Review Analyzer
+            <i className="fa-solid fa-wand-magic-sparkles"></i> AURA Review Analyzer
           </button>
 
           <button 
