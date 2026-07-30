@@ -35,12 +35,12 @@ export default function AuthModal({
 
   // Google OAuth Pre-Page & Account Selection state
   const [isGooglePrePage, setIsGooglePrePage] = useState(false);
-  const [googleCustomName, setGoogleCustomName] = useState('Heet Chheda');
-  const [googleCustomEmail, setGoogleCustomEmail] = useState('heet.chheda06@gmail.com');
+  const [googleCustomName, setGoogleCustomName] = useState('Aryan Keni');
+  const [googleCustomEmail, setGoogleCustomEmail] = useState('aryan.keni@gmail.com');
 
   const completeGoogleLogin = async (selectedName, selectedEmail) => {
-    const finalName = selectedName || 'Heet Chheda';
-    const finalEmail = selectedEmail || 'heet.chheda06@gmail.com';
+    const finalName = selectedName || 'Aryan Keni';
+    const finalEmail = selectedEmail || 'aryan.keni@gmail.com';
     setIsGooglePrePage(false);
 
     try {
@@ -72,8 +72,8 @@ export default function AuthModal({
 
     const handleGoogleResponse = async (response) => {
       try {
-        let googleName = 'Heet Chheda';
-        let googleEmail = 'heet.chheda06@gmail.com';
+        let googleName = 'Aryan Keni';
+        let googleEmail = 'aryan.keni@gmail.com';
         try {
           if (response && response.credential) {
             const payload = JSON.parse(atob(response.credential.split('.')[1]));
@@ -96,7 +96,7 @@ export default function AuthModal({
       } catch (err) {
         console.error("Google auth callback error:", err);
         if (onGoogleLogin) {
-          onGoogleLogin({ name: 'Heet Chheda', email: 'heet.chheda06@gmail.com' }, 'token_google_demo');
+          onGoogleLogin({ name: 'Aryan Keni', email: 'aryan.keni@gmail.com' }, 'token_google_demo');
         }
       }
     };
@@ -208,9 +208,9 @@ export default function AuthModal({
               </p>
             </div>
 
-            {/* Quick 1-Click Profile Card: Heet Chheda */}
+            {/* Quick 1-Click Profile Card: Aryan Keni */}
             <div 
-              onClick={() => completeGoogleLogin('Heet Chheda', 'heet.chheda06@gmail.com')}
+              onClick={() => completeGoogleLogin('Aryan Keni', 'aryan.keni@gmail.com')}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -226,11 +226,11 @@ export default function AuthModal({
               }}
             >
               <div style={{ width: '46px', height: '46px', borderRadius: '50%', background: 'linear-gradient(135deg, #4285F4, #34A853)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFF', fontWeight: 900, fontSize: '17px', boxShadow: '0 2px 10px rgba(0,0,0,0.15)' }}>
-                HC
+                AK
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: '16px', fontWeight: 900, color: '#0F172A' }}>Heet Chheda</div>
-                <div style={{ fontSize: '12.5px', color: '#475569', fontWeight: 700 }}>heet.chheda06@gmail.com</div>
+                <div style={{ fontSize: '16px', fontWeight: 900, color: '#0F172A' }}>Aryan Keni</div>
+                <div style={{ fontSize: '12.5px', color: '#475569', fontWeight: 700 }}>aryan.keni@gmail.com</div>
               </div>
               <span style={{ background: '#3B82F6', color: '#FFF', padding: '5px 12px', borderRadius: '12px', fontSize: '11px', fontWeight: 900 }}>
                 1-Click Sign In
@@ -244,21 +244,21 @@ export default function AuthModal({
               </span>
               <input
                 type="text"
-                placeholder="Full Name (e.g. Heet Chheda)"
+                placeholder="Full Name (e.g. Aryan Keni)"
                 value={googleCustomName}
                 onChange={(e) => setGoogleCustomName(e.target.value)}
                 style={{ width: '100%', padding: '11px 14px', borderRadius: '12px', border: '1.5px solid #94A3B8', marginBottom: '10px', fontSize: '14px', fontWeight: 700, outline: 'none', background: '#FFFFFF', color: '#0F172A' }}
               />
               <input
                 type="email"
-                placeholder="Google Email (e.g. heet.chheda06@gmail.com)"
+                placeholder="Google Email (e.g. aryan.keni@gmail.com)"
                 value={googleCustomEmail}
                 onChange={(e) => setGoogleCustomEmail(e.target.value)}
                 style={{ width: '100%', padding: '11px 14px', borderRadius: '12px', border: '1.5px solid #94A3B8', marginBottom: '14px', fontSize: '14px', fontWeight: 700, outline: 'none', background: '#FFFFFF', color: '#0F172A' }}
               />
               <button
                 type="button"
-                onClick={() => completeGoogleLogin(googleCustomName || 'Heet Chheda', googleCustomEmail || 'heet.chheda06@gmail.com')}
+                onClick={() => completeGoogleLogin(googleCustomName || 'Aryan Keni', googleCustomEmail || 'aryan.keni@gmail.com')}
                 style={{
                   width: '100%',
                   padding: '14px',
@@ -272,7 +272,7 @@ export default function AuthModal({
                   boxShadow: '0 4px 14px rgba(66, 133, 244, 0.4)'
                 }}
               >
-                Accept &amp; Continue as {googleCustomName || 'Heet Chheda'}
+                Accept &amp; Continue as {googleCustomName || 'Aryan Keni'}
               </button>
             </div>
 

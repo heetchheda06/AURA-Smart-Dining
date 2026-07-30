@@ -11,7 +11,7 @@ const sampleCustomers = [
   { name: "Neha Shah", type: "member" },
   { name: "Vikram Patel", type: "guest" },
   { name: "Pooja Malhotra", type: "member" },
-  { name: "Heet Chheda", type: "member" },
+  { name: "Aryan Keni", type: "member" },
   { name: "Aditya Roy", type: "guest" },
   { name: "Divya Nair", type: "member" },
   { name: "Aarav Sen", type: "member" },
