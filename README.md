@@ -2,17 +2,17 @@
 
 > ### AI-Powered Restaurant Management & Smart Ordering System
 
-AURA is a modern, full-stack restaurant management platform designed to transform the traditional dining experience into a smart, digital, and real-time system. Customers can browse the menu, choose their preferred table, place orders, and track them live, while restaurant staff manage operations through dedicated dashboards synchronized using WebSockets.
+AURA is a modern, full-stack restaurant management platform designed to transform the traditional dining experience into a smart, digital, and real-time system. Customers can browse the menu, choose their preferred table, place orders, track them live, request bills, submit feedback, and receive AI-powered recommendations, while restaurant staff manage operations through dedicated dashboards synchronized using Socket.IO.
 
 ---
 
-## 🌐 Live Demo
+# 🌐 Live Demo
 
-### 🚀 Website
+## 🚀 Website
 
 **https://aura-smart-dining.onrender.com/**
 
-### 🔐 Admin Login
+## 🔐 Admin Login
 
 | Credential | Value |
 |------------|-------|
@@ -25,19 +25,22 @@ AURA is a modern, full-stack restaurant management platform designed to transfor
 
 # 📖 About the Project
 
-AURA Smart Dining is a **Full Stack Restaurant Management System** built to simplify restaurant operations and enhance customer experience through automation and real-time communication.
+AURA Smart Dining is a **Full Stack Restaurant Management System** developed to modernize restaurant operations through automation, real-time communication, artificial intelligence, and digital dining experiences.
 
 The platform enables customers to:
 
 - Browse a digital menu
-- Select their preferred dining table
+- Select preferred dining tables
 - Place orders instantly
-- Receive live order updates
-- Track previous orders
+- Track order preparation live
+- Receive AI-powered food recommendations
+- End dining sessions
+- Generate digital bills
+- Submit restaurant feedback
 - View spending analytics
-- Get AI-powered food recommendations
+- Track previous orders
 
-Restaurant staff have dedicated dashboards for:
+Restaurant staff manage operations through dedicated dashboards:
 
 - 👑 Admin
 - 📋 Manager
@@ -45,7 +48,7 @@ Restaurant staff have dedicated dashboards for:
 - 💳 Cashier
 - 🍽️ Waiter
 
-Using **Socket.IO**, every dashboard stays synchronized in real time, ensuring efficient communication between customers and staff.
+Using **Socket.IO**, every dashboard remains synchronized in real time, ensuring seamless communication across the restaurant.
 
 ---
 
@@ -63,6 +66,8 @@ Using **Socket.IO**, every dashboard stays synchronized in real time, ensuring e
 - 💰 Spending Analytics
 - 🧾 Order History
 - 🔔 Call Waiter Feature
+- 🧾 End Session & Smart Bill Generation
+- ⭐ Customer Feedback Form
 
 ---
 
@@ -73,6 +78,7 @@ Using **Socket.IO**, every dashboard stays synchronized in real time, ensuring e
 - 🪑 Automatic Table Status Updates
 - 🔒 Role-Based Access Control
 - 📊 Restaurant Analytics
+- 🧠 AI Feedback Analyzer & Sentiment Insights
 
 ---
 
@@ -82,6 +88,7 @@ Using **Socket.IO**, every dashboard stays synchronized in real time, ensuring e
 
 - Revenue Analytics
 - User Management
+- Employee Management
 - Sales Reports
 - Restaurant KPIs
 - Dashboard Overview
@@ -92,32 +99,36 @@ Using **Socket.IO**, every dashboard stays synchronized in real time, ensuring e
 - Inventory Management
 - Ingredient Stock Tracking
 - Restock Controls
+- Restaurant Monitoring
 
 ### 👨‍🍳 Chef Dashboard
 
 - Kitchen Display System (KDS)
 - Incoming Orders
-- Update Order Status
+- Order Status Updates
+- Preparation Queue
 
 ### 💳 Cashier Dashboard
 
 - Billing
 - Payment Processing
 - Bill Generation
+- Session Checkout
 - Automatic Table Clearance
 
 ### 🍽️ Waiter Dashboard
 
 - Order Tracking
-- Waiter Assistance Requests
-- Customer Notifications
+- Customer Assistance Requests
+- Table Notifications
+- Cleaning Queue
 
 ---
 
 ## 📦 Inventory Management
 
 - Ingredient Stock Tracking
-- Live Inventory Monitoring
+- Real-Time Inventory Monitoring
 - Restocking Controls
 - Low Stock Alerts
 
@@ -127,14 +138,26 @@ Using **Socket.IO**, every dashboard stays synchronized in real time, ensuring e
 
 - JWT Authentication
 - Secure Password Encryption (bcryptjs)
+- Google OAuth Login
 - Role-Based Authorization
 - Protected REST APIs
-- Secure Member Profiles
+- Secure Customer Profiles
 - Individual Customer Order History
 
 ---
 
-# 🛠️ Technology Stack
+# 🤖 AI Features
+
+- AI Food Recommendation System
+- AI Smart Flavor Pairing Engine
+- AI Sommelier
+- AI Feedback Analyzer
+- AI Sentiment Analysis
+- Personalized Dining Suggestions
+
+---
+
+# 🛠 Technology Stack
 
 ## Frontend
 
@@ -144,8 +167,6 @@ Using **Socket.IO**, every dashboard stays synchronized in real time, ensuring e
 - Font Awesome
 - Socket.IO Client
 
----
-
 ## Backend
 
 - Node.js
@@ -153,10 +174,8 @@ Using **Socket.IO**, every dashboard stays synchronized in real time, ensuring e
 - MongoDB
 - Mongoose
 - Socket.IO
-- JWT (jsonwebtoken)
+- JWT
 - bcryptjs
-
----
 
 ## Deployment
 
@@ -169,40 +188,105 @@ Using **Socket.IO**, every dashboard stays synchronized in real time, ensuring e
 # 📂 Project Structure
 
 ```text
-AURA-Smart-Dining
-│
+AURA-Smart-Dining/
 ├── client/
 │   ├── public/
+│   │   ├── index.html
+│   │   └── assets/
 │   ├── src/
-│   │   ├── assets/
+│   │   ├── main.jsx
+│   │   ├── App.jsx
+│   │   ├── index.css
 │   │   ├── components/
-│   │   ├── data/
-│   │   ├── pages/
-│   │   ├── utils/
-│   │   └── App.jsx
-│
-├── config/
+│   │   │   ├── Navbar.jsx
+│   │   │   ├── HeroSection.jsx
+│   │   │   ├── CategoryFilters.jsx
+│   │   │   ├── MenuGrid.jsx
+│   │   │   ├── CartSidebar.jsx
+│   │   │   ├── OrderModal.jsx
+│   │   │   ├── AuthModal.jsx
+│   │   │   ├── CheckoutModal.jsx
+│   │   │   ├── CashierDashboard.jsx
+│   │   │   ├── ManagerDashboard.jsx
+│   │   │   ├── ChefDashboard.jsx
+│   │   │   ├── AdminDashboard.jsx
+│   │   │   ├── AiSommelierModal.jsx
+│   │   │   ├── AiReviewAnalyzerModal.jsx
+│   │   │   ├── CustomerReviewsModal.jsx
+│   │   │   ├── AIRecommender.jsx
+│   │   │   ├── TableSelectModal.jsx
+│   │   │   ├── FloorPlanModal.jsx
+│   │   │   ├── WaiterCleaningModal.jsx
+│   │   │   ├── WaiterModal.jsx
+│   │   │   ├── QueueModal.jsx
+│   │   │   ├── TableFreedModal.jsx
+│   │   │   ├── UserOrdersModal.jsx
+│   │   │   └── RoleQuickSwitcher.jsx
+│   │   └── data/
+│   │       └── fallbackMenu.js
+│   ├── package.json
+│   └── vite.config.js
+
 ├── controllers/
-├── middleware/
+│   ├── authController.js
+│   ├── checkoutController.js
+│   ├── orderController.js
+│   ├── tableController.js
+│   ├── reviewController.js
+│   ├── menuController.js
+│   └── csvController.js
+
 ├── models/
+│   ├── User.js
+│   ├── Session.js
+│   ├── Order.js
+│   ├── Table.js
+│   ├── Cart.js
+│   ├── MenuItem.js
+│   ├── Review.js
+│   └── Guest.js
+
 ├── routes/
+│   ├── index.js
+│   ├── authRoutes.js
+│   ├── checkoutRoutes.js
+│   ├── orderRoutes.js
+│   ├── tableRoutes.js
+│   ├── menuRoutes.js
+│   └── reviewRoutes.js
+
+├── middleware/
+│   ├── auth.js
+│   ├── validate.js
+│   └── errorHandler.js
+
 ├── socket/
-├── public/
-├── server.js
-├── package.json
+│   └── socketHandler.js
+
+├── config/
+│   └── db.js
+
+├── data/
+│   ├── menuData.json
+│   └── tableData.json
+
+├── .env
 ├── render.yaml
-└── README.md
+├── app.js
+├── server.js
+└── package.json
 ```
 
 ---
-
 # 🚀 Getting Started
 
 ## Prerequisites
 
-- Node.js v18+
+Before running the project, ensure you have the following installed:
+
+- Node.js (v18 or later)
 - npm
-- MongoDB Atlas (or Local MongoDB)
+- MongoDB Atlas Account (or Local MongoDB)
 
 ---
 
@@ -243,6 +327,8 @@ MONGODB_URI=your_mongodb_uri
 
 JWT_SECRET=your_jwt_secret
 
+GOOGLE_CLIENT_ID=your_google_client_id
+
 NODE_ENV=development
 ```
 
@@ -272,62 +358,144 @@ npm run build --prefix client
 
 ---
 
-# 🔌 API Endpoints
+# 🔌 REST API Endpoints
+
+## Authentication
 
 | Method | Endpoint | Description |
 |---------|----------|-------------|
-| POST | `/api/auth/register` | Register Member |
-| POST | `/api/auth/login` | Login |
+| POST | `/api/auth/register` | Register Customer |
+| POST | `/api/auth/login` | Login User |
 | GET | `/api/auth/profile` | User Profile |
-| GET | `/api/menu` | Fetch Menu |
-| GET | `/api/tables` | Get Table Status |
+| POST | `/api/auth/logout` | Logout |
+
+---
+
+## Menu
+
+| Method | Endpoint | Description |
+|---------|----------|-------------|
+| GET | `/api/menu` | Get Complete Menu |
+| GET | `/api/menu/:id` | Get Menu Item |
+
+---
+
+## Tables
+
+| Method | Endpoint | Description |
+|---------|----------|-------------|
+| GET | `/api/tables` | Fetch Table Status |
 | PUT | `/api/tables/:id/status` | Update Table Status |
+| POST | `/api/tables/select` | Reserve Table |
+
+---
+
+## Orders
+
+| Method | Endpoint | Description |
+|---------|----------|-------------|
 | POST | `/api/orders` | Place Order |
 | GET | `/api/orders` | Fetch Orders |
+| GET | `/api/orders/:id` | Fetch Single Order |
 | PUT | `/api/orders/:id/status` | Update Order Status |
+
+---
+
+## Checkout
+
+| Method | Endpoint | Description |
+|---------|----------|-------------|
+| POST | `/api/checkout` | Generate Bill |
+| POST | `/api/checkout/payment` | Process Demo Payment |
+| POST | `/api/checkout/end-session` | End Customer Session |
+
+---
+
+## Reviews
+
+| Method | Endpoint | Description |
+|---------|----------|-------------|
+| POST | `/api/reviews` | Submit Feedback |
+| GET | `/api/reviews` | Get Reviews |
+| GET | `/api/reviews/analytics` | AI Feedback Analysis |
+
+---
+
+## Inventory
+
+| Method | Endpoint | Description |
+|---------|----------|-------------|
 | GET | `/api/inventory` | Inventory Details |
-| POST | `/api/inventory/:id/restock` | Restock Ingredients |
+| POST | `/api/inventory/:id/restock` | Restock Ingredient |
+
+---
+
+## Admin
+
+| Method | Endpoint | Description |
+|---------|----------|-------------|
 | GET | `/api/admin/dashboard` | Dashboard Statistics |
+| GET | `/api/admin/users` | User Management |
+| GET | `/api/admin/reports` | Sales Reports |
 
 ---
 
 # ⚙️ System Highlights
 
 - ⚡ Socket.IO Real-Time Communication
-- 🔐 JWT Authentication
-- 🛡️ Role-Based Access Control
+- 🔐 JWT Authentication & Google OAuth
+- 🛡️ Role-Based Access Control (RBAC)
+- 🍽️ Smart Digital Ordering System
+- 🧾 End Session & Automatic Bill Generation
+- 💳 Demo Payment Gateway
+- ⭐ Customer Feedback Collection
+- 🧠 AI Feedback Analyzer & Sentiment Analysis
+- 🤖 AI Food Recommendation Engine
+- 🍷 AI Smart Flavor Pairing Engine
 - 📦 Inventory Management System
 - 👨‍🍳 Kitchen Display System (KDS)
 - 📊 Live Dashboard Synchronization
-- 🪑 Automatic Table Status Updates
-- 📈 Analytics Dashboard
+- 🪑 Automatic Table Allocation & Status Updates
+- 📈 Restaurant Business Analytics
 - 🌐 RESTful API Architecture
-- ☁️ Cloud Database with MongoDB Atlas
+- ☁️ MongoDB Atlas Cloud Database
+- 📱 Responsive UI for Desktop, Tablet & Mobile
 
 ---
 
 # 📈 Future Enhancements
 
-- 📱 Android & iOS Mobile Application
-- 💳 Online Payment Gateway
+- 📱 Android Application
+- 🍎 iOS Application
+- 💳 Razorpay / Stripe Payment Gateway
 - 📷 QR Code Table Ordering
 - 🤖 AI Chat Assistant
-- 📊 Advanced Business Analytics
+- 📊 Advanced Business Intelligence Dashboard
 - 🌍 Multi-language Support
-- 🎁 Customer Loyalty Program
+- 🎁 Customer Loyalty & Rewards Program
 - 🚚 Delivery & Takeaway Module
 - 📅 Online Table Reservation
+- 🍷 Advanced AI Sommelier Recommendations
+- 📢 AI Customer Retention Insights
+- 📍 Live Wait Time Prediction
+- 📦 Supplier Management System
+- 📈 Predictive Demand Forecasting
+- 🧾 GST Invoice Generation
+- 🔔 Push Notifications
+- 📧 Email Bill Delivery
+- 📲 WhatsApp Order Notifications
+- ☁️ Docker & Kubernetes Deployment
 
 ---
 
 # 👥 Team
 
-| Member | College |
-|---------|---------|
-| **Heet Chheda** | MCT Rajiv Gandhi Institute of Technology |
-| **Shardul Dalvi** | MCT Rajiv Gandhi Institute of Technology |
-| **Aryan Keni** | MCT Rajiv Gandhi Institute of Technology |
-| **Falgun Patel** | Universal College of Engineering, Mumbai |
+| Member | Role | College |
+|---------|------|----------|
+| **Heet Chheda** | Full Stack Developer | MCT Rajiv Gandhi Institute of Technology |
+| **Shardul Dalvi** | Backend Developer | MCT Rajiv Gandhi Institute of Technology |
+| **Aryan Keni** | Frontend Developer | MCT Rajiv Gandhi Institute of Technology |
+| **Falgun Patel** | UI/UX & Documentation | Universal College of Engineering, Mumbai |
 
 ---
 
@@ -341,7 +509,9 @@ This project was developed as part of a **Hackathon**.
 
 # ⭐ Support
 
-If you found this project helpful, consider giving it a **⭐ Star** on GitHub.
+If you found this project useful, please consider giving it a **⭐ Star** on GitHub.
+
+Your support motivates us to continue improving AURA with more smart dining features.
 
 ---
 
@@ -349,7 +519,7 @@ If you found this project helpful, consider giving it a **⭐ Star** on GitHub.
 
 # 🍽️ AURA Smart Dining Platform
 
-### Smart • Fast • Digital Dining Experience
+### Smart • Fast • Intelligent • Digital Dining Experience
 
 🌐 **Live Website**
 
@@ -365,6 +535,12 @@ https://aura-smart-dining.onrender.com/
 
 ---
 
-**Built with ❤️ by Team AURA**
+### 🚀 Built With
+
+**React • Node.js • Express.js • MongoDB • Socket.IO • JWT • Gemini AI • Render**
+
+---
+
+**Made with ❤️ by Team AURA**
 
 </div>
