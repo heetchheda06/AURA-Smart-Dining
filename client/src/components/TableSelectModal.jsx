@@ -152,7 +152,7 @@ export default function TableSelectModal({ isOpen, onClose, customerName, loginT
           </div>
           <div>
             <h3 style={{ fontSize: '22px', fontWeight: 900, color: '#1E3A5F', margin: 0 }}>
-              Welcome, {customerName && customerName !== 'Member' && customerName !== 'Google Member' ? customerName : 'Heet Chheda'}! Pick Your Dining Table
+              Welcome, {customerName && customerName !== 'Member' && customerName !== 'Google Member' && customerName !== 'Google Diner' ? customerName : 'Heet Chheda'}! Pick Your Dining Table
             </h3>
             <p style={{ fontSize: '13px', color: '#64748B', margin: '4px 0 0 0', fontWeight: 700 }}>
               {isFullHouse 

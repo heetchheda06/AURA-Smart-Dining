@@ -847,7 +847,7 @@ export default function App() {
         onUserRegister={handleUserRegister}
         onAdminLogin={handleAdminLogin}
         onGoogleLogin={(user, token) => {
-          const userNameStr = (user && user.name && user.name !== 'Member' && user.name !== 'Google Member') ? user.name : 'Heet Chheda';
+          const userNameStr = (user && user.name && user.name !== 'Member' && user.name !== 'Google Member' && user.name !== 'Google Diner') ? user.name : 'Heet Chheda';
           localStorage.setItem('token', token);
           localStorage.setItem('user_name', userNameStr);
           if (user && user.email) localStorage.setItem('user_email', user.email);

@@ -39,8 +39,8 @@ export default function AuthModal({
 
     const handleGoogleResponse = async (response) => {
       try {
-        let googleName = 'Google Member';
-        let googleEmail = 'user@gmail.com';
+        let googleName = 'Heet Chheda';
+        let googleEmail = 'heet.chheda06@gmail.com';
         try {
           if (response && response.credential) {
             const payload = JSON.parse(atob(response.credential.split('.')[1]));
@@ -63,7 +63,7 @@ export default function AuthModal({
       } catch (err) {
         console.error("Google auth callback error:", err);
         if (onGoogleLogin) {
-          onGoogleLogin({ name: 'Google Member', email: 'user@gmail.com' }, 'token_google_demo');
+          onGoogleLogin({ name: 'Heet Chheda', email: 'heet.chheda06@gmail.com' }, 'token_google_demo');
         }
       }
     };
@@ -112,7 +112,7 @@ export default function AuthModal({
         window.google.accounts.id.prompt((notification) => {
           if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
             if (onGoogleLogin) {
-              onGoogleLogin({ name: 'Google Diner', email: 'user@gmail.com' }, 'token_google_demo');
+              onGoogleLogin({ name: 'Heet Chheda', email: 'heet.chheda06@gmail.com' }, 'token_google_demo');
             }
           }
         });
@@ -120,7 +120,7 @@ export default function AuthModal({
       } catch (e) {}
     }
     if (onGoogleLogin) {
-      onGoogleLogin({ name: 'Google Diner', email: 'user@gmail.com' }, 'token_google_demo');
+      onGoogleLogin({ name: 'Heet Chheda', email: 'heet.chheda06@gmail.com' }, 'token_google_demo');
     }
   };
 
