@@ -300,35 +300,6 @@ export default function AIRecommender({
         </div>
       </div>
 
-      {/* AI Option Selector Tabs */}
-      {allCombos.length > 1 && (
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '14px', flexWrap: 'wrap', alignItems: 'center' }}>
-          {allCombos.map((c, idx) => {
-            const isSelected = selectedComboIdx === idx;
-            return (
-              <button
-                key={idx}
-                onClick={() => { setSelectedComboIdx(idx); triggerAIPulse(); }}
-                style={{
-                  padding: '6px 14px',
-                  borderRadius: '16px',
-                  border: isSelected ? '1.5px solid #F97316' : '1px solid rgba(255,255,255,0.15)',
-                  background: isSelected ? 'linear-gradient(135deg, #F97316 0%, #EA580C 100%)' : 'rgba(15, 23, 42, 0.5)',
-                  color: '#FFFFFF',
-                  fontSize: '11.5px',
-                  fontWeight: 900,
-                  cursor: 'pointer',
-                  boxShadow: isSelected ? '0 4px 12px rgba(249,115,22,0.35)' : 'none',
-                  transition: 'all 0.2s ease'
-                }}
-              >
-                {idx === 0 ? '✨ Option A' : idx === 1 ? '🔥 Option B' : '🍹 Option C'} ({formatPrice(c.totalPrice)})
-              </button>
-            );
-          })}
-        </div>
-      )}
-
       {/* Recommendation Display Box */}
       <div style={{
         background: '#0F172A',
