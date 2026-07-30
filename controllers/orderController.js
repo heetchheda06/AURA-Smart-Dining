@@ -29,6 +29,27 @@ const consolidateUnpaidOrdersPerTable = async (ordersList) => {
   const unpaidByTable = new Map();
   const result = [];
 
+  // Auto-heal customerName on all orders if currently 'AURA Customer', 'AURA Member', etc.
+  ordersList.forEach(o => {
+    if (o && o.items && o.items.length > 0) {
+      const realItemUser = o.items.find(i => 
+        i.addedBy && 
+        i.addedBy !== 'You' && 
+        i.addedBy !== 'Guest' && 
+        i.addedBy !== 'AURA Customer' && 
+        i.addedBy !== 'AURA Member' &&
+        i.addedBy !== 'Registered Customer'
+      )?.addedBy;
+
+      if (realItemUser && (!o.customerName || o.customerName === 'AURA Customer' || o.customerName === 'AURA Member' || o.customerName === 'Registered Customer' || o.customerName === 'Guest Customer')) {
+        o.customerName = realItemUser;
+        if (isDBConnected() && o._id && mongoose.isValidObjectId(String(o._id))) {
+          Order.updateOne({ _id: o._id }, { customerName: realItemUser }).catch(() => {});
+        }
+      }
+    }
+  });
+
   ordersList.forEach(order => {
     const isUnpaid = order && order.paymentStatus !== 'paid' && !['completed', 'cancelled'].includes(String(order.status).toLowerCase());
     if (isUnpaid && order.tableNum) {
@@ -141,7 +162,19 @@ exports.placeOrder = async (req, res, next) => {
     return res.status(400).json({ success: false, message: 'Your cart is empty. Please add items before ordering.' });
   }
 
-  const custName = req.user?.name || req.body?.customerName || cartItems[0]?.addedBy || 'Guest Diner';
+  const itemAddedBy = cartItems.find(i => 
+    i.addedBy && 
+    i.addedBy !== 'You' && 
+    i.addedBy !== 'Guest' && 
+    i.addedBy !== 'AURA Customer' && 
+    i.addedBy !== 'AURA Member' &&
+    i.addedBy !== 'Registered Customer'
+  )?.addedBy;
+
+  const validUserName = (req.user?.name && req.user.name !== 'AURA Customer' && req.user.name !== 'AURA Member' && req.user.name !== 'Registered Customer') ? req.user.name : null;
+  const validBodyName = (req.body?.customerName && req.body.customerName !== 'AURA Customer' && req.body.customerName !== 'AURA Member' && req.body.customerName !== 'Registered Customer') ? req.body.customerName : null;
+
+  const custName = validUserName || validBodyName || itemAddedBy || 'Guest Diner';
   const isGuestUser = req.user ? req.user.isGuest : true;
   const sessionType = isGuestUser ? 'guest' : 'member';
 

@@ -308,7 +308,11 @@ export default function CashierDashboard({ onLogout, cashierName = "Lead Cashier
                     const isPaid = order.paymentStatus === 'paid';
                     const idStr = String(order._id || '');
                     const displayId = idStr.length >= 6 ? idStr.substring(idStr.length - 6).toUpperCase() : idStr.toUpperCase();
-                    const custName = order.customerName || order.userRef?.name || order.items?.[0]?.addedBy || 'Guest Diner';
+                    const custName = (order.customerName && order.customerName !== 'AURA Customer' && order.customerName !== 'AURA Member' && order.customerName !== 'Registered Customer' && order.customerName !== 'Guest Customer')
+                      ? order.customerName
+                      : (order.items && order.items.find(i => i.addedBy && i.addedBy !== 'You' && i.addedBy !== 'Guest' && i.addedBy !== 'AURA Customer' && i.addedBy !== 'AURA Member')?.addedBy)
+                        || order.userRef?.name
+                        || 'Guest Diner';
                     return (
                       <tr 
                         key={order._id || idx} 

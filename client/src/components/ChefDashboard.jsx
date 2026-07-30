@@ -296,7 +296,13 @@ export default function ChefDashboard({ onLogout, chefName = "Executive Chef Mar
                           )}
                         </div>
                         <div style={{ fontSize: '13px', fontWeight: 900, color: '#F97316', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <i className="fa-solid fa-user"></i> {order.customerName || order.userRef?.name || order.items?.[0]?.addedBy || 'Guest Diner'}
+                          <i className="fa-solid fa-user"></i> {
+                            (order.customerName && order.customerName !== 'AURA Customer' && order.customerName !== 'AURA Member' && order.customerName !== 'Registered Customer' && order.customerName !== 'Guest Customer')
+                              ? order.customerName
+                              : (order.items && order.items.find(i => i.addedBy && i.addedBy !== 'You' && i.addedBy !== 'Guest' && i.addedBy !== 'AURA Customer' && i.addedBy !== 'AURA Member')?.addedBy)
+                                || order.userRef?.name
+                                || 'Guest Diner'
+                          }
                         </div>
                         <div style={{ fontSize: '11px', color: '#64748B', fontFamily: 'monospace', fontWeight: 800, marginTop: '2px' }}>
                           TICKET #{order._id.substring(order._id.length - 6).toUpperCase()}

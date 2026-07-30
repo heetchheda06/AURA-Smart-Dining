@@ -554,7 +554,11 @@ export default function ManagerDashboard({ onLogout, managerName = "AURA Manager
                 const isVacant = t.status === 'free';
                 const tableOrders = getActiveOrdersForTable(t.num);
                 const orderTotal = tableOrders.reduce((sum, o) => sum + (o.total || 0), 0);
-                const activeCust = tableOrders[0]?.customerName || 'Diner';
+                const rawCust = t.currentCustomer || tableOrders[0]?.customerName;
+                const activeCust = (rawCust && rawCust !== 'AURA Customer' && rawCust !== 'AURA Member' && rawCust !== 'Registered Customer' && rawCust !== 'Guest Customer')
+                  ? rawCust
+                  : (tableOrders[0]?.items && tableOrders[0].items.find(i => i.addedBy && i.addedBy !== 'You' && i.addedBy !== 'Guest' && i.addedBy !== 'AURA Customer' && i.addedBy !== 'AURA Member')?.addedBy)
+                    || 'Active Diner';
 
                 return (
                   <div 
