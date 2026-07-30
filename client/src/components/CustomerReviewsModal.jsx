@@ -100,7 +100,7 @@ export default function CustomerReviewsModal({ isOpen, onClose, activeCustomerSe
       const data = await res.json();
       if (data.success) {
         setAiData(data.data);
-        showToast("✨ Gemini AI Review Analysis complete!");
+        showToast("✨ AURA Customer Review Analysis complete!");
       } else {
         showToast("⚠️ AI Analysis failed.");
       }

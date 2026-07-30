@@ -26,7 +26,7 @@ export default function AiReviewAnalyzerModal({ isOpen, onClose }) {
       const data = await res.json();
       if (data.success) {
         setAiData(data.data);
-        showToast("✨ Gemini AI Review Analysis complete!");
+        showToast("✨ AURA Customer Review Analysis complete!");
       } else {
         showToast("⚠️ AI Analysis failed.");
       }
@@ -82,7 +82,7 @@ export default function AiReviewAnalyzerModal({ isOpen, onClose }) {
             </div>
             <div>
               <h2 style={{ margin: 0, fontSize: '22px', fontWeight: 900, color: '#FFF', letterSpacing: '0.3px' }}>
-                Gemini 2.5 AI Customer Review & Sentiment Analyzer
+                AURA Customer Review Analyzer
               </h2>
               <span style={{ fontSize: '12px', color: '#C4B5FD', fontWeight: 700 }}>
                 Executive Restaurant Business Intelligence & Sentiment Analysis Engine
@@ -110,7 +110,7 @@ export default function AiReviewAnalyzerModal({ isOpen, onClose }) {
               }}
             >
               <i className={`fa-solid ${analyzing ? 'fa-spinner fa-spin' : 'fa-wand-magic-sparkles'}`}></i>
-              {analyzing ? 'Analyzing with Gemini...' : 'Re-Analyze Customer Reviews'}
+              {analyzing ? 'Analyzing Reviews...' : 'Re-Analyze Customer Reviews'}
             </button>
 
             <button 
@@ -128,7 +128,7 @@ export default function AiReviewAnalyzerModal({ isOpen, onClose }) {
           {analyzing ? (
             <div style={{ textAlign: 'center', padding: '80px', background: '#FFFFFF', borderRadius: '20px', border: '2px solid #D6EAF8' }}>
               <i className="fa-solid fa-brain fa-pulse" style={{ fontSize: '48px', color: '#8B5CF6', marginBottom: '16px' }}></i>
-              <h3 style={{ color: '#1E3A5F', fontWeight: 900, margin: 0 }}>Gemini AI is evaluating customer reviews...</h3>
+              <h3 style={{ color: '#1E3A5F', fontWeight: 900, margin: 0 }}>AURA Customer Review Analyzer is evaluating feedback...</h3>
               <p style={{ color: '#64748B', fontSize: '13px', marginTop: '6px' }}>Processing sentiment, category ratings out of 5, repeat complaints & business health score.</p>
             </div>
           ) : aiData ? (
@@ -300,7 +300,7 @@ export default function AiReviewAnalyzerModal({ isOpen, onClose }) {
           ) : (
             <div style={{ textAlign: 'center', padding: '60px', background: '#FFFFFF', borderRadius: '16px', border: '2px solid #D6EAF8' }}>
               <i className="fa-solid fa-wand-magic-sparkles" style={{ fontSize: '36px', color: '#8B5CF6', marginBottom: '12px' }}></i>
-              <h4 style={{ margin: 0, color: '#1E3A5F', fontWeight: 900 }}>Click 'Re-Analyze Customer Reviews' to fetch Gemini AI Insights</h4>
+              <h4 style={{ margin: 0, color: '#1E3A5F', fontWeight: 900 }}>Click 'Re-Analyze Customer Reviews' to fetch AURA AI Insights</h4>
             </div>
           )}
 

@@ -95,7 +95,7 @@ export default function Navbar({
           <button 
             className="nav-btn nav-btn-outline" 
             onClick={onOpenAiAnalyzer} 
-            title="Gemini 2.5 AI Customer Review & Sentiment Analyzer"
+            title="AURA Customer Review Analyzer"
             style={{
               borderColor: '#8B5CF6',
               color: '#FFF',
@@ -105,7 +105,7 @@ export default function Navbar({
             }}
           >
             <i className="fa-solid fa-wand-magic-sparkles" style={{ color: '#FFF' }}></i>
-            <span className="btn-label" style={{ fontWeight: 900, color: '#FFF' }}>🤖 AI Review Analyzer</span>
+            <span className="btn-label" style={{ fontWeight: 900, color: '#FFF' }}>🤖 AURA Review Analyzer</span>
           </button>
 
           <button className="nav-btn nav-btn-outline" onClick={onOpenWaiter} title="Call Waiter Assistance">
