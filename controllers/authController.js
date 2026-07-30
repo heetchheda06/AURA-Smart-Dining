@@ -5,7 +5,7 @@ const { OAuth2Client } = require('google-auth-library');
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID || '686445090372-17hhr1l6fsbjots3e8kuse904cv9rq72.apps.googleusercontent.com');
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID || '1001461040344-ceskv2ur956blfqgrn0vaj9fl63c0hlm.apps.googleusercontent.com');
 
 // Helper to format human name from email address
 const formatNameFromEmail = (email) => {

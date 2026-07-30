@@ -27,12 +27,18 @@ export default function AuthModal({
   const [staffPassword, setStaffPassword] = useState('');
   const [staffError, setStaffError] = useState('');
 
-  const completeGoogleLogin = async (googleName, googleEmail, picture) => {
+  const completeGoogleLogin = async (googleName, googleEmail, picture, credential) => {
     try {
       const res = await fetch('/api/auth/google', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: googleName, email: googleEmail, picture, googleId: `g_${Date.now()}` })
+        body: JSON.stringify({ 
+          credential, 
+          name: googleName, 
+          email: googleEmail, 
+          picture, 
+          googleId: `g_${Date.now()}` 
+        })
       });
       const data = await res.json();
       if (data.success && onGoogleLogin) {
@@ -54,13 +60,13 @@ export default function AuthModal({
         // Decode the JWT ID token from Google
         const parts = response.credential.split('.');
         const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
-        const name = payload.name || payload.given_name || 'Heet Chheda';
+        const name = payload.name || [payload.given_name, payload.family_name].filter(Boolean).join(' ') || 'Heet Chheda';
         const email = payload.email || 'heet.chheda06@gmail.com';
         const picture = payload.picture || null;
-        completeGoogleLogin(name, email, picture);
+        completeGoogleLogin(name, email, picture, response.credential);
       } catch (e) {
         console.error('Google credential decode error:', e);
-        completeGoogleLogin('Heet Chheda', 'heet.chheda06@gmail.com');
+        completeGoogleLogin('Heet Chheda', 'heet.chheda06@gmail.com', null, response?.credential);
       }
     };
 

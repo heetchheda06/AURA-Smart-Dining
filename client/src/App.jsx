@@ -86,58 +86,8 @@ export default function App() {
     }, 4000);
   };
 
-  // --- Google OAuth Callback integration ---
-  useEffect(() => {
-    // Expose handler globally for Google's GIS SDK
-    window.handleCredentialResponse = async (response) => {
-      try {
-        const res = await fetch('/api/auth/google', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ idToken: response.credential })
-        });
-        const data = await res.json();
-        if (data.success) {
-          localStorage.setItem('token', data.token);
-          showToast(`👋 Welcome back, ${data.user.name}!`);
-          setIsAuthModalOpen(false);
-          allotTableToCustomer(data.user.name, 8, 2, "Outdoor Patio");
-        } else {
-          showToast(`⚠️ Google login failed: ${data.message}`);
-        }
-      } catch (err) {
-        console.error("Google auth error:", err);
-        showToast("⚠️ Google Authentication failed.");
-      }
-    };
+  // Note: Google OAuth is handled cleanly in AuthModal.jsx using client_id 1001461040344-ceskv2ur956blfqgrn0vaj9fl63c0hlm.apps.googleusercontent.com
 
-    // Google Identity client initialization helper
-    const initGoogle = () => {
-      if (window.google) {
-        try {
-          window.google.accounts.id.initialize({
-            client_id: '686445090372-17hhr1l6fsbjots3e8kuse904cv9rq72.apps.googleusercontent.com',
-            callback: window.handleCredentialResponse
-          });
-        } catch (err) {
-          console.error("Failed to initialize Google Auth:", err);
-        }
-      }
-    };
-
-    initGoogle();
-    const googleTimer = setInterval(() => {
-      if (window.google) {
-        initGoogle();
-        clearInterval(googleTimer);
-      }
-    }, 300);
-
-    return () => {
-      clearInterval(googleTimer);
-      delete window.handleCredentialResponse;
-    };
-  }, []);
 
   // --- Socket.IO & Initial Load ---
   useEffect(() => {
