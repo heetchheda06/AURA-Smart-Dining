@@ -21,6 +21,7 @@ import RoleQuickSwitcher from './components/RoleQuickSwitcher';
 import AIRecommender from './components/AIRecommender';
 import TableSelectModal from './components/TableSelectModal';
 import CustomerReviewsModal from './components/CustomerReviewsModal';
+import AiReviewAnalyzerModal from './components/AiReviewAnalyzerModal';
 import { fallbackMenu } from './data/fallbackMenu';
 
 // Initialize socket connection at module level
@@ -29,6 +30,7 @@ const socket = io();
 export default function App() {
   // --- State Management ---
   const [isReviewsModalOpen, setIsReviewsModalOpen] = useState(false);
+  const [isAiAnalyzerModalOpen, setIsAiAnalyzerModalOpen] = useState(false);
   const [activeCustomerSession, setActiveCustomerSession] = useState({
     isLoggedIn: false,
     customerName: "Guest Customer",
@@ -872,6 +874,7 @@ export default function App() {
         onOpenAuth={handleLoginLogoutClick}
         onOpenWaiter={() => setIsWaiterOpen(true)}
         onOpenReviews={() => setIsReviewsModalOpen(true)}
+        onOpenAiAnalyzer={() => setIsAiAnalyzerModalOpen(true)}
         onScrollToOrder={handleScrollToOrder}
         onOpenOrdersHistory={() => setIsUserOrdersOpen(true)}
         onLogout={handleLogout}
@@ -982,11 +985,17 @@ export default function App() {
         }}
       />
 
-      {/* Customer Reviews & Gemini AI Sentiment Analysis System */}
+      {/* Customer Reviews Directory Modal */}
       <CustomerReviewsModal 
         isOpen={isReviewsModalOpen}
         onClose={() => setIsReviewsModalOpen(false)}
         activeCustomerSession={activeCustomerSession}
+      />
+
+      {/* Gemini AI Customer Review & Sentiment Analyzer Modal */}
+      <AiReviewAnalyzerModal 
+        isOpen={isAiAnalyzerModalOpen}
+        onClose={() => setIsAiAnalyzerModalOpen(false)}
       />
 
       {/* Toast Notification Container */}

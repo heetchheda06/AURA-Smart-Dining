@@ -7,6 +7,7 @@ export default function Navbar({
   onOpenAuth, 
   onOpenWaiter, 
   onOpenReviews,
+  onOpenAiAnalyzer,
   onScrollToOrder,
   onOpenOrdersHistory,
   onLogout
@@ -81,14 +82,30 @@ export default function Navbar({
             onClick={onOpenReviews} 
             title="Customer Reviews & Ratings"
             style={{
-              borderColor: '#8B5CF6',
+              borderColor: '#F97316',
               color: '#1E3A5F',
-              background: '#F3E8FF',
+              background: '#FFF7ED',
               fontWeight: 900
             }}
           >
-            <i className="fa-solid fa-star" style={{ color: '#8B5CF6' }}></i>
+            <i className="fa-solid fa-star" style={{ color: '#F97316' }}></i>
             <span className="btn-label" style={{ fontWeight: 900 }}>Customer Reviews</span>
+          </button>
+
+          <button 
+            className="nav-btn nav-btn-outline" 
+            onClick={onOpenAiAnalyzer} 
+            title="Gemini 2.5 AI Customer Review & Sentiment Analyzer"
+            style={{
+              borderColor: '#8B5CF6',
+              color: '#FFF',
+              background: 'linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%)',
+              fontWeight: 900,
+              boxShadow: '0 4px 14px rgba(139, 92, 246, 0.4)'
+            }}
+          >
+            <i className="fa-solid fa-wand-magic-sparkles" style={{ color: '#FFF' }}></i>
+            <span className="btn-label" style={{ fontWeight: 900, color: '#FFF' }}>🤖 AI Review Analyzer</span>
           </button>
 
           <button className="nav-btn nav-btn-outline" onClick={onOpenWaiter} title="Call Waiter Assistance">
