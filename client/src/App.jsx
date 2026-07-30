@@ -20,6 +20,7 @@ import ChefDashboard from './components/ChefDashboard';
 import RoleQuickSwitcher from './components/RoleQuickSwitcher';
 import AIRecommender from './components/AIRecommender';
 import TableSelectModal from './components/TableSelectModal';
+import CustomerReviewsModal from './components/CustomerReviewsModal';
 import { fallbackMenu } from './data/fallbackMenu';
 
 // Initialize socket connection at module level
@@ -27,6 +28,7 @@ const socket = io();
 
 export default function App() {
   // --- State Management ---
+  const [isReviewsModalOpen, setIsReviewsModalOpen] = useState(false);
   const [activeCustomerSession, setActiveCustomerSession] = useState({
     isLoggedIn: false,
     customerName: "Guest Customer",
@@ -869,6 +871,7 @@ export default function App() {
         cartCount={cart.reduce((sum, item) => sum + item.qty, 0)}
         onOpenAuth={handleLoginLogoutClick}
         onOpenWaiter={() => setIsWaiterOpen(true)}
+        onOpenReviews={() => setIsReviewsModalOpen(true)}
         onScrollToOrder={handleScrollToOrder}
         onOpenOrdersHistory={() => setIsUserOrdersOpen(true)}
         onLogout={handleLogout}
@@ -977,6 +980,13 @@ export default function App() {
             setTimeout(() => setIsUserOrdersOpen(true), 400);
           }
         }}
+      />
+
+      {/* Customer Reviews & Gemini AI Sentiment Analysis System */}
+      <CustomerReviewsModal 
+        isOpen={isReviewsModalOpen}
+        onClose={() => setIsReviewsModalOpen(false)}
+        activeCustomerSession={activeCustomerSession}
       />
 
       {/* Toast Notification Container */}
