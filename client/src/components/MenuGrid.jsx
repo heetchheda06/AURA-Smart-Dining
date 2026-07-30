@@ -77,7 +77,13 @@ export default function MenuGrid({
         'chicken', 'mutton', 'fish', 'prawn', 'prawns', 'beef', 'pork', 'egg', 'eggs', 'bacon', 'turkey', 'lamb'
       ];
       const hasNonVeg = forbiddenJainWords.some(word => textForJainCheck.includes(word));
-      const isJainItem = !hasNonVeg && (item.isJain === true || item.jainAvailable === true || item.dietary_type === 'Jain');
+      
+      const isExplicitJain = item.isJain === true || item.isJain === 'true' || item.jainAvailable === true || item.jainAvailable === 'true' || item.dietary_type === 'Jain';
+      const isTextJain = textForJainCheck.includes('jain') || textForJainCheck.includes('without garlic') || textForJainCheck.includes('without onion') || textForJainCheck.includes('no potato');
+      
+      const isExcludedDish = item._id === 'DSH-166' || item._id === 'DSH-174' || item._id === 'DSH-169' || item.dish_id === 'DSH-166' || item.dish_id === 'DSH-174' || item.dish_id === 'DSH-169';
+
+      const isJainItem = !hasNonVeg && !isExcludedDish && (isExplicitJain || isTextJain);
 
       const matchesDiet = dietaryFilter === 'All' || 
         (dietaryFilter === 'Veg' && (item.dietary_type === 'Veg' || item.dietary_type === 'Vegan')) ||

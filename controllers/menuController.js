@@ -105,8 +105,8 @@ exports.getMenuItems = async (req, res, next) => {
     if (menuItems && menuItems.length > 0) {
       menuItems = menuItems.map(item => {
         const fb = fallbackDict[item.dish_id] || fallbackDict[(item.name || '').toLowerCase()] || {};
-        const isJain = item.isJain !== undefined ? item.isJain : (fb.isJain || false);
-        const jainAvailable = item.jainAvailable !== undefined ? item.jainAvailable : (fb.jainAvailable || false);
+        const isJain = item.isJain === true || fb.isJain === true;
+        const jainAvailable = item.jainAvailable === true || fb.jainAvailable === true;
         const ingredients = fb.ingredients || item.ingredients || '';
         const desc = fb.desc || item.desc || (ingredients ? `Ingredients: ${ingredients}` : '');
 
