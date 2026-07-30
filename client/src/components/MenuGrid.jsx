@@ -71,17 +71,21 @@ export default function MenuGrid({
       // Cuisine matching
       const matchesCuisine = selectedCuisine === 'All' || item.cuisine === selectedCuisine;
 
-      // Check if item is Jain eligible
-      const nameLower = (item.name || '').toLowerCase();
-      const descLower = (item.desc || '').toLowerCase();
-      const isNonVeg = item.dietary_type === 'Non-Veg' || nameLower.includes('chicken') || nameLower.includes('mutton') || nameLower.includes('fish') || nameLower.includes('wings') || nameLower.includes('egg');
-      const hasGarlicOrOnionOnly = nameLower.includes('garlic naan') || nameLower.includes('chicken 65') || nameLower.includes('seekh');
+      // Strict Jain check: ANY item with onion, potato, garlic, ginger, root veggies MUST BE REMOVED from Jain Category
+      const textForJainCheck = `${item.name || ''} ${item.ingredients || ''} ${item.desc || ''} ${item.tags || ''}`.toLowerCase();
+      const forbiddenJainWords = [
+        'onion', 'onions',
+        'potato', 'potatoes', 'aloo', 'fries',
+        'garlic',
+        'ginger',
+        'radish', 'mooli',
+        'beetroot', 'beet',
+        'carrot', 'carrots',
+        'chicken', 'mutton', 'fish', 'prawn', 'prawns', 'beef', 'pork', 'egg', 'eggs', 'bacon', 'turkey', 'lamb'
+      ];
 
-      const isJainItem = item.isJain === true || 
-        item.jainAvailable === true || 
-        item.dietary_type === 'Jain' || 
-        descLower.includes('jain') || 
-        (!isNonVeg && !hasGarlicOrOnionOnly);
+      const hasForbiddenJainIngredient = forbiddenJainWords.some(word => textForJainCheck.includes(word));
+      const isJainItem = !hasForbiddenJainIngredient && (item.dietary_type === 'Veg' || item.dietary_type === 'Vegan' || item.dietary_type === 'Jain' || item.isJain === true || item.jainAvailable === true);
 
       const matchesDiet = dietaryFilter === 'All' || 
         (dietaryFilter === 'Veg' && (item.dietary_type === 'Veg' || item.dietary_type === 'Vegan')) ||
@@ -299,22 +303,31 @@ export default function MenuGrid({
                       </span>
 
                       {/* Jain Option Available Badge */}
-                      {(item.isJain || item.jainAvailable || (item.desc && item.desc.toLowerCase().includes('jain'))) && (
-                        <span style={{ 
-                          fontSize: '11px', 
-                          fontWeight: 900, 
-                          color: '#92400E', 
-                          background: '#FEF3C7', 
-                          border: '1.5px solid #FCD34D',
-                          padding: '4px 10px', 
-                          borderRadius: '8px',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '4px'
-                        }}>
-                          <span>🙏</span> {item.isJain ? '100% Jain' : 'Jain Option Available'}
-                        </span>
-                      )}
+                      {(() => {
+                        const txt = `${item.name || ''} ${item.ingredients || ''} ${item.desc || ''} ${item.tags || ''}`.toLowerCase();
+                        const forbidden = ['onion', 'onions', 'potato', 'potatoes', 'aloo', 'fries', 'garlic', 'ginger', 'radish', 'mooli', 'beetroot', 'beet', 'carrot', 'carrots', 'chicken', 'mutton', 'fish', 'prawn', 'prawns', 'beef', 'pork', 'egg', 'eggs', 'bacon', 'turkey', 'lamb'];
+                        const isForbidden = forbidden.some(w => txt.includes(w));
+                        if (isForbidden) return null;
+                        if (item.isJain || item.jainAvailable || item.dietary_type === 'Veg' || item.dietary_type === 'Vegan' || (item.desc && item.desc.toLowerCase().includes('jain'))) {
+                          return (
+                            <span style={{ 
+                              fontSize: '11px', 
+                              fontWeight: 900, 
+                              color: '#92400E', 
+                              background: '#FEF3C7', 
+                              border: '1.5px solid #FCD34D',
+                              padding: '4px 10px', 
+                              borderRadius: '8px',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px'
+                            }}>
+                              <span>🙏</span> {item.isJain ? '100% Jain' : 'Jain Option Available'}
+                            </span>
+                          );
+                        }
+                        return null;
+                      })()}
                     </div>
 
                     {/* Dish ID */}

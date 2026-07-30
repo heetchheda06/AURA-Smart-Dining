@@ -78,7 +78,11 @@ export default function AIRecommender({
       if (dietary === 'Veg' && !(item.dietary_type === 'Veg' || item.dietary_type === 'Vegan')) return false;
       if (dietary === 'Non-Veg' && item.dietary_type !== 'Non-Veg') return false;
       if (dietary === 'Vegan' && item.dietary_type !== 'Vegan') return false;
-      if (dietary === 'Jain' && !(item.isJain || item.jainAvailable || item.dietary_type === 'Jain' || (item.desc && item.desc.toLowerCase().includes('jain')))) return false;
+      if (dietary === 'Jain') {
+        const txt = `${item.name || ''} ${item.ingredients || ''} ${item.desc || ''} ${item.tags || ''}`.toLowerCase();
+        const forbidden = ['onion', 'onions', 'potato', 'potatoes', 'aloo', 'fries', 'garlic', 'ginger', 'radish', 'mooli', 'beetroot', 'beet', 'carrot', 'carrots', 'chicken', 'mutton', 'fish', 'prawn', 'prawns', 'beef', 'pork', 'egg', 'eggs', 'bacon', 'turkey', 'lamb'];
+        if (forbidden.some(w => txt.includes(w))) return false;
+      }
       if (isTodaysSpecial && !['chef-special', 'popular', 'bestselling', 'royal', 'tandoori'].includes(item.tag) && (item.rating || 0) < 4.8) return false;
       return true;
     });
@@ -88,7 +92,11 @@ export default function AIRecommender({
         if (dietary === 'Veg' && !(item.dietary_type === 'Veg' || item.dietary_type === 'Vegan')) return false;
         if (dietary === 'Non-Veg' && item.dietary_type !== 'Non-Veg') return false;
         if (dietary === 'Vegan' && item.dietary_type !== 'Vegan') return false;
-        if (dietary === 'Jain' && !(item.isJain || item.jainAvailable || item.dietary_type === 'Jain' || (item.desc && item.desc.toLowerCase().includes('jain')))) return false;
+        if (dietary === 'Jain') {
+          const txt = `${item.name || ''} ${item.ingredients || ''} ${item.desc || ''} ${item.tags || ''}`.toLowerCase();
+          const forbidden = ['onion', 'onions', 'potato', 'potatoes', 'aloo', 'fries', 'garlic', 'ginger', 'radish', 'mooli', 'beetroot', 'beet', 'carrot', 'carrots', 'chicken', 'mutton', 'fish', 'prawn', 'prawns', 'beef', 'pork', 'egg', 'eggs', 'bacon', 'turkey', 'lamb'];
+          if (forbidden.some(w => txt.includes(w))) return false;
+        }
         return true;
       });
     }

@@ -106,11 +106,10 @@ exports.getMenuItems = async (req, res, next) => {
         filtered = filtered.filter(item => item.name.toLowerCase().includes(s) || (item.ingredients && item.ingredients.toLowerCase().includes(s)));
       }
       menuItems = filtered.map((item, idx) => {
-        const nameLower = (item.name || '').toLowerCase();
-        const descLower = (item.desc || (item.ingredients ? `Ingredients: ${item.ingredients}` : '')).toLowerCase();
-        const isNonVeg = item.dietary_type === 'Non-Veg' || nameLower.includes('chicken') || nameLower.includes('mutton') || nameLower.includes('fish') || nameLower.includes('wings') || nameLower.includes('egg');
-        const hasGarlicOrOnionOnly = nameLower.includes('garlic naan') || nameLower.includes('chicken 65') || nameLower.includes('seekh');
-        const isJainEligible = item.isJain === true || item.jainAvailable === true || item.dietary_type === 'Jain' || descLower.includes('jain') || (!isNonVeg && !hasGarlicOrOnionOnly);
+        const textCheck = `${item.name || ''} ${item.ingredients || ''} ${item.desc || ''} ${item.tags || ''}`.toLowerCase();
+        const forbidden = ['onion', 'onions', 'potato', 'potatoes', 'aloo', 'fries', 'garlic', 'ginger', 'radish', 'mooli', 'beetroot', 'beet', 'carrot', 'carrots', 'chicken', 'mutton', 'fish', 'prawn', 'prawns', 'beef', 'pork', 'egg', 'eggs', 'bacon', 'turkey', 'lamb'];
+        const hasForbidden = forbidden.some(w => textCheck.includes(w));
+        const isJainEligible = !hasForbidden && (item.dietary_type === 'Veg' || item.dietary_type === 'Vegan' || item.dietary_type === 'Jain' || item.isJain === true || item.jainAvailable === true);
 
         return {
           _id: item.dish_id || `dsh-${idx}`,
@@ -118,7 +117,7 @@ exports.getMenuItems = async (req, res, next) => {
           category: item.category,
           cuisine: item.cuisine || 'Indian',
           dietary_type: item.dietary_type || 'Veg',
-          isJain: item.isJain || (isJainEligible && (nameLower.includes('naan') || nameLower.includes('jamun') || nameLower.includes('brownie') || nameLower.includes('chai') || nameLower.includes('coffee') || nameLower.includes('soda') || nameLower.includes('mojito'))),
+          isJain: isJainEligible && (item.isJain || textCheck.includes('naan') || textCheck.includes('jamun') || textCheck.includes('brownie') || textCheck.includes('chai') || textCheck.includes('coffee') || textCheck.includes('soda') || textCheck.includes('mojito')),
           jainAvailable: isJainEligible,
           price: item.price,
           prep_time_minutes: item.prep_time_minutes || 15,
