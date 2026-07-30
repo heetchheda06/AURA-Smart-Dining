@@ -19,6 +19,21 @@ const tableSchema = new mongoose.Schema({
     type: String,
     enum: ['free', 'occupied', 'reserved', 'queued'],
     default: 'free'
+  },
+  currentCustomer: {
+    type: String,
+    default: ''
+  },
+  loginType: {
+    type: String,
+    default: ''
+  },
+  userId: {
+    type: String,
+    default: ''
+  },
+  occupiedAt: {
+    type: Date
   }
 }, {
   timestamps: true

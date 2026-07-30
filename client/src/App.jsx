@@ -173,6 +173,10 @@ export default function App() {
       showToast(data.message);
     });
 
+    socket.on('queue:table_freed', (data) => {
+      showToast(`🎉 Table #${data.tableNum} is now free! Ready for seating.`);
+    });
+
     return () => {
       socket.off('cart:updated');
       socket.off('user:joined');
@@ -182,6 +186,7 @@ export default function App() {
       socket.off('order:status_updated');
       socket.off('waiter:call_acknowledged');
       socket.off('waiter:request_completed');
+      socket.off('queue:table_freed');
     };
   }, []);
 
@@ -945,6 +950,12 @@ export default function App() {
         isOpen={isTableSelectOpen}
         onClose={() => setIsTableSelectOpen(false)}
         customerName={pendingCustomerInfo.name || 'Customer'}
+        loginType={pendingCustomerInfo.loginType || 'guest'}
+        onJoinQueue={(custName) => {
+          setIsTableSelectOpen(false);
+          setIsQueueOpen(true);
+          showToast(`⏳ ${custName} added to live seating queue!`);
+        }}
         onConfirmTable={async (tableNum, seats, zone) => {
           setIsTableSelectOpen(false);
           if (pendingCustomerInfo.loginType === 'guest') {

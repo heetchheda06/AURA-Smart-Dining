@@ -180,6 +180,7 @@ exports.getOrderDetails = async (req, res, next) => {
 exports.updateOrderStatus = async (req, res, next) => {
   try {
     const { status } = req.body;
+    const tableNumToFree = req.body.tableNum;
 
     // Check memory orders first
     const memIdx = memoryOrders.findIndex(o => String(o._id) === String(req.params.id));
@@ -190,23 +191,37 @@ exports.updateOrderStatus = async (req, res, next) => {
         memoryOrders[memIdx].paymentStatus = 'paid';
       }
       const order = memoryOrders[memIdx];
+      const targetTableNum = Number(order.tableNum || tableNumToFree);
+
+      if (status === 'completed' && targetTableNum) {
+        if (isDBConnected()) {
+          Table.findOneAndUpdate(
+            { num: targetTableNum },
+            { status: 'free', currentCustomer: '', loginType: '', userId: '', occupiedAt: null }
+          ).catch(() => {});
+        }
+      }
+
       const io = req.app.get('io');
       if (io) {
         io.emit('order:status_updated', {
           orderId: order._id,
-          tableNum: order.tableNum,
+          tableNum: targetTableNum,
           status: order.status,
-          message: `🍳 Order #${order.tableNum} status updated to: ${status}`,
+          message: `🍳 Order #${targetTableNum} status updated to: ${status}`,
           order
         });
-        io.to(`table_room_${order.tableNum}`).emit('order:status_updated', {
+        io.to(`table_room_${targetTableNum}`).emit('order:status_updated', {
           orderId: order._id,
-          tableNum: order.tableNum,
+          tableNum: targetTableNum,
           status: order.status,
           message: `🍳 Your order status updated to: ${status}`,
           order
         });
-        if (status === 'completed') io.emit('table:status_changed', { num: order.tableNum, status: 'free' });
+        if (status === 'completed') {
+          io.emit('table:status_changed', { num: targetTableNum, status: 'free', currentCustomer: '' });
+          io.emit('payment:completed', { tableNum: targetTableNum, orderId: order._id });
+        }
       }
       return res.status(200).json({ success: true, data: order });
     }
@@ -221,7 +236,10 @@ exports.updateOrderStatus = async (req, res, next) => {
     order.status = status;
     if (status === 'completed') {
       order.paymentStatus = 'paid';
-      await Table.findOneAndUpdate({ num: order.tableNum }, { status: 'free' });
+      await Table.findOneAndUpdate(
+        { num: order.tableNum },
+        { status: 'free', currentCustomer: '', loginType: '', userId: '', occupiedAt: null }
+      ).catch(() => {});
     }
     await order.save();
 
@@ -247,7 +265,10 @@ exports.updateOrderStatus = async (req, res, next) => {
         message: `🍳 Your order status updated to: ${status}`,
         order
       });
-      if (status === 'completed') io.emit('table:status_changed', { num: order.tableNum, status: 'free' });
+      if (status === 'completed') {
+        io.emit('table:status_changed', { num: order.tableNum, status: 'free', currentCustomer: '' });
+        io.emit('payment:completed', { tableNum: order.tableNum, orderId: order._id });
+      }
     }
 
     res.status(200).json({ success: true, data: order });

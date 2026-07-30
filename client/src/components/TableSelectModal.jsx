@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-export default function TableSelectModal({ isOpen, onClose, customerName, onConfirmTable }) {
+export default function TableSelectModal({ isOpen, onClose, customerName, loginType = "guest", onConfirmTable, onJoinQueue }) {
   const [tables, setTables] = useState([]);
   const [selectedTableNum, setSelectedTableNum] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -74,9 +74,10 @@ export default function TableSelectModal({ isOpen, onClose, customerName, onConf
 
       setTables(loadedTables);
       
-      // Auto-select first vacant table if none selected
+      // Auto-select first vacant table if available
       const firstVacant = loadedTables.find(t => t.status === 'free');
       if (firstVacant) setSelectedTableNum(firstVacant.num);
+      else setSelectedTableNum(null);
 
     } catch (err) {
       console.error(err);
@@ -89,17 +90,23 @@ export default function TableSelectModal({ isOpen, onClose, customerName, onConf
 
   if (!isOpen) return null;
 
-  const selectedTableObj = tables.find(t => t.num === selectedTableNum) || default20Tables[0];
+  const vacantTables = tables.filter(t => t.status === 'free');
+  const isFullHouse = vacantTables.length === 0;
+  const selectedTableObj = tables.find(t => t.num === selectedTableNum) || vacantTables[0] || default20Tables[0];
 
   const handleConfirm = async () => {
     if (!selectedTableNum) return;
 
     try {
-      // Update table to occupied in DB
+      // Update table to occupied in DB with live customer login details
       await fetch(`/api/tables/${selectedTableNum}/status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'occupied' })
+        body: JSON.stringify({ 
+          status: 'occupied',
+          customerName: customerName || 'Guest Customer',
+          loginType: loginType || 'guest'
+        })
       });
     } catch (e) {
       console.error(e);
@@ -108,6 +115,22 @@ export default function TableSelectModal({ isOpen, onClose, customerName, onConf
     if (onConfirmTable) {
       onConfirmTable(selectedTableObj.num, selectedTableObj.seats, selectedTableObj.zone);
     }
+    onClose();
+  };
+
+  const handleJoinQueueClick = async () => {
+    try {
+      await fetch('/api/tables/queue/join', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customerName: customerName || 'Guest Customer',
+          partySize: 2
+        })
+      });
+    } catch (e) {}
+
+    if (onJoinQueue) onJoinQueue(customerName || 'Guest Customer');
     onClose();
   };
 
@@ -132,10 +155,42 @@ export default function TableSelectModal({ isOpen, onClose, customerName, onConf
               Welcome, {customerName}! Pick Your Dining Table
             </h3>
             <p style={{ fontSize: '13px', color: '#64748B', margin: '4px 0 0 0', fontWeight: 700 }}>
-              Choose your preferred vacant floor table from 20 available restaurant seating options.
+              {isFullHouse 
+                ? "⚠️ All floor tables are currently occupied! Join the live waitlist queue."
+                : `Choose your preferred vacant table (${vacantTables.length} free tables).`}
             </p>
           </div>
         </div>
+
+        {/* Full House Banner if no tables vacant */}
+        {isFullHouse && (
+          <div style={{ background: '#FEF2F2', border: '2px solid #FCA5A5', borderRadius: '16px', padding: '18px', marginBottom: '20px', textAlign: 'center' }}>
+            <i className="fa-solid fa-clock" style={{ fontSize: '32px', color: '#EF4444', marginBottom: '8px', display: 'block' }}></i>
+            <h4 style={{ fontSize: '18px', fontWeight: 900, color: '#991B1B', margin: 0 }}>Full House — All 20 Tables Occupied!</h4>
+            <p style={{ fontSize: '13px', color: '#B91C1C', marginTop: '4px', marginBottom: '16px', fontWeight: 700 }}>
+              Tables will be vacated as soon as seated customers complete & pay their bills.
+            </p>
+            <button
+              onClick={handleJoinQueueClick}
+              style={{
+                background: 'linear-gradient(135deg, #EF4444 0%, #DC2626 100%)',
+                color: '#FFFFFF',
+                border: 'none',
+                borderRadius: '12px',
+                padding: '14px 28px',
+                fontSize: '15px',
+                fontWeight: 900,
+                cursor: 'pointer',
+                boxShadow: '0 4px 14px rgba(239,68,68,0.4)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}
+            >
+              <i className="fa-solid fa-users-line"></i> Join Live Seating Waitlist Queue
+            </button>
+          </div>
+        )}
 
         {/* Table Grid */}
         {loading ? (
@@ -145,7 +200,7 @@ export default function TableSelectModal({ isOpen, onClose, customerName, onConf
           </div>
         ) : (
           <div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '12px', marginBottom: '24px', maxHeight: '380px', overflowY: 'auto', paddingRight: '4px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '12px', marginBottom: '24px', maxHeight: '340px', overflowY: 'auto', paddingRight: '4px' }}>
               {tables.map(t => {
                 const isVacant = t.status === 'free';
                 const isSelected = selectedTableNum === t.num;
@@ -196,34 +251,36 @@ export default function TableSelectModal({ isOpen, onClose, customerName, onConf
             </div>
 
             {/* Selection Banner & Confirm CTA */}
-            <div style={{ background: '#F8FAFC', border: '1.5px solid #D6EAF8', borderRadius: '16px', padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-              <div>
-                <div style={{ fontSize: '11px', fontWeight: 900, color: '#64748B', textTransform: 'uppercase' }}>Selected Dining Table</div>
-                <div style={{ fontSize: '18px', fontWeight: 900, color: '#1E3A5F' }}>
-                  Table #{selectedTableObj.num} &bull; {selectedTableObj.seats} Seats ({selectedTableObj.zone})
+            {!isFullHouse && selectedTableNum && (
+              <div style={{ background: '#F8FAFC', border: '1.5px solid #D6EAF8', borderRadius: '16px', padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+                <div>
+                  <div style={{ fontSize: '11px', fontWeight: 900, color: '#64748B', textTransform: 'uppercase' }}>Selected Dining Table</div>
+                  <div style={{ fontSize: '18px', fontWeight: 900, color: '#1E3A5F' }}>
+                    Table #{selectedTableObj.num} &bull; {selectedTableObj.seats} Seats ({selectedTableObj.zone})
+                  </div>
                 </div>
-              </div>
 
-              <button
-                onClick={handleConfirm}
-                style={{
-                  background: 'linear-gradient(135deg, #F97316 0%, #EA580C 100%)',
-                  color: '#FFFFFF',
-                  border: 'none',
-                  borderRadius: '12px',
-                  padding: '12px 24px',
-                  fontSize: '14px',
-                  fontWeight: 900,
-                  cursor: 'pointer',
-                  boxShadow: '0 4px 14px rgba(249,115,22,0.4)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px'
-                }}
-              >
-                <i className="fa-solid fa-check"></i> Seat Me at Table #{selectedTableObj.num}
-              </button>
-            </div>
+                <button
+                  onClick={handleConfirm}
+                  style={{
+                    background: 'linear-gradient(135deg, #F97316 0%, #EA580C 100%)',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    borderRadius: '12px',
+                    padding: '12px 24px',
+                    fontSize: '14px',
+                    fontWeight: 900,
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 14px rgba(249,115,22,0.4)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                  }}
+                >
+                  <i className="fa-solid fa-check"></i> Seat Me at Table #{selectedTableObj.num}
+                </button>
+              </div>
+            )}
           </div>
         )}
 

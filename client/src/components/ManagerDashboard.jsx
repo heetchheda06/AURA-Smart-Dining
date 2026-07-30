@@ -4,10 +4,11 @@ import io from 'socket.io-client';
 const socket = io();
 
 export default function ManagerDashboard({ onLogout, managerName = "AURA Manager", formatPrice }) {
-  const [activeTab, setActiveTab] = useState('tables'); // 'tables' or 'ingredients'
+  const [activeTab, setActiveTab] = useState('tables'); // 'tables', 'ingredients', or 'queue'
   const [tables, setTables] = useState([]);
   const [ingredients, setIngredients] = useState([]);
   const [orders, setOrders] = useState([]);
+  const [queue, setQueue] = useState([]);
   
   // Filters
   const [tableFilter, setTableFilter] = useState('all'); // 'all', 'vacant', 'occupied'
@@ -69,6 +70,18 @@ export default function ManagerDashboard({ onLogout, managerName = "AURA Manager
     }
   };
 
+  const fetchQueue = async () => {
+    try {
+      const res = await fetch('/api/tables/queue');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) setQueue(data.data || []);
+      }
+    } catch (e) {
+      console.error("Error fetching waitlist queue:", e);
+    }
+  };
+
   const fetchTables = async () => {
     try {
       let loadedTables = [];
@@ -92,14 +105,21 @@ export default function ManagerDashboard({ onLogout, managerName = "AURA Manager
           const orderData = await orderRes.json();
           if (orderData.success && orderData.data) {
             setOrders(orderData.data || []);
-            const activeTableSet = new Set(
-              orderData.data
-                .filter(o => o.paymentStatus !== 'paid' && !['completed', 'cancelled'].includes(String(o.status).toLowerCase()))
-                .map(o => Number(o.tableNum))
-            );
+            const activeTableMap = new Map();
+            orderData.data
+              .filter(o => o.paymentStatus !== 'paid' && !['completed', 'cancelled'].includes(String(o.status).toLowerCase()))
+              .forEach(o => {
+                activeTableMap.set(Number(o.tableNum), o.customerName || 'Diner');
+              });
+
             loadedTables = loadedTables.map(t => {
-              if (activeTableSet.has(Number(t.num))) {
-                return { ...t, status: 'occupied' };
+              const activeCustName = activeTableMap.get(Number(t.num));
+              if (activeCustName) {
+                return { 
+                  ...t, 
+                  status: 'occupied', 
+                  currentCustomer: t.currentCustomer || activeCustName 
+                };
               }
               return t;
             });
@@ -129,11 +149,13 @@ export default function ManagerDashboard({ onLogout, managerName = "AURA Manager
     fetchTables();
     fetchIngredients();
     fetchOrders();
+    fetchQueue();
 
     const handleRefresh = () => {
       fetchTables();
       fetchIngredients();
       fetchOrders();
+      fetchQueue();
     };
 
     socket.on('table:status_changed', handleRefresh);
@@ -141,6 +163,7 @@ export default function ManagerDashboard({ onLogout, managerName = "AURA Manager
     socket.on('order:placed', handleRefresh);
     socket.on('order:status_updated', handleRefresh);
     socket.on('payment:completed', handleRefresh);
+    socket.on('queue:updated', handleRefresh);
 
     const interval = setInterval(handleRefresh, 4000);
 
@@ -150,9 +173,46 @@ export default function ManagerDashboard({ onLogout, managerName = "AURA Manager
       socket.off('order:placed', handleRefresh);
       socket.off('order:status_updated', handleRefresh);
       socket.off('payment:completed', handleRefresh);
+      socket.off('queue:updated', handleRefresh);
       clearInterval(interval);
     };
   }, []);
+
+  const handleSeatQueuedCustomer = async (queueId, tableNum) => {
+    try {
+      const res = await fetch(`/api/tables/queue/seat/${queueId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tableNum })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast(`🎉 ${data.message}`);
+        fetchTables();
+        fetchQueue();
+      } else {
+        showToast(`⚠️ ${data.message}`);
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("⚠️ Seating queued customer failed.");
+    }
+  };
+
+  const handleRemoveFromQueue = async (queueId) => {
+    try {
+      const res = await fetch(`/api/tables/queue/${queueId}`, {
+        method: 'DELETE'
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast("🗑️ Removed from waitlist.");
+        fetchQueue();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   // Update Table status action with Instant Optimistic UI Update
   const handleUpdateTableStatus = async (tableNum, newStatus) => {
@@ -400,6 +460,29 @@ export default function ManagerDashboard({ onLogout, managerName = "AURA Manager
           >
             <i className="fa-solid fa-boxes-packing" style={{ fontSize: '20px', color: activeTab === 'ingredients' ? '#F97316' : '#1E3A5F' }}></i>
             2. Live Ingredients & Stock ({ingredients.length} Tracked)
+          </button>
+
+          <button 
+            onClick={() => setActiveTab('queue')}
+            style={{
+              flex: 1,
+              padding: '16px',
+              borderRadius: '16px',
+              border: activeTab === 'queue' ? '2px solid #1E3A5F' : '1px solid #CBD5E1',
+              background: activeTab === 'queue' ? '#1E3A5F' : '#FFFFFF',
+              color: activeTab === 'queue' ? '#FFFFFF' : '#1E3A5F',
+              fontWeight: 900,
+              fontSize: '15px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '10px',
+              boxShadow: activeTab === 'queue' ? '0 6px 20px rgba(30, 58, 95, 0.25)' : '0 2px 8px rgba(0,0,0,0.04)'
+            }}
+          >
+            <i className="fa-solid fa-users-line" style={{ fontSize: '20px', color: activeTab === 'queue' ? '#F97316' : '#1E3A5F' }}></i>
+            3. Live Waitlist Queue ({queue.length} Waiting)
           </button>
         </div>
 
@@ -707,6 +790,85 @@ export default function ManagerDashboard({ onLogout, managerName = "AURA Manager
                 </table>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* TAB 3: LIVE WAITLIST QUEUE */}
+        {activeTab === 'queue' && (
+          <div>
+            <div style={{ background: '#FFFFFF', padding: '20px', borderRadius: '16px', marginBottom: '20px', border: '1.5px solid #D6EAF8', boxShadow: '0 4px 15px rgba(0,0,0,0.04)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+              <div>
+                <h3 style={{ fontSize: '18px', fontWeight: 900, color: '#1E3A5F', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <i className="fa-solid fa-users-line" style={{ color: '#F97316' }}></i>
+                  Real-Time Customer Waitlist Queue
+                </h3>
+                <p style={{ fontSize: '12px', color: '#64748B', margin: '4px 0 0 0', fontWeight: 700 }}>
+                  Active queue when floor tables are full. Manager can manually assign queued diners to newly vacated tables.
+                </p>
+              </div>
+
+              <div style={{ background: '#F0FDF4', color: '#065F46', border: '1px solid #6EE7B7', padding: '8px 16px', borderRadius: '12px', fontSize: '13px', fontWeight: 900 }}>
+                {queue.length} Diners Waiting in Queue
+              </div>
+            </div>
+
+            {queue.length === 0 ? (
+              <div style={{ background: '#FFFFFF', padding: '40px', borderRadius: '16px', border: '2px solid #D6EAF8', textAlign: 'center', color: '#64748B' }}>
+                <i className="fa-solid fa-circle-check" style={{ fontSize: '36px', color: '#10B981', marginBottom: '10px', display: 'block' }}></i>
+                <h4 style={{ fontSize: '16px', fontWeight: 900, color: '#1E3A5F', margin: 0 }}>No Diners Currently Waiting in Queue</h4>
+                <p style={{ fontSize: '13px', color: '#64748B', marginTop: '4px' }}>All walk-in & logged-in diners are directly seated at floor tables.</p>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '16px' }}>
+                {queue.map((q, idx) => (
+                  <div key={q._id || idx} style={{ background: '#FFFFFF', border: '2px solid #D6EAF8', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 15px rgba(0,0,0,0.04)', position: 'relative' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                      <span style={{ background: '#F97316', color: '#FFF', padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 900 }}>
+                        Position #{idx + 1} in Queue
+                      </span>
+                      <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 700 }}>
+                        <i className="fa-solid fa-clock"></i> ~{Math.max(5, (idx + 1) * 6)} Mins Wait
+                      </span>
+                    </div>
+
+                    <h4 style={{ fontSize: '18px', fontWeight: 900, color: '#1E3A5F', margin: '0 0 6px 0' }}>
+                      {q.customerName}
+                    </h4>
+
+                    <div style={{ fontSize: '13px', color: '#4B5563', fontWeight: 700, display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '16px' }}>
+                      <div><i className="fa-solid fa-users" style={{ color: '#1E3A5F', width: '18px' }}></i> Party Size: <strong>{q.partySize || 2} Guests</strong></div>
+                      {q.mobile && <div><i className="fa-solid fa-phone" style={{ color: '#10B981', width: '18px' }}></i> Phone: <strong>{q.mobile}</strong></div>}
+                    </div>
+
+                    {/* Manager Seating Controls */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <div style={{ fontSize: '11px', fontWeight: 900, color: '#1E3A5F', textTransform: 'uppercase' }}>Seat at Vacant Table:</div>
+                      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                        {tables.filter(t => t.status === 'free').map(t => (
+                          <button
+                            key={t.num}
+                            onClick={() => handleSeatQueuedCustomer(q._id, t.num)}
+                            style={{ padding: '6px 12px', background: '#10B981', color: '#FFF', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: 900, cursor: 'pointer' }}
+                          >
+                            Seat at Table #{t.num}
+                          </button>
+                        ))}
+                        {tables.filter(t => t.status === 'free').length === 0 && (
+                          <span style={{ fontSize: '11px', color: '#EF4444', fontWeight: 800 }}>No vacant tables available right now</span>
+                        )}
+                      </div>
+
+                      <button
+                        onClick={() => handleRemoveFromQueue(q._id)}
+                        style={{ marginTop: '6px', padding: '8px', background: '#FEF2F2', color: '#991B1B', border: '1px solid #FCA5A5', borderRadius: '8px', fontSize: '12px', fontWeight: 800, cursor: 'pointer' }}
+                      >
+                        <i className="fa-solid fa-trash"></i> Cancel Waitlist Entry
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
