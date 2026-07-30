@@ -212,13 +212,7 @@ export default function AuthModal({
 
         {activeTab === 'user' && (
           <div id="auth-tab-user" className="auth-tab-content">
-            {/* Official Google Sign-In Button rendered by GIS SDK */}
-            <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'center' }}>
-              <div 
-                id="google-signin-btn-container" 
-                style={{ width: '100%', minHeight: '44px', display: 'flex', justifyContent: 'center' }}
-              ></div>
-            </div>
+            {/* Google Sign-In button removed — requires Google Cloud Console setup */}
 
             <div style={{ display: 'flex', alignItems: 'center', margin: '16px 0' }}>
               <div style={{ flex: 1, height: '1px', background: '#334155' }}></div>
