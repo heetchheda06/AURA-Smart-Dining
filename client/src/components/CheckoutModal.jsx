@@ -209,8 +209,13 @@ export default function CheckoutModal({
   };
 
   return (
-    <div style={overlay}>
-      <div style={card}>
+    <div className="modal-overlay active" style={{ zIndex: 9999 }}>
+      <div className="modal-card checkout-modal-card" style={{
+        maxWidth: '640px', width: '95%',
+        padding: '28px', borderRadius: '28px',
+        maxHeight: '90vh', overflowY: 'auto',
+        position: 'relative'
+      }}>
 
         {/* ── Glowing Header ─────────────────────────────────────────────── */}
         <div style={{

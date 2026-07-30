@@ -1044,6 +1044,24 @@ header.navbar-header {
     transform: translateY(0);
 }
 
+/* Dark modal override for checkout / payment flows */
+.checkout-modal-card {
+    background: linear-gradient(145deg, #0F172A 0%, #1E1B4B 50%, #0F172A 100%) !important;
+    color: #F1F5F9 !important;
+    border: 1px solid rgba(249, 115, 22, 0.3) !important;
+    box-shadow: 0 0 60px rgba(249,115,22,0.15), 0 20px 60px rgba(0,0,0,0.6) !important;
+}
+
+.checkout-modal-card h3,
+.checkout-modal-card h4,
+.checkout-modal-card p,
+.checkout-modal-card span,
+.checkout-modal-card div,
+.checkout-modal-card label,
+.checkout-modal-card strong {
+    color: inherit;
+}
+
 .modal-close {
     position: absolute;
     top: 20px;
