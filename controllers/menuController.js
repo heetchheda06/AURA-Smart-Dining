@@ -95,18 +95,27 @@ exports.getMenuItems = async (req, res, next) => {
 
     let menuItems = await Menu.find(query).lean().catch(() => []);
 
-    // Create a dictionary from fallbackMenu for quick lookup by dish_id or name
+    // Create a dictionary from fallbackMenu for quick lookup by dish_id or normalized name
     const fallbackDict = {};
     (fallbackMenu || []).forEach(f => {
-      if (f._id) fallbackDict[f._id] = f;
-      if (f.name) fallbackDict[f.name.toLowerCase()] = f;
+      if (f._id) fallbackDict[f._id.toLowerCase()] = f;
+      if (f.dish_id) fallbackDict[f.dish_id.toLowerCase()] = f;
+      if (f.name) {
+        fallbackDict[f.name.toLowerCase().trim()] = f;
+        fallbackDict[f.name.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()] = f;
+      }
     });
 
     if (menuItems && menuItems.length > 0) {
       menuItems = menuItems.map(item => {
-        const fb = fallbackDict[item.dish_id] || fallbackDict[(item.name || '').toLowerCase()] || {};
-        const isJain = item.isJain === true || fb.isJain === true;
-        const jainAvailable = item.jainAvailable === true || fb.jainAvailable === true;
+        const keyId = (item.dish_id || String(item._id) || '').toLowerCase();
+        const keyName = (item.name || '').toLowerCase().trim();
+        const keyClean = (item.name || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+
+        const fb = fallbackDict[keyId] || fallbackDict[keyName] || fallbackDict[keyClean] || {};
+        
+        const isJain = fb.isJain !== undefined ? fb.isJain : (item.isJain === true);
+        const jainAvailable = fb.jainAvailable !== undefined ? fb.jainAvailable : (item.jainAvailable === true);
         const ingredients = fb.ingredients || item.ingredients || '';
         const desc = fb.desc || item.desc || (ingredients ? `Ingredients: ${ingredients}` : '');
 
