@@ -565,6 +565,11 @@ exports.splitBill = async (req, res, next) => {
         formattedAmount: `₹${splitAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`
       }
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
 exports.updateCustomerName = async (req, res, next) => {
   try {
     const { customerName } = req.body;
