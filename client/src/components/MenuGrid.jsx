@@ -81,7 +81,7 @@ export default function MenuGrid({
       const isExplicitJain = item.isJain === true || item.isJain === 'true' || item.jainAvailable === true || item.jainAvailable === 'true' || item.dietary_type === 'Jain';
       const isTextJain = textForJainCheck.includes('jain') || textForJainCheck.includes('without garlic') || textForJainCheck.includes('without onion') || textForJainCheck.includes('no potato');
       
-      const isExcludedDish = item._id === 'DSH-166' || item._id === 'DSH-174' || item._id === 'DSH-169' || item.dish_id === 'DSH-166' || item.dish_id === 'DSH-174' || item.dish_id === 'DSH-169';
+      const isExcludedDish = item._id === 'DSH-166' || item._id === 'DSH-174' || item._id === 'DSH-169' || item._id === 'DSH-111' || item.dish_id === 'DSH-166' || item.dish_id === 'DSH-174' || item.dish_id === 'DSH-169' || item.dish_id === 'DSH-111';
 
       const isJainItem = !hasNonVeg && !isExcludedDish && (isExplicitJain || isTextJain);
 
