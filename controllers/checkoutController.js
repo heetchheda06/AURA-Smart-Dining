@@ -220,6 +220,18 @@ exports.processDemoPayment = async (req, res) => {
     broadcastSessionUpdate(req, 'session:updated', session);
     broadcastSessionUpdate(req, 'session:payment_completed', session);
 
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('cashier:online_payment_success', {
+        tableNum: num,
+        customerName: session.customerName || 'Customer',
+        grandTotal: session.grandTotal || 0,
+        paymentMethod: paymentMethod || 'Instant Online Payment',
+        demoTransactionId: demoTxnId,
+        message: `🎉 Instant Online Payment Successful! Table #${num} (${session.customerName || 'Customer'}) paid ₹${session.grandTotal || 0}`
+      });
+    }
+
     return res.status(200).json({
       success: true,
       message: 'Demo payment completed successfully.',

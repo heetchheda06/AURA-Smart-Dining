@@ -154,13 +154,24 @@ export default function CashierDashboard({ onLogout, cashierName = "Lead Cashier
 
     socket.on('waiter:new_order', handleRefresh);
     socket.on('order:status_updated', handleRefresh);
-    socket.on('payment:completed', () => {
+    const handleInstantPaymentSuccess = (data) => {
       fetchOrders();
-      showToast("💳 Payment received! Invoice status updated.");
-    });
-    socket.on('bill:settled', handleRefresh);
+      fetchCheckoutSessions();
+      if (data && data.tableNum) {
+        showToast(`🎉 INSTANT PAYMENT SUCCESS! Table #${data.tableNum} (${data.customerName || 'Customer'}) paid ₹${data.grandTotal || 0} via ${data.paymentMethod || 'Online'}`);
+      } else {
+        showToast("💳 Instant Online Payment received! Bill marked as PAID.");
+      }
+    };
 
-    const interval = setInterval(fetchOrders, 5000);
+    socket.on('cashier:online_payment_success', handleInstantPaymentSuccess);
+    socket.on('session:payment_completed', handleInstantPaymentSuccess);
+    socket.on('session:updated', fetchCheckoutSessions);
+
+    const interval = setInterval(() => {
+      fetchOrders();
+      fetchCheckoutSessions();
+    }, 5000);
 
     return () => {
       socket.off('order:placed');
@@ -168,6 +179,9 @@ export default function CashierDashboard({ onLogout, cashierName = "Lead Cashier
       socket.off('order:status_updated');
       socket.off('payment:completed');
       socket.off('bill:settled');
+      socket.off('cashier:online_payment_success', handleInstantPaymentSuccess);
+      socket.off('session:payment_completed', handleInstantPaymentSuccess);
+      socket.off('session:updated', fetchCheckoutSessions);
       clearInterval(interval);
     };
   }, []);

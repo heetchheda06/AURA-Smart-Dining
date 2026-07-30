@@ -217,6 +217,13 @@ export default function ManagerDashboard({ onLogout, managerName = "AURA Manager
     socket.on('order:status_updated', handleRefresh);
     socket.on('payment:completed', handleRefresh);
     socket.on('queue:updated', handleRefresh);
+    socket.on('cashier:online_payment_success', (data) => {
+      handleRefresh();
+      if (data && data.tableNum) {
+        showToast(`🎉 Instant Payment Received! Table #${data.tableNum} paid ₹${data.grandTotal || 0}`);
+      }
+    });
+    socket.on('session:payment_completed', handleRefresh);
 
     const interval = setInterval(handleRefresh, 4000);
 
@@ -227,6 +234,8 @@ export default function ManagerDashboard({ onLogout, managerName = "AURA Manager
       socket.off('order:status_updated', handleRefresh);
       socket.off('payment:completed', handleRefresh);
       socket.off('queue:updated', handleRefresh);
+      socket.off('cashier:online_payment_success');
+      socket.off('session:payment_completed');
       clearInterval(interval);
     };
   }, []);
