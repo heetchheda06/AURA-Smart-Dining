@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 
 export default function AIRecommender({ 
-  menuItems, 
+  menuItems = [], 
   activeCustomerSession, 
   onAddToCart,
   formatPrice 
@@ -10,7 +10,7 @@ export default function AIRecommender({
   const [weather, setWeather] = useState('Rainy'); // 'Rainy', 'Chilly', 'Sunny', 'Pleasant'
   const [liveTemp, setLiveTemp] = useState(24);
   const [weatherLoading, setWeatherLoading] = useState(false);
-  const [budget, setBudget] = useState(600); // Max budget in INR
+  const [budget, setBudget] = useState(600); // Max budget limit in INR
   const [dietary, setDietary] = useState('All'); // 'All', 'Veg', 'Non-Veg', 'Vegan'
 
   // Time of day detection
@@ -38,7 +38,6 @@ export default function AIRecommender({
               const code = data.current_weather.weathercode;
               setLiveTemp(temp);
 
-              // Map WMO Weather Codes
               if (code >= 51 && code <= 99) {
                 setWeather('Rainy');
               } else if (temp <= 18) {
@@ -61,7 +60,7 @@ export default function AIRecommender({
     }
   }, []);
 
-  // Compute AI Recommendation Combo based on Weather, Time, Budget, and Dietary Preferences
+  // Calculate recommendation strictly adhering to selected BUDGET, WEATHER, and DIETARY preferences
   const recommendation = useMemo(() => {
     if (!menuItems || menuItems.length === 0) return null;
 
@@ -75,46 +74,102 @@ export default function AIRecommender({
 
     if (eligible.length === 0) eligible = menuItems;
 
-    // Contextual scoring logic
-    let starter = null;
-    let mainOrDrink = null;
-    let promptMsg = "";
+    // Keyword scoring helpers for weather matching
+    const scoreItemForWeather = (item) => {
+      const nameStr = (item.name || '').toLowerCase();
+      const catStr = (item.category || '').toLowerCase();
+      let s = 0;
 
-    if (weather === 'Rainy') {
-      promptMsg = `🌧️ It's raining today! Warm up with our signature hot comfort combo:`;
-      starter = eligible.find(i => i.name.toLowerCase().includes('soup') || i.name.toLowerCase().includes('tikka') || i.name.toLowerCase().includes('corn') || i.name.toLowerCase().includes('momos')) || eligible[0];
-      mainOrDrink = eligible.find(i => (i._id !== starter?._id) && (i.name.toLowerCase().includes('paneer') || i.name.toLowerCase().includes('chicken') || i.name.toLowerCase().includes('tea') || i.name.toLowerCase().includes('coffee'))) || eligible[1];
-    } else if (weather === 'Chilly') {
-      promptMsg = `❄️ Crisp chilly weather outside (${liveTemp}°C)! Perfect time for rich, piping-hot delicacies:`;
-      starter = eligible.find(i => i.name.toLowerCase().includes('kebab') || i.name.toLowerCase().includes('soup') || i.name.toLowerCase().includes('wings')) || eligible[0];
-      mainOrDrink = eligible.find(i => (i._id !== starter?._id) && (i.name.toLowerCase().includes('butter') || i.name.toLowerCase().includes('dal') || i.name.toLowerCase().includes('biryani'))) || eligible[1];
-    } else if (weather === 'Sunny') {
-      promptMsg = `☀️ Sunny & warm today (${liveTemp}°C)! Refresh yourself with cool drinks & light bites:`;
-      starter = eligible.find(i => i.name.toLowerCase().includes('salad') || i.name.toLowerCase().includes('nachos') || i.name.toLowerCase().includes('bruschetta')) || eligible[0];
-      mainOrDrink = eligible.find(i => (i._id !== starter?._id) && (i.category.toLowerCase().includes('beverages') || i.name.toLowerCase().includes('mojito') || i.name.toLowerCase().includes('shake'))) || eligible[1];
-    } else {
-      promptMsg = `✨ Pleasant dining weather (${liveTemp}°C)! Chef recommends our bestselling pairing:`;
-      starter = eligible[0];
-      mainOrDrink = eligible[1] || eligible[0];
+      if (weather === 'Rainy') {
+        if (nameStr.includes('soup') || nameStr.includes('chai') || nameStr.includes('coffee') || nameStr.includes('tea')) s += 10;
+        if (nameStr.includes('tikka') || nameStr.includes('momos') || nameStr.includes('corn') || nameStr.includes('kebab')) s += 8;
+        if (nameStr.includes('paneer') || nameStr.includes('chicken')) s += 5;
+      } else if (weather === 'Chilly') {
+        if (nameStr.includes('kebab') || nameStr.includes('soup') || nameStr.includes('wings') || nameStr.includes('sizzl')) s += 10;
+        if (nameStr.includes('butter') || nameStr.includes('dal') || nameStr.includes('biryani') || nameStr.includes('rogan')) s += 8;
+      } else if (weather === 'Sunny') {
+        if (catStr.includes('beverage') || nameStr.includes('mojito') || nameStr.includes('soda') || nameStr.includes('cold coffee') || nameStr.includes('shake')) s += 10;
+        if (nameStr.includes('salad') || nameStr.includes('bruschetta') || nameStr.includes('spring roll') || nameStr.includes('nachos')) s += 8;
+      } else { // Pleasant
+        if (nameStr.includes('pizza') || nameStr.includes('pasta') || nameStr.includes('biryani') || nameStr.includes('burger')) s += 8;
+      }
+
+      return s + (item.rating || 4.5);
+    };
+
+    // Find valid 2-item combos where item1.price + item2.price <= budget
+    let validPairs = [];
+    for (let i = 0; i < eligible.length; i++) {
+      for (let j = i + 1; j < eligible.length; j++) {
+        const item1 = eligible[i];
+        const item2 = eligible[j];
+        const comboPrice = (item1.price || 0) + (item2.price || 0);
+
+        if (comboPrice <= budget) {
+          const pairScore = scoreItemForWeather(item1) + scoreItemForWeather(item2);
+          validPairs.push({ item1, item2, comboPrice, score: pairScore });
+        }
+      }
     }
 
-    if (!starter) starter = menuItems[0];
-    if (!mainOrDrink) mainOrDrink = menuItems[1] || menuItems[0];
+    // Sort valid pairs by weather score descending
+    validPairs.sort((a, b) => b.score - a.score);
 
-    const comboPrice = (starter.price || 200) + (mainOrDrink.price || 300);
+    let promptMsg = "";
+    if (weather === 'Rainy') {
+      promptMsg = `🌧️ Rainy comfort dining (${liveTemp}°C)! Warm up within your ₹${budget} budget:`;
+    } else if (weather === 'Chilly') {
+      promptMsg = `❄️ Chilly weather outside (${liveTemp}°C)! Hot delicacies under ₹${budget}:`;
+    } else if (weather === 'Sunny') {
+      promptMsg = `☀️ Sunny & warm today (${liveTemp}°C)! Chilled drinks & light bites under ₹${budget}:`;
+    } else {
+      promptMsg = `✨ Pleasant weather dining! Bestselling combo under ₹${budget}:`;
+    }
 
+    if (validPairs.length > 0) {
+      const bestPair = validPairs[0];
+      return {
+        type: 'combo',
+        promptMsg,
+        item1: bestPair.item1,
+        item2: bestPair.item2,
+        totalPrice: bestPair.comboPrice,
+        budget
+      };
+    }
+
+    // Fallback: If no 2-item combo fits under tight budget, pick the best single dish <= budget
+    const affordableSingles = eligible.filter(item => item.price <= budget);
+    if (affordableSingles.length > 0) {
+      affordableSingles.sort((a, b) => scoreItemForWeather(b) - scoreItemForWeather(a));
+      const bestSingle = affordableSingles[0];
+      return {
+        type: 'single',
+        promptMsg: `💡 Budget Special: Single dish recommendation under ₹${budget}:`,
+        item1: bestSingle,
+        item2: null,
+        totalPrice: bestSingle.price,
+        budget
+      };
+    }
+
+    // Ultimate fallback if budget is extremely low
+    const lowestPricedItem = [...eligible].sort((a, b) => a.price - b.price)[0] || menuItems[0];
     return {
-      promptMsg,
-      starter,
-      mainOrDrink,
-      comboPrice,
-      isWithinBudget: comboPrice <= budget
+      type: 'single',
+      promptMsg: `💡 Budget Special: Lowest priced dish recommendation:`,
+      item1: lowestPricedItem,
+      item2: null,
+      totalPrice: lowestPricedItem.price,
+      budget
     };
+
   }, [menuItems, weather, budget, dietary, liveTemp]);
 
   if (!recommendation) return null;
 
-  const { promptMsg, starter, mainOrDrink, comboPrice } = recommendation;
+  const { type, promptMsg, item1, item2, totalPrice } = recommendation;
+  const custName = activeCustomerSession?.customerName || localStorage.getItem('user_name') || 'Guest Diner';
 
   return (
     <div className="ai-recommender-card glass" style={{
@@ -136,7 +191,7 @@ export default function AIRecommender({
               AI Automated Food Recommender
             </h3>
             <span style={{ fontSize: '11px', color: '#C4B5FD', fontWeight: 800, letterSpacing: '0.5px' }}>
-              LIVE WEATHER &bull; {timeOfDay.toUpperCase()} &bull; {activeCustomerSession.customerName}
+              LIVE WEATHER &bull; {timeOfDay.toUpperCase()} &bull; {custName}
             </span>
           </div>
         </div>
@@ -166,9 +221,11 @@ export default function AIRecommender({
               onChange={(e) => setBudget(Number(e.target.value))}
               style={{ background: 'transparent', border: 'none', color: '#10B981', fontWeight: 800, fontSize: '11px', cursor: 'pointer', outline: 'none' }}
             >
+              <option value={250} style={{ background: '#0F172A', color: '#FFF' }}>Under ₹250</option>
               <option value={400} style={{ background: '#0F172A', color: '#FFF' }}>Under ₹400</option>
               <option value={600} style={{ background: '#0F172A', color: '#FFF' }}>Under ₹600</option>
-              <option value={900} style={{ background: '#0F172A', color: '#FFF' }}>Under ₹900</option>
+              <option value={800} style={{ background: '#0F172A', color: '#FFF' }}>Under ₹800</option>
+              <option value={1200} style={{ background: '#0F172A', color: '#FFF' }}>Under ₹1200</option>
               <option value={2000} style={{ background: '#0F172A', color: '#FFF' }}>Unlimited ₹2000+</option>
             </select>
           </div>
@@ -194,18 +251,27 @@ export default function AIRecommender({
       <div style={{ background: 'rgba(0, 0, 0, 0.45)', borderRadius: '16px', padding: '18px 20px', border: '1px solid rgba(255, 255, 255, 0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <div style={{ fontSize: '15px', fontWeight: 700, color: '#F3F4F6', marginBottom: '10px', lineHeight: '1.4' }}>
-            "{promptMsg} <strong>Would you like {starter.name} + {mainOrDrink.name} Combo?</strong>"
+            "{promptMsg} <strong>{type === 'combo' ? `Would you like ${item1.name} + ${item2.name} Combo?` : `Would you like ${item1.name}?`}</strong>"
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
             <span style={{ background: 'rgba(255,159,28,0.18)', color: 'var(--primary)', padding: '5px 12px', borderRadius: '12px', fontWeight: 800, fontSize: '13px', border: '1px solid rgba(255,159,28,0.35)' }}>
-              🥣 {starter.name} ({formatPrice(starter.price)})
+              🥣 {item1.name} ({formatPrice(item1.price)})
             </span>
-            <span style={{ color: '#9CA3AF', fontWeight: 900 }}>+</span>
-            <span style={{ background: 'rgba(16,185,129,0.18)', color: '#10B981', padding: '5px 12px', borderRadius: '12px', fontWeight: 800, fontSize: '13px', border: '1px solid rgba(16,185,129,0.35)' }}>
-              🍱 {mainOrDrink.name} ({formatPrice(mainOrDrink.price)})
-            </span>
+            
+            {type === 'combo' && item2 && (
+              <>
+                <span style={{ color: '#9CA3AF', fontWeight: 900 }}>+</span>
+                <span style={{ background: 'rgba(16,185,129,0.18)', color: '#10B981', padding: '5px 12px', borderRadius: '12px', fontWeight: 800, fontSize: '13px', border: '1px solid rgba(16,185,129,0.35)' }}>
+                  🍱 {item2.name} ({formatPrice(item2.price)})
+                </span>
+              </>
+            )}
+
             <span style={{ fontSize: '14px', fontWeight: 800, color: '#FFF', marginLeft: '6px' }}>
-              = Total: <strong style={{ color: 'var(--primary)' }}>{formatPrice(comboPrice)}</strong>
+              = Total: <strong style={{ color: '#10B981' }}>{formatPrice(totalPrice)}</strong>
+            </span>
+            <span style={{ background: 'rgba(16, 185, 129, 0.2)', color: '#10B981', border: '1px solid #10B981', fontSize: '11px', fontWeight: 800, padding: '2px 8px', borderRadius: '10px' }}>
+              ✓ Under ₹{budget} Budget
             </span>
           </div>
         </div>
@@ -213,8 +279,10 @@ export default function AIRecommender({
         {/* 1-Click Add Combo to Cart */}
         <button
           onClick={() => {
-            onAddToCart(starter._id || starter.dish_id);
-            onAddToCart(mainOrDrink._id || mainOrDrink.dish_id);
+            onAddToCart(item1._id || item1.dish_id);
+            if (type === 'combo' && item2) {
+              onAddToCart(item2._id || item2.dish_id);
+            }
           }}
           style={{
             background: 'linear-gradient(135deg, #8B5CF6, #6D28D9)',
@@ -232,7 +300,7 @@ export default function AIRecommender({
             whiteSpace: 'nowrap'
           }}
         >
-          <i className="fa-solid fa-cart-plus"></i> Add Combo to Order ({formatPrice(comboPrice)})
+          <i className="fa-solid fa-cart-plus"></i> {type === 'combo' ? `Add Combo to Order (${formatPrice(totalPrice)})` : `Add Item to Order (${formatPrice(totalPrice)})`}
         </button>
       </div>
     </div>
