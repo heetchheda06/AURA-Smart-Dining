@@ -264,6 +264,34 @@ export default function AIRecommender({
 
         {/* Minimal Controls */}
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+          
+          {/* Refresh / Next Option Button */}
+          <button
+            onClick={() => {
+              setSelectedComboIdx((prev) => (allCombos.length > 0 ? (prev + 1) % allCombos.length : 0));
+              triggerAIPulse();
+            }}
+            title="Try another AI food combination"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              background: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)',
+              color: '#FFFFFF',
+              padding: '6px 14px',
+              borderRadius: '16px',
+              border: '1px solid rgba(255,255,255,0.2)',
+              fontWeight: 900,
+              fontSize: '11.5px',
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            <i className={`fa-solid fa-arrows-rotate ${isGenerating ? 'fa-spin' : ''}`} style={{ fontSize: '12px' }}></i>
+            <span>Try Another Combo</span>
+          </button>
+
           {/* Budget Selector */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(15, 23, 42, 0.6)', padding: '5px 12px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.18)' }}>
             <span style={{ fontSize: '10.5px', color: '#93C5FD', fontWeight: 900 }}>BUDGET:</span>
