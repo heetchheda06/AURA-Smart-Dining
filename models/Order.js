@@ -22,6 +22,15 @@ const orderItemSchema = new mongoose.Schema({
     type: String,
     required: true,
     default: 'You'
+  },
+  round: {
+    type: Number,
+    default: 1
+  },
+  itemStatus: {
+    type: String,
+    enum: ['pending', 'preparing', 'served'],
+    default: 'pending'
   }
 });
 
@@ -29,6 +38,10 @@ const orderSchema = new mongoose.Schema({
   tableNum: {
     type: Number,
     required: true
+  },
+  roundsCount: {
+    type: Number,
+    default: 1
   },
   items: [orderItemSchema],
   subtotal: {

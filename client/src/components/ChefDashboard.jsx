@@ -283,10 +283,17 @@ export default function ChefDashboard({ onLogout, chefName = "Executive Chef Mar
                 >
                   <div>
                     {/* Ticket Header */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1.5px solid #E2E8F0', paddingBottom: '12px', marginBottom: '14px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1.5px solid #E2E8F0', paddingBottom: '12px', marginBottom: '14px' }}>
                       <div>
-                        <div style={{ fontSize: '22px', fontWeight: 900, color: '#1E3A5F' }}>
-                          Table #{order.tableNum}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <div style={{ fontSize: '22px', fontWeight: 900, color: '#1E3A5F' }}>
+                            Table #{order.tableNum}
+                          </div>
+                          {(order.roundsCount > 1 || (order.items && order.items.some(i => i.round > 1))) && (
+                            <span style={{ background: '#F97316', color: '#FFF', padding: '2px 8px', borderRadius: '10px', fontSize: '10px', fontWeight: 900 }}>
+                              🔥 ORDER ROUND #{order.roundsCount || 2}
+                            </span>
+                          )}
                         </div>
                         <div style={{ fontSize: '13px', fontWeight: 900, color: '#F97316', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                           <i className="fa-solid fa-user"></i> {order.customerName || order.userRef?.name || order.items?.[0]?.addedBy || 'Guest Diner'}
@@ -306,7 +313,7 @@ export default function ChefDashboard({ onLogout, chefName = "Executive Chef Mar
                           color: isPending ? '#92400E' : isPreparing ? '#1E3A5F' : '#065F46',
                           border: `1px solid ${isPending ? '#FCD34D' : isPreparing ? '#93C5FD' : '#6EE7B7'}`
                         }}>
-                          {isPending ? 'PENDING COOK' : isPreparing ? 'IN PREPARATION' : 'READY TO SERVE'}
+                          {isPending ? `PENDING (Round #${order.roundsCount || 1})` : isPreparing ? 'IN PREPARATION' : 'READY TO SERVE'}
                         </span>
                         <div style={{ fontSize: '11px', color: '#F97316', marginTop: '4px', fontWeight: 800 }}>
                           <i className="fa-solid fa-stopwatch"></i> {minutesAgo} min{minutesAgo > 1 ? 's' : ''} ago
@@ -314,35 +321,51 @@ export default function ChefDashboard({ onLogout, chefName = "Executive Chef Mar
                       </div>
                     </div>
 
-                    {/* Dish Items List */}
+                    {/* Dish Items List Grouped by Order Round */}
                     <div style={{ marginBottom: '18px' }}>
                       <div style={{ fontSize: '11px', color: '#1E3A5F', textTransform: 'uppercase', fontWeight: 900, marginBottom: '8px' }}>
-                        Dishes to Prepare ({order.items.reduce((s, i) => s + i.qty, 0)} items)
+                        Dishes to Prepare ({order.items.reduce((s, i) => s + (i.qty || 1), 0)} items total)
                       </div>
 
-                      {order.items.map((item, idx) => (
-                        <div 
-                          key={idx}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '10px',
-                            padding: '10px 12px',
-                            background: '#D6EAF8',
-                            borderRadius: '10px',
-                            marginBottom: '8px',
-                            borderLeft: '4px solid #1E3A5F'
-                          }}
-                        >
-                          <span style={{ background: '#1E3A5F', color: '#FFFFFF', padding: '3px 9px', borderRadius: '6px', fontWeight: 900, fontSize: '13px' }}>
-                            {item.qty}x
-                          </span>
-                          <div>
-                            <div style={{ fontWeight: 900, color: '#111827', fontSize: '15px' }}>{item.name}</div>
-                            <div style={{ fontSize: '11px', color: '#1E3A5F', fontWeight: 700 }}>Requested by: {item.addedBy || 'Customer'}</div>
+                      {order.items.map((item, idx) => {
+                        const itemRound = item.round || 1;
+                        const isLatestRound = itemRound === (order.roundsCount || 1) && order.roundsCount > 1;
+
+                        return (
+                          <div 
+                            key={idx}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              padding: '10px 12px',
+                              background: isLatestRound ? '#FFFBEB' : '#D6EAF8',
+                              borderRadius: '10px',
+                              marginBottom: '8px',
+                              borderLeft: `4px solid ${isLatestRound ? '#F97316' : '#1E3A5F'}`,
+                              border: isLatestRound ? '1.5px solid #FCD34D' : 'none'
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                              <span style={{ background: isLatestRound ? '#F97316' : '#1E3A5F', color: '#FFFFFF', padding: '3px 9px', borderRadius: '6px', fontWeight: 900, fontSize: '13px' }}>
+                                {item.qty}x
+                              </span>
+                              <div>
+                                <div style={{ fontWeight: 900, color: '#111827', fontSize: '15px' }}>{item.name}</div>
+                                <div style={{ fontSize: '11px', color: '#1E3A5F', fontWeight: 700 }}>
+                                  Round #{itemRound} &bull; Requested by: {item.addedBy || 'Customer'}
+                                </div>
+                              </div>
+                            </div>
+
+                            {isLatestRound && (
+                              <span style={{ background: '#F97316', color: '#FFF', padding: '2px 6px', borderRadius: '6px', fontSize: '10px', fontWeight: 900 }}>
+                                🔥 ADD-ON
+                              </span>
+                            )}
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
 
@@ -364,7 +387,7 @@ export default function ChefDashboard({ onLogout, chefName = "Executive Chef Mar
                           boxShadow: '0 4px 14px rgba(249, 115, 22, 0.4)'
                         }}
                       >
-                        <i className="fa-solid fa-fire-burner"></i> Start Cooking Order
+                        <i className="fa-solid fa-fire-burner"></i> Start Cooking Round #{order.roundsCount || 1}
                       </button>
                     )}
 
@@ -384,7 +407,7 @@ export default function ChefDashboard({ onLogout, chefName = "Executive Chef Mar
                           boxShadow: '0 4px 14px rgba(16, 185, 129, 0.4)'
                         }}
                       >
-                        <i className="fa-solid fa-bell-concierge"></i> Mark Order Ready for Table
+                        <i className="fa-solid fa-bell-concierge"></i> Mark Round #{order.roundsCount || 1} Ready for Table
                       </button>
                     )}
 

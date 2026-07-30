@@ -170,24 +170,21 @@ exports.placeOrder = async (req, res, next) => {
 
   if (existingOrder) {
     isMerged = true;
-    
+    const nextRound = (existingOrder.roundsCount || 1) + 1;
+    existingOrder.roundsCount = nextRound;
+    existingOrder.status = 'pending'; // Re-activate ticket in kitchen active queue for new round!
+
     // Append or increment item quantities in existing unpaid bill for this table
     cartItems.forEach(newItem => {
-      const matchIndex = existingOrder.items.findIndex(existingItem => 
-        String(existingItem.menuItem || existingItem._id) === String(newItem.menuItem) ||
-        (existingItem.name && newItem.name && existingItem.name.trim().toLowerCase() === newItem.name.trim().toLowerCase())
-      );
-      if (matchIndex > -1) {
-        existingOrder.items[matchIndex].qty += newItem.qty;
-      } else {
-        existingOrder.items.push({
-          menuItem: newItem.menuItem,
-          name: newItem.name,
-          price: newItem.price,
-          qty: newItem.qty,
-          addedBy: newItem.addedBy
-        });
-      }
+      existingOrder.items.push({
+        menuItem: newItem.menuItem,
+        name: newItem.name,
+        price: newItem.price,
+        qty: newItem.qty,
+        addedBy: newItem.addedBy,
+        round: nextRound,
+        itemStatus: 'pending'
+      });
     });
 
     const subtotal = existingOrder.items.reduce((sum, i) => sum + (i.price * i.qty), 0);
@@ -198,6 +195,7 @@ exports.placeOrder = async (req, res, next) => {
     existingOrder.tax = tax;
     existingOrder.total = total;
     existingOrder.customerName = custName;
+    existingOrder.updatedAt = new Date();
 
     if (existingDbOrder) {
       try {
@@ -231,13 +229,16 @@ exports.placeOrder = async (req, res, next) => {
 
         order = await Order.create({
           tableNum,
+          roundsCount: 1,
           customerName: custName,
           items: cartItems.map(item => ({
             menuItem: item.menuItem,
             name: item.name,
             price: item.price,
             qty: item.qty,
-            addedBy: item.addedBy
+            addedBy: item.addedBy,
+            round: 1,
+            itemStatus: 'pending'
           })),
           subtotal,
           tax,
@@ -256,8 +257,9 @@ exports.placeOrder = async (req, res, next) => {
     if (!order) {
       order = createMemoryOrder({
         tableNum,
+        roundsCount: 1,
         customerName: custName,
-        items: cartItems,
+        items: cartItems.map(item => ({ ...item, round: 1, itemStatus: 'pending' })),
         subtotal,
         tax,
         total,
