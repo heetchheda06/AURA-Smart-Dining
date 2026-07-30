@@ -92,124 +92,219 @@ export default function MenuGrid({
   return (
     <section style={{ marginTop: '24px', paddingTop: '8px' }}>
       {/* Search and Main Header */}
-      <div className="section-header" style={{ marginBottom: '20px', flexWrap: 'wrap', gap: '16px', alignItems: 'center', justifyContent: 'space-between' }}>
-        <h2 className="section-title" style={{ fontSize: '26px', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <i className="fa-solid fa-book-open" style={{ color: 'var(--primary)' }}></i> Restaurant Menu
-          {selectedCategory === '🔥 Today\'s Special' && (
-            <span style={{ fontSize: '13px', background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#FFF', padding: '4px 12px', borderRadius: '20px', fontWeight: 800 }}>
-              🔥 10 TODAY'S SPECIAL DISHES
-            </span>
-          )}
-        </h2>
-        
-        <div className="search-bar" style={{ minWidth: '280px', flex: '1 1 300px', maxWidth: '450px' }}>
-          <i className="fa-solid fa-magnifying-glass"></i>
-          <input 
-            type="text" 
-            id="search-input" 
-            placeholder="Search dish, ingredients, cuisine..." 
-            value={searchTerm}
-            onChange={(e) => onSearchChange(e.target.value)}
-          />
+      {/* Sleek Aesthetic Control Panel Wrapper */}
+      <div style={{
+        background: '#FFFFFF',
+        borderRadius: '24px',
+        border: '1.5px solid #E2E8F0',
+        padding: '24px',
+        marginBottom: '24px',
+        boxShadow: '0 10px 30px -10px rgba(30, 58, 95, 0.08)'
+      }}>
+        {/* Header Title + Search Bar */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+          <h2 style={{ fontSize: '26px', fontWeight: 900, color: '#1E3A5F', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <i className="fa-solid fa-utensils" style={{ color: '#F97316' }}></i> Restaurant Menu
+            {selectedCategory === "🔥 Today's Special" && (
+              <span style={{ fontSize: '12px', background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#FFF', padding: '4px 12px', borderRadius: '20px', fontWeight: 800, boxShadow: '0 2px 10px rgba(245, 158, 11, 0.3)' }}>
+                🔥 TODAY'S SPECIALS
+              </span>
+            )}
+          </h2>
+          
+          <div className="search-bar" style={{ minWidth: '280px', flex: '1 1 300px', maxWidth: '420px', borderRadius: '30px' }}>
+            <i className="fa-solid fa-magnifying-glass" style={{ color: '#94A3B8' }}></i>
+            <input 
+              type="text" 
+              id="search-input" 
+              placeholder="Search dish, ingredients, cuisine..." 
+              value={searchTerm}
+              onChange={(e) => onSearchChange(e.target.value)}
+              style={{ fontSize: '13px', fontWeight: 600 }}
+            />
+          </div>
         </div>
-      </div>
 
-      {/* FILTER BAR 1: Dietary Toggle (Veg vs Non-Veg vs Vegan vs Jain) */}
-      <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap' }}>
-        <span style={{ fontSize: '12px', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-          <i className="fa-solid fa-filter"></i> Dietary Filter:
-        </span>
-        <button 
-          className={`filter-btn ${dietaryFilter === 'All' ? 'active' : ''}`}
-          onClick={() => setDietaryFilter('All')}
-          style={{ padding: '6px 14px', borderRadius: '20px', fontSize: '12px', fontWeight: 700 }}
-        >
-          All Items ({menuItems.length})
-        </button>
-        <button 
-          className={`filter-btn ${dietaryFilter === 'Veg' ? 'active' : ''}`}
-          onClick={() => setDietaryFilter('Veg')}
-          style={{ padding: '6px 14px', borderRadius: '20px', fontSize: '12px', fontWeight: 700, borderColor: '#10B981', color: dietaryFilter === 'Veg' ? '#FFF' : '#10B981', background: dietaryFilter === 'Veg' ? '#10B981' : 'rgba(16,185,129,0.1)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-        >
-          <VegIcon /> Veg Category
-        </button>
-        <button 
-          className={`filter-btn ${dietaryFilter === 'Non-Veg' ? 'active' : ''}`}
-          onClick={() => setDietaryFilter('Non-Veg')}
-          style={{ padding: '6px 14px', borderRadius: '20px', fontSize: '12px', fontWeight: 700, borderColor: '#EF4444', color: dietaryFilter === 'Non-Veg' ? '#FFF' : '#EF4444', background: dietaryFilter === 'Non-Veg' ? '#EF4444' : 'rgba(239,68,68,0.1)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-        >
-          <NonVegIcon /> Non-Veg Category
-        </button>
-        <button 
-          className={`filter-btn ${dietaryFilter === 'Vegan' ? 'active' : ''}`}
-          onClick={() => setDietaryFilter('Vegan')}
-          style={{ padding: '6px 14px', borderRadius: '20px', fontSize: '12px', fontWeight: 700, borderColor: '#059669', color: dietaryFilter === 'Vegan' ? '#FFF' : '#34D399', background: dietaryFilter === 'Vegan' ? '#059669' : 'rgba(5,150,105,0.1)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-        >
-          <VeganIcon /> Vegan Category
-        </button>
-        <button 
-          className={`filter-btn ${dietaryFilter === 'Jain' ? 'active' : ''}`}
-          onClick={() => setDietaryFilter('Jain')}
-          style={{ padding: '6px 14px', borderRadius: '20px', fontSize: '12px', fontWeight: 700, borderColor: '#F59E0B', color: dietaryFilter === 'Jain' ? '#FFF' : '#D97706', background: dietaryFilter === 'Jain' ? 'linear-gradient(135deg, #F59E0B, #D97706)' : '#FEF3C7', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-        >
-          <i className="fa-solid fa-seedling" style={{ color: dietaryFilter === 'Jain' ? '#FFF' : '#D97706' }}></i> Jain Category
-        </button>
-      </div>
-
-      {/* FILTER BAR 2: Category Filter Tabs (Includes 🔥 Today's Special) */}
-      <div style={{ marginBottom: '14px' }}>
-        <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: '6px' }}>Category:</div>
-        <div className="categories-scroll" style={{ paddingBottom: '6px', display: 'flex', gap: '8px', overflowX: 'auto' }}>
-          {categories.map((cat) => {
-            const isSpecial = cat === '🔥 Today\'s Special';
-            const isActive = selectedCategory === cat;
-            return (
-              <button
-                key={cat}
-                className={`category-pill ${isActive ? 'active' : ''}`}
-                onClick={() => setSelectedCategory(cat)}
-                style={{ 
-                  fontSize: '12px', 
-                  padding: '7px 16px',
-                  background: isSpecial 
-                    ? (isActive ? 'linear-gradient(135deg, #F59E0B, #D97706)' : 'rgba(245, 158, 11, 0.15)') 
-                    : undefined,
-                  borderColor: isSpecial ? '#F59E0B' : undefined,
-                  color: isSpecial ? (isActive ? '#FFF' : '#FCD34D') : undefined,
-                  fontWeight: isSpecial || isActive ? 800 : 600,
-                  boxShadow: isSpecial && isActive ? '0 0 14px rgba(245, 158, 11, 0.5)' : undefined
-                }}
-              >
-                <span>{cat}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* FILTER BAR 3: Cuisine Filter Tabs */}
-      <div style={{ marginBottom: '20px' }}>
-        <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: '6px' }}>Cuisine:</div>
-        <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '6px' }}>
-          {cuisines.map((cui) => (
-            <button
-              key={cui}
-              onClick={() => setSelectedCuisine(cui)}
-              style={{
-                padding: '4px 12px',
-                borderRadius: '16px',
-                border: selectedCuisine === cui ? '1px solid var(--primary)' : '1px solid rgba(255,255,255,0.1)',
-                background: selectedCuisine === cui ? 'rgba(245, 158, 11, 0.2)' : 'rgba(255,255,255,0.03)',
-                color: selectedCuisine === cui ? 'var(--primary)' : 'var(--text-muted)',
-                fontSize: '12px',
-                fontWeight: 600,
+        {/* FILTER BAR 1: Dietary Filter */}
+        <div style={{ marginBottom: '16px' }}>
+          <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <i className="fa-solid fa-sliders" style={{ color: '#F97316' }}></i> Dietary Filter:
+          </div>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <button 
+              className={`filter-btn ${dietaryFilter === 'All' ? 'active' : ''}`}
+              onClick={() => setDietaryFilter('All')}
+              style={{ 
+                padding: '7px 16px', 
+                borderRadius: '20px', 
+                fontSize: '12px', 
+                fontWeight: 800,
                 cursor: 'pointer',
-                whiteSpace: 'nowrap'
+                transition: 'all 0.2s ease',
+                background: dietaryFilter === 'All' ? '#1E3A5F' : '#F1F5F9',
+                color: dietaryFilter === 'All' ? '#FFFFFF' : '#475569',
+                border: dietaryFilter === 'All' ? '1px solid #1E3A5F' : '1px solid #E2E8F0',
+                boxShadow: dietaryFilter === 'All' ? '0 4px 14px rgba(30, 58, 95, 0.25)' : 'none'
               }}
             >
-              🌍 {cui}
+              All Items ({menuItems.length})
             </button>
-          ))}
+            <button 
+              className={`filter-btn ${dietaryFilter === 'Veg' ? 'active' : ''}`}
+              onClick={() => setDietaryFilter('Veg')}
+              style={{ 
+                padding: '7px 16px', 
+                borderRadius: '20px', 
+                fontSize: '12px', 
+                fontWeight: 800,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                background: dietaryFilter === 'Veg' ? '#10B981' : '#E6F4EA',
+                color: dietaryFilter === 'Veg' ? '#FFFFFF' : '#059669',
+                border: dietaryFilter === 'Veg' ? '1px solid #10B981' : '1px solid #A7F3D0',
+                boxShadow: dietaryFilter === 'Veg' ? '0 4px 14px rgba(16, 185, 129, 0.3)' : 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+            >
+              <VegIcon /> Veg Category
+            </button>
+            <button 
+              className={`filter-btn ${dietaryFilter === 'Non-Veg' ? 'active' : ''}`}
+              onClick={() => setDietaryFilter('Non-Veg')}
+              style={{ 
+                padding: '7px 16px', 
+                borderRadius: '20px', 
+                fontSize: '12px', 
+                fontWeight: 800,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                background: dietaryFilter === 'Non-Veg' ? '#EF4444' : '#FCE8E8',
+                color: dietaryFilter === 'Non-Veg' ? '#FFFFFF' : '#DC2626',
+                border: dietaryFilter === 'Non-Veg' ? '1px solid #EF4444' : '1px solid #FECACA',
+                boxShadow: dietaryFilter === 'Non-Veg' ? '0 4px 14px rgba(239, 68, 68, 0.3)' : 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+            >
+              <NonVegIcon /> Non-Veg Category
+            </button>
+            <button 
+              className={`filter-btn ${dietaryFilter === 'Vegan' ? 'active' : ''}`}
+              onClick={() => setDietaryFilter('Vegan')}
+              style={{ 
+                padding: '7px 16px', 
+                borderRadius: '20px', 
+                fontSize: '12px', 
+                fontWeight: 800,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                background: dietaryFilter === 'Vegan' ? '#059669' : '#D1FAE5',
+                color: dietaryFilter === 'Vegan' ? '#FFFFFF' : '#047857',
+                border: dietaryFilter === 'Vegan' ? '1px solid #059669' : '1px solid #6EE7B7',
+                boxShadow: dietaryFilter === 'Vegan' ? '0 4px 14px rgba(5, 150, 105, 0.3)' : 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+            >
+              <VeganIcon /> Vegan Category
+            </button>
+            <button 
+              className={`filter-btn ${dietaryFilter === 'Jain' ? 'active' : ''}`}
+              onClick={() => setDietaryFilter('Jain')}
+              style={{ 
+                padding: '7px 16px', 
+                borderRadius: '20px', 
+                fontSize: '12px', 
+                fontWeight: 800,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                background: dietaryFilter === 'Jain' ? 'linear-gradient(135deg, #F59E0B, #D97706)' : '#FEF3C7',
+                color: dietaryFilter === 'Jain' ? '#FFFFFF' : '#B45309',
+                border: dietaryFilter === 'Jain' ? '1px solid #F59E0B' : '1px solid #FCD34D',
+                boxShadow: dietaryFilter === 'Jain' ? '0 4px 14px rgba(245, 158, 11, 0.35)' : 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+            >
+              <i className="fa-solid fa-seedling" style={{ color: dietaryFilter === 'Jain' ? '#FFF' : '#B45309' }}></i> Jain Category
+            </button>
+          </div>
+        </div>
+
+        {/* FILTER BAR 2: Category Tabs */}
+        <div style={{ marginBottom: '16px' }}>
+          <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>Category:</div>
+          <div className="categories-scroll" style={{ paddingBottom: '4px', display: 'flex', gap: '8px', overflowX: 'auto' }}>
+            {categories.map((cat) => {
+              const isSpecial = cat === '🔥 Today\'s Special';
+              const isActive = selectedCategory === cat;
+              return (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCategory(cat)}
+                  style={{
+                    padding: '8px 18px',
+                    borderRadius: '30px',
+                    fontSize: '12px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                    transition: 'all 0.2s ease',
+                    background: isSpecial 
+                      ? (isActive ? 'linear-gradient(135deg, #F59E0B, #D97706)' : '#FEF3C7')
+                      : (isActive ? 'linear-gradient(135deg, #1E3A5F, #0F172A)' : '#F8FAFC'),
+                    color: isSpecial
+                      ? (isActive ? '#FFFFFF' : '#B45309')
+                      : (isActive ? '#FFFFFF' : '#475569'),
+                    border: isSpecial
+                      ? (isActive ? '1px solid #F59E0B' : '1px solid #FCD34D')
+                      : (isActive ? '1px solid #1E3A5F' : '1px solid #E2E8F0'),
+                    boxShadow: isSpecial && isActive
+                      ? '0 4px 15px rgba(245, 158, 11, 0.4)'
+                      : (isActive ? '0 4px 15px rgba(30, 58, 95, 0.25)' : 'none')
+                  }}
+                >
+                  {cat}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* FILTER BAR 3: Cuisine Filter Tabs (NO WORLD ICON) */}
+        <div>
+          <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>Cuisine:</div>
+          <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
+            {cuisines.map((cui) => {
+              const isActive = selectedCuisine === cui;
+              return (
+                <button
+                  key={cui}
+                  onClick={() => setSelectedCuisine(cui)}
+                  style={{
+                    padding: '6px 16px',
+                    borderRadius: '20px',
+                    border: isActive ? '1px solid #1E3A5F' : '1px solid #E2E8F0',
+                    background: isActive ? '#1E3A5F' : '#F8FAFC',
+                    color: isActive ? '#FFFFFF' : '#64748B',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                    transition: 'all 0.2s ease',
+                    boxShadow: isActive ? '0 2px 10px rgba(30, 58, 95, 0.2)' : 'none'
+                  }}
+                >
+                  {cui}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
