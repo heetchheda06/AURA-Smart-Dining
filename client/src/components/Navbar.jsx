@@ -6,6 +6,7 @@ export default function Navbar({
   cartCount, 
   onOpenAuth, 
   onOpenWaiter, 
+  onOpenReviews,
   onScrollToOrder,
   onOpenOrdersHistory,
   onLogout
