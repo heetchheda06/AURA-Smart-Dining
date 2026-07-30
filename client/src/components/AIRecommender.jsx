@@ -78,6 +78,7 @@ export default function AIRecommender({
       if (dietary === 'Veg' && !(item.dietary_type === 'Veg' || item.dietary_type === 'Vegan')) return false;
       if (dietary === 'Non-Veg' && item.dietary_type !== 'Non-Veg') return false;
       if (dietary === 'Vegan' && item.dietary_type !== 'Vegan') return false;
+      if (dietary === 'Jain' && !(item.isJain || item.jainAvailable || item.dietary_type === 'Jain' || (item.desc && item.desc.toLowerCase().includes('jain')))) return false;
       if (isTodaysSpecial && !['chef-special', 'popular', 'bestselling', 'royal', 'tandoori'].includes(item.tag) && (item.rating || 0) < 4.8) return false;
       return true;
     });
@@ -87,6 +88,7 @@ export default function AIRecommender({
         if (dietary === 'Veg' && !(item.dietary_type === 'Veg' || item.dietary_type === 'Vegan')) return false;
         if (dietary === 'Non-Veg' && item.dietary_type !== 'Non-Veg') return false;
         if (dietary === 'Vegan' && item.dietary_type !== 'Vegan') return false;
+        if (dietary === 'Jain' && !(item.isJain || item.jainAvailable || item.dietary_type === 'Jain' || (item.desc && item.desc.toLowerCase().includes('jain')))) return false;
         return true;
       });
     }
@@ -326,6 +328,7 @@ export default function AIRecommender({
               <option value="Veg" style={{ background: '#0F172A', color: '#FFF' }}>🌱 Veg Only</option>
               <option value="Non-Veg" style={{ background: '#0F172A', color: '#FFF' }}>🍗 Non-Veg Only</option>
               <option value="Vegan" style={{ background: '#0F172A', color: '#FFF' }}>🌿 Vegan Only</option>
+              <option value="Jain" style={{ background: '#0F172A', color: '#FFF' }}>🙏 Jain Only</option>
             </select>
           </div>
 

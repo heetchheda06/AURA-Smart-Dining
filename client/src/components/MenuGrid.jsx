@@ -72,10 +72,13 @@ export default function MenuGrid({
       const matchesCuisine = selectedCuisine === 'All' || item.cuisine === selectedCuisine;
 
       // Dietary type matching
+      const isJainItem = item.isJain || item.jainAvailable || item.dietary_type === 'Jain' || (item.desc && item.desc.toLowerCase().includes('jain'));
+
       const matchesDiet = dietaryFilter === 'All' || 
         (dietaryFilter === 'Veg' && (item.dietary_type === 'Veg' || item.dietary_type === 'Vegan')) ||
         (dietaryFilter === 'Non-Veg' && item.dietary_type === 'Non-Veg') ||
-        (dietaryFilter === 'Vegan' && item.dietary_type === 'Vegan');
+        (dietaryFilter === 'Vegan' && item.dietary_type === 'Vegan') ||
+        (dietaryFilter === 'Jain' && isJainItem);
 
       return matchesSearch && matchesCategory && matchesCuisine && matchesDiet;
     });
@@ -106,7 +109,7 @@ export default function MenuGrid({
         </div>
       </div>
 
-      {/* FILTER BAR 1: Dietary Toggle (Veg vs Non-Veg vs Vegan with Visual Icons) */}
+      {/* FILTER BAR 1: Dietary Toggle (Veg vs Non-Veg vs Vegan vs Jain) */}
       <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap' }}>
         <span style={{ fontSize: '12px', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
           <i className="fa-solid fa-filter"></i> Dietary Filter:
@@ -138,6 +141,13 @@ export default function MenuGrid({
           style={{ padding: '6px 14px', borderRadius: '20px', fontSize: '12px', fontWeight: 700, borderColor: '#059669', color: dietaryFilter === 'Vegan' ? '#FFF' : '#34D399', background: dietaryFilter === 'Vegan' ? '#059669' : 'rgba(5,150,105,0.1)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
         >
           <VeganIcon /> Vegan Category
+        </button>
+        <button 
+          className={`filter-btn ${dietaryFilter === 'Jain' ? 'active' : ''}`}
+          onClick={() => setDietaryFilter('Jain')}
+          style={{ padding: '6px 14px', borderRadius: '20px', fontSize: '12px', fontWeight: 700, borderColor: '#F59E0B', color: dietaryFilter === 'Jain' ? '#FFF' : '#D97706', background: dietaryFilter === 'Jain' ? 'linear-gradient(135deg, #F59E0B, #D97706)' : '#FEF3C7', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+        >
+          <span>🙏</span> Jain Category
         </button>
       </div>
 
@@ -278,6 +288,24 @@ export default function MenuGrid({
                       }}>
                         {item.cuisine || 'Indian'}
                       </span>
+
+                      {/* Jain Option Available Badge */}
+                      {(item.isJain || item.jainAvailable || (item.desc && item.desc.toLowerCase().includes('jain'))) && (
+                        <span style={{ 
+                          fontSize: '11px', 
+                          fontWeight: 900, 
+                          color: '#92400E', 
+                          background: '#FEF3C7', 
+                          border: '1.5px solid #FCD34D',
+                          padding: '4px 10px', 
+                          borderRadius: '8px',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px'
+                        }}>
+                          <span>🙏</span> {item.isJain ? '100% Jain' : 'Jain Option Available'}
+                        </span>
+                      )}
                     </div>
 
                     {/* Dish ID */}
