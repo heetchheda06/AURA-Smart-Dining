@@ -239,85 +239,34 @@ export default function AIRecommender({
   return (
     <div className="ai-recommender-card" style={{
       background: 'linear-gradient(135deg, #1E3A5F 0%, #0F172A 100%)',
-      border: '2px solid #3B82F6',
-      borderRadius: '24px',
-      padding: '24px 28px',
-      marginBottom: '28px',
-      boxShadow: '0 16px 45px rgba(30, 58, 95, 0.35)',
-      transition: 'all 0.3s ease',
+      border: '1.5px solid #3B82F6',
+      borderRadius: '20px',
+      padding: '18px 22px',
+      marginBottom: '24px',
+      boxShadow: '0 12px 35px rgba(30, 58, 95, 0.25)',
       color: '#FFFFFF'
     }}>
-      {/* Header Bar with Title & Context Controls */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '18px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <div style={{ width: '46px', height: '46px', borderRadius: '14px', background: 'linear-gradient(135deg, #F97316, #EA580C)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFF', fontSize: '22px', boxShadow: '0 4px 18px rgba(249,115,22,0.45)' }}>
+      {/* Header Bar */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '14px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ width: '38px', height: '38px', borderRadius: '12px', background: 'linear-gradient(135deg, #F97316, #EA580C)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFF', fontSize: '18px', boxShadow: '0 4px 14px rgba(249,115,22,0.4)' }}>
             <i className={`fa-solid ${isGenerating ? 'fa-spinner fa-spin' : 'fa-wand-magic-sparkles'}`}></i>
           </div>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-              <h3 style={{ margin: 0, fontSize: '20px', fontWeight: 900, color: '#FFFFFF', letterSpacing: '0.3px' }}>
-                AI Automated Food Recommender
-              </h3>
-              <span style={{ background: 'linear-gradient(135deg, #F97316, #EA580C)', color: '#FFFFFF', padding: '3px 10px', borderRadius: '20px', fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.5px', boxShadow: '0 2px 8px rgba(249,115,22,0.3)' }}>
-                BUDGET OPTIMIZER PRO
-              </span>
-            </div>
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '4px', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '11px', color: '#93C5FD', fontWeight: 800 }}>
-                <i className="fa-solid fa-cloud-sun" style={{ color: '#F59E0B', marginRight: '4px' }}></i> LIVE WEATHER &bull; {timeOfDay.toUpperCase()}
-              </span>
-              {custName && (
-                <span style={{ fontSize: '10px', background: '#3B82F6', color: '#FFFFFF', padding: '1px 8px', borderRadius: '10px', fontWeight: 900 }}>
-                  👤 {custName}
-                </span>
-              )}
-            </div>
+            <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 900, color: '#FFFFFF', letterSpacing: '0.2px' }}>
+              AI Food Recommender
+            </h3>
+            <span style={{ fontSize: '11px', color: '#93C5FD', fontWeight: 800 }}>
+              🌧️ Weather: {weather} ({liveTemp}°C)
+            </span>
           </div>
         </div>
 
-        {/* Interactive Context Toggles */}
-        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
-          
-          {/* Today's Special Toggle */}
-          <button
-            onClick={() => { setIsTodaysSpecial(!isTodaysSpecial); setSelectedComboIdx(0); triggerAIPulse(); }}
-            style={{
-              padding: '8px 14px',
-              borderRadius: '20px',
-              border: isTodaysSpecial ? '2px solid #F59E0B' : '1.5px solid rgba(255,255,255,0.2)',
-              background: isTodaysSpecial ? 'linear-gradient(135deg, #F59E0B, #D97706)' : 'rgba(15, 23, 42, 0.6)',
-              color: '#FFFFFF',
-              fontSize: '11px',
-              fontWeight: 900,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              boxShadow: isTodaysSpecial ? '0 4px 14px rgba(245,158,11,0.4)' : 'none',
-              transition: 'all 0.2s ease'
-            }}
-          >
-            <i className="fa-solid fa-star" style={{ color: isTodaysSpecial ? '#FFF' : '#FCD34D' }}></i> TODAY'S SPECIAL: {isTodaysSpecial ? 'ON' : 'OFF'}
-          </button>
-
-          {/* Weather Selector */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(15, 23, 42, 0.6)', padding: '6px 14px', borderRadius: '20px', border: '1.5px solid rgba(255,255,255,0.2)' }}>
-            <span style={{ fontSize: '11px', color: '#93C5FD', fontWeight: 900 }}>WEATHER:</span>
-            <select 
-              value={weather} 
-              onChange={(e) => { setWeather(e.target.value); triggerAIPulse(); }}
-              style={{ background: 'transparent', border: 'none', color: '#FCD34D', fontWeight: 900, fontSize: '11px', cursor: 'pointer', outline: 'none' }}
-            >
-              <option value="Rainy" style={{ background: '#0F172A', color: '#FFF' }}>🌧️ Rainy ({liveTemp}°C)</option>
-              <option value="Chilly" style={{ background: '#0F172A', color: '#FFF' }}>❄️ Chilly ({liveTemp}°C)</option>
-              <option value="Sunny" style={{ background: '#0F172A', color: '#FFF' }}>☀️ Sunny ({liveTemp}°C)</option>
-              <option value="Pleasant" style={{ background: '#0F172A', color: '#FFF' }}>🌤️ Pleasant ({liveTemp}°C)</option>
-            </select>
-          </div>
-
+        {/* Minimal Controls */}
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
           {/* Budget Selector */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(15, 23, 42, 0.6)', padding: '6px 14px', borderRadius: '20px', border: '1.5px solid rgba(255,255,255,0.2)' }}>
-            <span style={{ fontSize: '11px', color: '#93C5FD', fontWeight: 900 }}>BUDGET:</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(15, 23, 42, 0.6)', padding: '5px 12px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.18)' }}>
+            <span style={{ fontSize: '10.5px', color: '#93C5FD', fontWeight: 900 }}>BUDGET:</span>
             <select 
               value={budget} 
               onChange={(e) => { setBudget(Number(e.target.value)); setSelectedComboIdx(0); triggerAIPulse(); }}
@@ -334,28 +283,26 @@ export default function AIRecommender({
           </div>
 
           {/* Dietary Filter */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(15, 23, 42, 0.6)', padding: '6px 14px', borderRadius: '20px', border: '1.5px solid rgba(255,255,255,0.2)' }}>
-            <span style={{ fontSize: '11px', color: '#93C5FD', fontWeight: 900 }}>DIET:</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(15, 23, 42, 0.6)', padding: '5px 12px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.18)' }}>
+            <span style={{ fontSize: '10.5px', color: '#93C5FD', fontWeight: 900 }}>DIET:</span>
             <select 
               value={dietary} 
               onChange={(e) => { setDietary(e.target.value); triggerAIPulse(); }}
               style={{ background: 'transparent', border: 'none', color: '#C084FC', fontWeight: 900, fontSize: '11px', cursor: 'pointer', outline: 'none' }}
             >
               <option value="All" style={{ background: '#0F172A', color: '#FFF' }}>All</option>
-              <option value="Veg" style={{ background: '#0F172A', color: '#FFF' }}>🌱 Veg Only</option>
-              <option value="Non-Veg" style={{ background: '#0F172A', color: '#FFF' }}>🍗 Non-Veg Only</option>
-              <option value="Vegan" style={{ background: '#0F172A', color: '#FFF' }}>🌿 Vegan Only</option>
-              <option value="Jain" style={{ background: '#0F172A', color: '#FFF' }}>🙏 Jain Only</option>
+              <option value="Veg" style={{ background: '#0F172A', color: '#FFF' }}>🌱 Veg</option>
+              <option value="Non-Veg" style={{ background: '#0F172A', color: '#FFF' }}>🍗 Non-Veg</option>
+              <option value="Vegan" style={{ background: '#0F172A', color: '#FFF' }}>🌿 Vegan</option>
+              <option value="Jain" style={{ background: '#0F172A', color: '#FFF' }}>🙏 Jain</option>
             </select>
           </div>
-
         </div>
       </div>
 
       {/* AI Option Selector Tabs */}
       {allCombos.length > 1 && (
-        <div style={{ display: 'flex', gap: '10px', marginBottom: '18px', flexWrap: 'wrap', alignItems: 'center' }}>
-          <span style={{ fontSize: '12px', color: '#93C5FD', fontWeight: 900, letterSpacing: '0.5px' }}>AI OPTIONS:</span>
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '14px', flexWrap: 'wrap', alignItems: 'center' }}>
           {allCombos.map((c, idx) => {
             const isSelected = selectedComboIdx === idx;
             return (
@@ -363,49 +310,42 @@ export default function AIRecommender({
                 key={idx}
                 onClick={() => { setSelectedComboIdx(idx); triggerAIPulse(); }}
                 style={{
-                  padding: '8px 16px',
-                  borderRadius: '20px',
-                  border: isSelected ? '2px solid #F97316' : '1.5px solid rgba(255,255,255,0.2)',
+                  padding: '6px 14px',
+                  borderRadius: '16px',
+                  border: isSelected ? '1.5px solid #F97316' : '1px solid rgba(255,255,255,0.15)',
                   background: isSelected ? 'linear-gradient(135deg, #F97316 0%, #EA580C 100%)' : 'rgba(15, 23, 42, 0.5)',
                   color: '#FFFFFF',
-                  fontSize: '12px',
+                  fontSize: '11.5px',
                   fontWeight: 900,
                   cursor: 'pointer',
-                  boxShadow: isSelected ? '0 4px 14px rgba(249,115,22,0.4)' : 'none',
+                  boxShadow: isSelected ? '0 4px 12px rgba(249,115,22,0.35)' : 'none',
                   transition: 'all 0.2s ease'
                 }}
               >
-                {idx === 0 ? '✨ Option A (Chef Signature)' : idx === 1 ? '🔥 Option B (Full Feast)' : '🍹 Option C (Pairing)'} ({formatPrice(c.totalPrice)})
+                {idx === 0 ? '✨ Option A' : idx === 1 ? '🔥 Option B' : '🍹 Option C'} ({formatPrice(c.totalPrice)})
               </button>
             );
           })}
         </div>
       )}
 
-      {/* AI Conversational Recommendation Card Output */}
+      {/* Recommendation Display Box */}
       <div style={{
         background: '#0F172A',
-        borderRadius: '20px',
-        padding: '22px 26px',
-        border: '2px solid #38BDF8',
-        boxShadow: '0 8px 30px rgba(56, 189, 248, 0.15)',
+        borderRadius: '16px',
+        padding: '16px 20px',
+        border: '1.5px solid #38BDF8',
         display: 'flex',
-        justifyContent: 'space-between',
+        justify: 'space-between',
         alignItems: 'center',
         flexWrap: 'wrap',
-        gap: '20px',
+        gap: '14px',
         opacity: isGenerating ? 0.6 : 1,
         transition: 'all 0.2s ease'
       }}>
-        <div style={{ flex: 1, minWidth: '280px' }}>
-          
-          {/* Prompt Message */}
-          <div style={{ fontSize: '15px', fontWeight: 800, color: '#FFFFFF', marginBottom: '14px', lineHeight: '1.5', letterSpacing: '0.2px' }}>
-            "{promptMsg} <strong>Would you like <span style={{ color: '#F97316' }}>{items.map(i => i.name).join(' + ')}</span> Combo?</strong>"
-          </div>
-
+        <div style={{ flex: 1, minWidth: '260px' }}>
           {/* Dish Badges List */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '8px' }}>
             {items.map((item, idx) => {
               const icons = ['🥣', '🍱', '☕', '🍰'];
               const bgColors = ['rgba(249, 115, 22, 0.2)', 'rgba(16, 185, 129, 0.2)', 'rgba(168, 85, 247, 0.2)', 'rgba(236, 72, 153, 0.2)'];
@@ -414,16 +354,15 @@ export default function AIRecommender({
               
               return (
                 <React.Fragment key={idx}>
-                  {idx > 0 && <span style={{ color: '#38BDF8', fontWeight: 900, fontSize: '16px' }}>+</span>}
+                  {idx > 0 && <span style={{ color: '#38BDF8', fontWeight: 900, fontSize: '14px' }}>+</span>}
                   <span style={{
                     background: bgColors[idx % bgColors.length],
                     color: textColors[idx % textColors.length],
-                    padding: '8px 16px',
-                    borderRadius: '14px',
+                    padding: '6px 12px',
+                    borderRadius: '12px',
                     fontWeight: 900,
-                    fontSize: '13px',
-                    border: `1.5px solid ${borderColors[idx % borderColors.length]}`,
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+                    fontSize: '12.5px',
+                    border: `1px solid ${borderColors[idx % borderColors.length]}`
                   }}>
                     {icons[idx % icons.length]} {item.name} ({formatPrice(item.price)})
                   </span>
@@ -432,30 +371,13 @@ export default function AIRecommender({
             })}
           </div>
 
-          {/* Budget Utilization Progress Bar */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
-            <div style={{ flex: 1, minWidth: '160px', maxWidth: '260px', background: 'rgba(255,255,255,0.15)', height: '10px', borderRadius: '5px', overflow: 'hidden' }}>
-              <div style={{
-                width: `${budgetUtilization}%`,
-                height: '100%',
-                background: 'linear-gradient(90deg, #10B981 0%, #34D399 100%)',
-                borderRadius: '5px',
-                transition: 'width 0.4s ease'
-              }}></div>
-            </div>
-
-            <span style={{ fontSize: '14px', fontWeight: 900, color: '#FFFFFF' }}>
-              Total: <strong style={{ color: '#34D399', fontSize: '16px' }}>{formatPrice(totalPrice)}</strong>
-            </span>
-
-            <span style={{ background: 'rgba(16, 185, 129, 0.25)', color: '#34D399', border: '1.5px solid #10B981', fontSize: '11px', fontWeight: 900, padding: '3px 10px', borderRadius: '12px' }}>
-              ✓ {budgetUtilization}% Budget Used (Under ₹{budget})
-            </span>
+          <div style={{ fontSize: '13px', color: '#93C5FD', fontWeight: 800 }}>
+            Total: <strong style={{ color: '#34D399', fontSize: '15px' }}>{formatPrice(totalPrice)}</strong>
+            <span style={{ marginLeft: '10px', color: '#34D399', fontSize: '11px' }}>({budgetUtilization}% of ₹{budget} budget used)</span>
           </div>
-
         </div>
 
-        {/* 1-Click Add Full Combo to Cart */}
+        {/* 1-Click Add Combo to Cart */}
         <button
           onClick={() => {
             items.forEach(item => {
@@ -466,22 +388,20 @@ export default function AIRecommender({
             background: 'linear-gradient(135deg, #F97316 0%, #EA580C 100%)',
             color: '#FFFFFF',
             border: 'none',
-            padding: '16px 26px',
-            borderRadius: '18px',
+            padding: '12px 20px',
+            borderRadius: '14px',
             fontWeight: 900,
-            fontSize: '15px',
+            fontSize: '14px',
             cursor: 'pointer',
-            boxShadow: '0 8px 25px rgba(249, 115, 22, 0.45)',
+            boxShadow: '0 6px 20px rgba(249, 115, 22, 0.4)',
             display: 'inline-flex',
             alignItems: 'center',
-            gap: '10px',
-            whiteSpace: 'nowrap',
-            transition: 'transform 0.2s ease, boxShadow 0.2s ease'
+            gap: '8px',
+            whiteSpace: 'nowrap'
           }}
         >
-          <i className="fa-solid fa-cart-plus" style={{ fontSize: '18px' }}></i> Add {itemCount}-Course Combo ({formatPrice(totalPrice)})
+          <i className="fa-solid fa-cart-plus" style={{ fontSize: '16px' }}></i> Add Combo ({formatPrice(totalPrice)})
         </button>
-
       </div>
     </div>
   );
