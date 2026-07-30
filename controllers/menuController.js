@@ -93,10 +93,32 @@ exports.getMenuItems = async (req, res, next) => {
       ];
     }
 
-    let menuItems = await Menu.find(query).catch(() => []);
+    let menuItems = await Menu.find(query).lean().catch(() => []);
 
-    // Fail-safe fallback to ensure dishes are ALWAYS visible even if database is fresh
-    if (!menuItems || menuItems.length === 0) {
+    // Create a dictionary from fallbackMenu for quick lookup by dish_id or name
+    const fallbackDict = {};
+    (fallbackMenu || []).forEach(f => {
+      if (f._id) fallbackDict[f._id] = f;
+      if (f.name) fallbackDict[f.name.toLowerCase()] = f;
+    });
+
+    if (menuItems && menuItems.length > 0) {
+      menuItems = menuItems.map(item => {
+        const fb = fallbackDict[item.dish_id] || fallbackDict[(item.name || '').toLowerCase()] || {};
+        const isJain = item.isJain !== undefined ? item.isJain : (fb.isJain || false);
+        const jainAvailable = item.jainAvailable !== undefined ? item.jainAvailable : (fb.jainAvailable || false);
+        const ingredients = fb.ingredients || item.ingredients || '';
+        const desc = fb.desc || item.desc || (ingredients ? `Ingredients: ${ingredients}` : '');
+
+        return {
+          ...item,
+          ingredients,
+          desc,
+          isJain,
+          jainAvailable
+        };
+      });
+    } else {
       let filtered = fallbackMenu || [];
       if (category && category !== 'all') {
         filtered = filtered.filter(item => item.category === category);
@@ -105,29 +127,24 @@ exports.getMenuItems = async (req, res, next) => {
         const s = search.toLowerCase();
         filtered = filtered.filter(item => item.name.toLowerCase().includes(s) || (item.ingredients && item.ingredients.toLowerCase().includes(s)));
       }
-      menuItems = filtered.map((item, idx) => {
-        const textCheck = `${item.name || ''} ${item.ingredients || ''} ${item.desc || ''} ${item.tags || ''}`.toLowerCase();
-        const forbidden = ['onion', 'onions', 'potato', 'potatoes', 'aloo', 'fries', 'garlic', 'ginger', 'radish', 'mooli', 'beetroot', 'beet', 'carrot', 'carrots', 'chicken', 'mutton', 'fish', 'prawn', 'prawns', 'beef', 'pork', 'egg', 'eggs', 'bacon', 'turkey', 'lamb'];
-        const hasForbidden = forbidden.some(w => textCheck.includes(w));
-        const isJainEligible = !hasForbidden && (item.dietary_type === 'Veg' || item.dietary_type === 'Vegan' || item.dietary_type === 'Jain' || item.isJain === true || item.jainAvailable === true);
-
-        return {
-          _id: item.dish_id || `dsh-${idx}`,
-          name: item.name,
-          category: item.category,
-          cuisine: item.cuisine || 'Indian',
-          dietary_type: item.dietary_type || 'Veg',
-          isJain: isJainEligible && (item.isJain || textCheck.includes('naan') || textCheck.includes('jamun') || textCheck.includes('brownie') || textCheck.includes('chai') || textCheck.includes('coffee') || textCheck.includes('soda') || textCheck.includes('mojito')),
-          jainAvailable: isJainEligible,
-          price: item.price,
-          prep_time_minutes: item.prep_time_minutes || 15,
-          rating: 4.8,
-          prep: `${item.prep_time_minutes || 15} mins`,
-          tag: item.tags ? item.tags.split(',')[0] : 'popular',
-          image: item.image || 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80',
-          desc: item.desc || (item.ingredients ? `Ingredients: ${item.ingredients}` : 'Chef special delicacy cooked to perfection.')
-        };
-      });
+      menuItems = filtered.map((item, idx) => ({
+        _id: item._id || item.dish_id || `dsh-${idx}`,
+        dish_id: item._id || item.dish_id || `dsh-${idx}`,
+        name: item.name,
+        category: item.category,
+        cuisine: item.cuisine || 'Indian',
+        dietary_type: item.dietary_type || 'Veg',
+        isJain: !!item.isJain,
+        jainAvailable: !!item.jainAvailable,
+        price: item.price,
+        prep_time_minutes: item.prep_time_minutes || 15,
+        rating: item.rating || 4.8,
+        prep: item.prep || `${item.prep_time_minutes || 15} mins`,
+        tag: item.tag || (item.tags ? item.tags.split(',')[0] : 'popular'),
+        image: item.image || 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80',
+        ingredients: item.ingredients || '',
+        desc: item.desc || (item.ingredients ? `Ingredients: ${item.ingredients}` : 'Chef special delicacy cooked to perfection.')
+      }));
     }
 
     res.status(200).json({ success: true, count: menuItems.length, data: menuItems });

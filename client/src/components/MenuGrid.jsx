@@ -71,21 +71,13 @@ export default function MenuGrid({
       // Cuisine matching
       const matchesCuisine = selectedCuisine === 'All' || item.cuisine === selectedCuisine;
 
-      // Strict Jain check: ANY item with onion, potato, garlic, ginger, root veggies MUST BE REMOVED from Jain Category
+      // Jain eligibility check
       const textForJainCheck = `${item.name || ''} ${item.ingredients || ''} ${item.desc || ''} ${item.tags || ''}`.toLowerCase();
       const forbiddenJainWords = [
-        'onion', 'onions',
-        'potato', 'potatoes', 'aloo', 'fries',
-        'garlic',
-        'ginger',
-        'radish', 'mooli',
-        'beetroot', 'beet',
-        'carrot', 'carrots',
         'chicken', 'mutton', 'fish', 'prawn', 'prawns', 'beef', 'pork', 'egg', 'eggs', 'bacon', 'turkey', 'lamb'
       ];
-
-      const hasForbiddenJainIngredient = forbiddenJainWords.some(word => textForJainCheck.includes(word));
-      const isJainItem = !hasForbiddenJainIngredient && (item.dietary_type === 'Veg' || item.dietary_type === 'Vegan' || item.dietary_type === 'Jain' || item.isJain === true || item.jainAvailable === true);
+      const hasNonVeg = forbiddenJainWords.some(word => textForJainCheck.includes(word));
+      const isJainItem = !hasNonVeg && (item.isJain === true || item.jainAvailable === true || item.dietary_type === 'Jain');
 
       const matchesDiet = dietaryFilter === 'All' || 
         (dietaryFilter === 'Veg' && (item.dietary_type === 'Veg' || item.dietary_type === 'Vegan')) ||
@@ -302,13 +294,27 @@ export default function MenuGrid({
                         {item.cuisine || 'Indian'}
                       </span>
 
-                      {/* Jain Option Available Badge */}
+                      {/* Jain Status Badge */}
                       {(() => {
-                        const txt = `${item.name || ''} ${item.ingredients || ''} ${item.desc || ''} ${item.tags || ''}`.toLowerCase();
-                        const forbidden = ['onion', 'onions', 'potato', 'potatoes', 'aloo', 'fries', 'garlic', 'ginger', 'radish', 'mooli', 'beetroot', 'beet', 'carrot', 'carrots', 'chicken', 'mutton', 'fish', 'prawn', 'prawns', 'beef', 'pork', 'egg', 'eggs', 'bacon', 'turkey', 'lamb'];
-                        const isForbidden = forbidden.some(w => txt.includes(w));
-                        if (isForbidden) return null;
-                        if (item.isJain || item.jainAvailable || item.dietary_type === 'Veg' || item.dietary_type === 'Vegan' || (item.desc && item.desc.toLowerCase().includes('jain'))) {
+                        if (item.isJain) {
+                          return (
+                            <span style={{ 
+                              fontSize: '11px', 
+                              fontWeight: 900, 
+                              color: '#065F46', 
+                              background: '#D1FAE5', 
+                              border: '1.5px solid #6EE7B7',
+                              padding: '4px 10px', 
+                              borderRadius: '8px',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px'
+                            }}>
+                              <span>🙏</span> 100% Jain
+                            </span>
+                          );
+                        }
+                        if (item.jainAvailable) {
                           return (
                             <span style={{ 
                               fontSize: '11px', 
@@ -322,7 +328,7 @@ export default function MenuGrid({
                               alignItems: 'center',
                               gap: '4px'
                             }}>
-                              <span>🙏</span> {item.isJain ? '100% Jain' : 'Jain Option Available'}
+                              <span>🙏</span> Jain Option Available
                             </span>
                           );
                         }

@@ -51,6 +51,14 @@ const menuSchema = new mongoose.Schema({
   spiciness: {
     type: String,
     default: 'Low'
+  },
+  isJain: {
+    type: Boolean,
+    default: false
+  },
+  jainAvailable: {
+    type: Boolean,
+    default: false
   }
 }, {
   timestamps: true
