@@ -197,36 +197,7 @@ export default function AuthModal({
               </p>
             </div>
 
-            {/* Option 1: 1-Tap Login (Heet Chheda) */}
-            <div 
-              onClick={() => completeGoogleLogin('Heet Chheda', 'heet.chheda06@gmail.com')}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '14px',
-                padding: '14px 18px',
-                borderRadius: '16px',
-                border: '2px solid #3B82F6',
-                background: '#F0F9FF',
-                cursor: 'pointer',
-                marginBottom: '16px',
-                boxShadow: '0 4px 14px rgba(59, 130, 246, 0.15)',
-                transition: 'all 0.2s ease'
-              }}
-            >
-              <div style={{ width: '42px', height: '42px', borderRadius: '50%', background: 'linear-gradient(135deg, #4285F4, #34A853)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFF', fontWeight: 900, fontSize: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}>
-                HC
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: '15px', fontWeight: 900, color: '#0F172A' }}>Heet Chheda</div>
-                <div style={{ fontSize: '12px', color: '#475569', fontWeight: 700 }}>heet.chheda06@gmail.com</div>
-              </div>
-              <span style={{ background: '#3B82F6', color: '#FFF', padding: '4px 10px', borderRadius: '10px', fontSize: '11px', fontWeight: 900 }}>
-                1-Tap Login
-              </span>
-            </div>
-
-            {/* Option 2: Custom Google Account Name & Email */}
+            {/* Google Account Name & Email Input */}
             <div style={{ background: '#F8FAFC', padding: '16px', borderRadius: '16px', border: '1.5px solid #CBD5E1', marginBottom: '16px' }}>
               <span style={{ fontSize: '11px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '10px' }}>
                 Or sign in with your Google Account:
