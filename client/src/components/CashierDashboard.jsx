@@ -15,6 +15,60 @@ export default function CashierDashboard({ onLogout, cashierName = "Lead Cashier
   const [toastMessage, setToastMessage] = useState('');
   const [editingNameOrder, setEditingNameOrder] = useState(null);
   const [newCustomerNameInput, setNewCustomerNameInput] = useState('');
+  const [checkoutSessions, setCheckoutSessions] = useState([]);
+  const [managerPinModalSession, setManagerPinModalSession] = useState(null);
+  const [managerPinInput, setManagerPinInput] = useState('');
+
+  const fetchCheckoutSessions = async () => {
+    try {
+      const res = await fetch('/api/checkout/sessions');
+      const data = await res.json();
+      if (data.success) {
+        setCheckoutSessions(data.sessions || []);
+      }
+    } catch (e) {}
+  };
+
+  const handleMarkCashReceived = async (tableNum) => {
+    try {
+      const res = await fetch('/api/checkout/mark-cash-received', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tableNum })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast(`✅ Cash payment received for Table #${tableNum}!`);
+        fetchCheckoutSessions();
+        fetchOrders();
+      }
+    } catch (e) {
+      showToast('⚠️ Error marking cash received.');
+    }
+  };
+
+  const handleReopenSessionSubmit = async () => {
+    if (!managerPinModalSession || !managerPinInput.trim()) return;
+    if (managerPinInput !== '1234' && managerPinInput !== 'admin') {
+      alert("⚠️ Invalid Manager PIN! Authorization failed.");
+      return;
+    }
+    try {
+      const res = await fetch('/api/checkout/reopen-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tableNum: managerPinModalSession.tableNum })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast(`🔓 Session for Table #${managerPinModalSession.tableNum} reopened by Manager!`);
+        fetchCheckoutSessions();
+        fetchOrders();
+      }
+    } catch (e) {}
+    setManagerPinModalSession(null);
+    setManagerPinInput('');
+  };
 
   const showToast = (msg) => {
     setToastMessage(msg);
@@ -256,6 +310,112 @@ export default function CashierDashboard({ onLogout, cashierName = "Lead Cashier
             <div style={{ fontSize: '12px', color: '#4B5563', fontWeight: 700 }}><i className="fa-solid fa-receipt"></i> Active Order Log</div>
           </div>
         </div>
+
+        {/* ========================================================================= */}
+        {/* PENDING PAYMENTS & LIVE CHECKOUT QUEUE SECTION                            */}
+        {/* ========================================================================= */}
+        <div style={{ background: '#FFFFFF', padding: '24px', borderRadius: '16px', border: '2px solid #3B82F6', boxShadow: '0 4px 20px rgba(59,130,246,0.12)', marginBottom: '24px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 900, color: '#1E3A5F', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <i className="fa-solid fa-clock-rotate-left" style={{ color: '#3B82F6' }}></i>
+              Live Checkout &amp; Pending Payments Queue ({checkoutSessions.length})
+            </h3>
+            <span style={{ fontSize: '11px', background: '#EFF6FF', color: '#1D4ED8', padding: '4px 10px', borderRadius: '10px', fontWeight: 800 }}>
+              Real-time Sync Active
+            </span>
+          </div>
+
+          {checkoutSessions.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '24px', background: '#F8FAFC', borderRadius: '12px', color: '#64748B', fontSize: '13px', fontWeight: 600 }}>
+              <i className="fa-solid fa-circle-check" style={{ color: '#10B981', marginRight: '6px' }}></i>
+              No pending table checkouts. All customer sessions are active or settled.
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+              {checkoutSessions.map((session, idx) => {
+                const isOverdue = session.status === 'Awaiting Cash Payment' && session.cashTimerEndAt && new Date(session.cashTimerEndAt) < new Date();
+                const isPaidOnline = session.paymentMethod && session.paymentMethod.startsWith('demo_') && session.paymentStatus === 'paid';
+                return (
+                  <div 
+                    key={idx}
+                    style={{
+                      background: isOverdue ? '#FEF2F2' : isPaidOnline ? '#F0FDF4' : '#F8FAFC',
+                      border: isOverdue ? '2px solid #EF4444' : isPaidOnline ? '2px solid #10B981' : '1.5px solid #CBD5E1',
+                      borderRadius: '14px',
+                      padding: '16px',
+                      boxShadow: '0 2px 10px rgba(0,0,0,0.04)'
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '16px', fontWeight: 900, color: '#1E3A5F' }}>Table #{session.tableNum}</span>
+                      <span style={{
+                        fontSize: '10.5px',
+                        fontWeight: 900,
+                        padding: '3px 8px',
+                        borderRadius: '8px',
+                        background: isOverdue ? '#DC2626' : isPaidOnline ? '#10B981' : '#3B82F6',
+                        color: '#FFF'
+                      }}>
+                        {isOverdue ? '⚠️ OVERDUE' : isPaidOnline ? 'PAID ONLINE (DEMO)' : session.status}
+                      </span>
+                    </div>
+
+                    <div style={{ fontSize: '13px', color: '#475569', fontWeight: 700, marginBottom: '6px' }}>
+                      👤 {session.customerName || 'Customer'}
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', fontWeight: 900, color: '#0F172A', marginBottom: '12px' }}>
+                      <span>Bill Amount:</span>
+                      <span style={{ color: '#F97316' }}>₹{session.grandTotal || 0}</span>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                      {session.status === 'Awaiting Cash Payment' && (
+                        <button 
+                          onClick={() => handleMarkCashReceived(session.tableNum)}
+                          style={{ padding: '8px', borderRadius: '8px', border: 'none', background: '#10B981', color: '#FFF', fontWeight: 900, fontSize: '11px', cursor: 'pointer' }}
+                        >
+                          💵 Mark Cash Rec'd
+                        </button>
+                      )}
+                      <button 
+                        onClick={() => setManagerPinModalSession(session)}
+                        style={{ padding: '8px', borderRadius: '8px', border: '1px solid #CBD5E1', background: '#FFFFFF', color: '#334155', fontWeight: 900, fontSize: '11px', cursor: 'pointer' }}
+                      >
+                        🔓 Reopen Session
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Manager PIN Authorization Modal */}
+        {managerPinModalSession && (
+          <div className="modal-overlay active" style={{ zIndex: 10000 }}>
+            <div className="modal-card glass" style={{ maxWidth: '400px', width: '90%', padding: '20px', borderRadius: '20px', background: '#0F172A', color: '#FFF', border: '1px solid #1E3A5F' }}>
+              <h3 style={{ margin: '0 0 10px 0', fontSize: '18px', fontWeight: 900, color: '#FCD34D' }}>
+                🔑 Manager Authorization Required
+              </h3>
+              <p style={{ fontSize: '13px', color: '#94A3B8', marginBottom: '16px' }}>
+                Reopening session for <strong>Table #{managerPinModalSession.tableNum}</strong>. Enter Manager PIN (e.g. 1234 or admin):
+              </p>
+              <input
+                type="password"
+                placeholder="Enter Manager Secret PIN"
+                value={managerPinInput}
+                onChange={e => setManagerPinInput(e.target.value)}
+                style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1.5px solid #334155', background: '#1E293B', color: '#FFF', fontSize: '14px', marginBottom: '16px', outline: 'none' }}
+              />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <button type="button" onClick={() => setManagerPinModalSession(null)} style={{ padding: '10px', borderRadius: '10px', border: '1px solid #334155', background: 'transparent', color: '#94A3B8', fontWeight: 800 }}>Cancel</button>
+                <button type="button" onClick={handleReopenSessionSubmit} style={{ padding: '10px', borderRadius: '10px', border: 'none', background: '#F59E0B', color: '#FFF', fontWeight: 900 }}>Authorize &amp; Reopen</button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Invoices List Container */}
         <div style={{ background: '#FFFFFF', padding: '24px', borderRadius: '16px', border: '2px solid #D6EAF8', boxShadow: '0 4px 20px rgba(30,58,95,0.06)', marginBottom: '24px' }}>

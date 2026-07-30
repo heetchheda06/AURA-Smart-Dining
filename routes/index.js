@@ -11,6 +11,7 @@ const waiterRoutes = require('./waiterRoutes');
 const adminRoutes = require('./adminRoutes');
 const inventoryRoutes = require('./inventoryRoutes');
 const reviewRoutes = require('./reviewRoutes');
+const checkoutRoutes = require('./checkoutRoutes');
 
 // Mount sub-routers
 router.use('/auth', authRoutes);
@@ -23,5 +24,6 @@ router.use('/waiter', waiterRoutes);
 router.use('/admin', adminRoutes);
 router.use('/inventory', inventoryRoutes);
 router.use('/reviews', reviewRoutes);
+router.use('/checkout', checkoutRoutes);
 
 module.exports = router;

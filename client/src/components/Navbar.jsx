@@ -10,6 +10,7 @@ export default function Navbar({
   onOpenAiAnalyzer,
   onScrollToOrder,
   onOpenOrdersHistory,
+  onOpenCheckout,
   onLogout
 }) {
   const { isLoggedIn, customerName, tableNum, loginType } = activeCustomerSession;
@@ -50,6 +51,24 @@ export default function Navbar({
 
         {/* Right: Actions */}
         <div className="nav-actions-group">
+          {isLoggedIn && (
+            <button 
+              className="nav-btn" 
+              onClick={onOpenCheckout} 
+              title="End Session & Pay Bill"
+              style={{
+                borderColor: '#EF4444',
+                color: '#FFFFFF',
+                background: 'linear-gradient(135deg, #EF4444, #DC2626)',
+                fontWeight: 900,
+                boxShadow: '0 4px 12px rgba(239, 68, 68, 0.35)'
+              }}
+            >
+              <i className="fa-solid fa-receipt" style={{ color: '#FFFFFF' }}></i>
+              <span className="btn-label" style={{ fontWeight: 900 }}>End Session / Bill</span>
+            </button>
+          )}
+
           {isLoggedIn && loginType === 'member' && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{ fontSize: '13px', fontWeight: 900, color: '#1E3A5F', background: '#D6EAF8', padding: '5px 12px', borderRadius: '20px', letterSpacing: '0.3px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>

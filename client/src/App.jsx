@@ -23,6 +23,8 @@ import TableSelectModal from './components/TableSelectModal';
 import CustomerReviewsModal from './components/CustomerReviewsModal';
 import AiReviewAnalyzerModal from './components/AiReviewAnalyzerModal';
 import AiSommelierModal from './components/AiSommelierModal';
+import CheckoutModal from './components/CheckoutModal';
+import WaiterCleaningModal from './components/WaiterCleaningModal';
 import { fallbackMenu } from './data/fallbackMenu';
 
 // Initialize socket connection at module level
@@ -66,6 +68,9 @@ export default function App() {
   const [isTableFreedOpen, setIsTableFreedOpen] = useState(false);
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
   const [isSommelierOpen, setIsSommelierOpen] = useState(false);
+  const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
+  const [isWaiterCleaningOpen, setIsWaiterCleaningOpen] = useState(false);
+  const [currentSessionData, setCurrentSessionData] = useState(null);
 
   // --- Table Selection Modal ---
   const [isTableSelectOpen, setIsTableSelectOpen] = useState(false);
@@ -879,6 +884,7 @@ export default function App() {
         onOpenAiAnalyzer={() => setIsAiAnalyzerModalOpen(true)}
         onScrollToOrder={handleScrollToOrder}
         onOpenOrdersHistory={() => setIsUserOrdersOpen(true)}
+        onOpenCheckout={() => setIsCheckoutModalOpen(true)}
         onLogout={handleLogout}
       />
 
@@ -1008,6 +1014,23 @@ export default function App() {
         menuItems={menuItems}
         onAddToCart={handleAddToCart}
         formatPrice={formatPrice}
+      />
+
+      {/* Customer Session End & Checkout Modal */}
+      <CheckoutModal 
+        isOpen={isCheckoutModalOpen}
+        onClose={() => setIsCheckoutModalOpen(false)}
+        activeCustomerSession={activeCustomerSession}
+        sessionData={currentSessionData}
+        onPaymentSuccess={() => {
+          showToast('🎉 Payment successful! Thank you for dining with us.');
+        }}
+      />
+
+      {/* Waiter Table Cleaning Queue Modal */}
+      <WaiterCleaningModal 
+        isOpen={isWaiterCleaningOpen}
+        onClose={() => setIsWaiterCleaningOpen(false)}
       />
 
       {/* Toast Notification Container */}

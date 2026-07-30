@@ -152,12 +152,14 @@ export default function ManagerDashboard({ onLogout, managerName = "AURA Manager
     fetchIngredients();
     fetchOrders();
     fetchQueue();
+    fetchCheckoutSessions();
 
     const handleRefresh = () => {
       fetchTables();
       fetchIngredients();
       fetchOrders();
       fetchQueue();
+      fetchCheckoutSessions();
     };
 
     socket.on('table:status_changed', handleRefresh);
@@ -484,7 +486,30 @@ export default function ManagerDashboard({ onLogout, managerName = "AURA Manager
             }}
           >
             <i className="fa-solid fa-users-line" style={{ fontSize: '20px', color: activeTab === 'queue' ? '#F97316' : '#1E3A5F' }}></i>
-            3. Live Waitlist Queue ({queue.length} Waiting)
+            3. Guest Seating Waitlist Queue ({queue.length} Waiting)
+          </button>
+
+          <button 
+            onClick={() => setActiveTab('checkout')}
+            style={{
+              flex: 1,
+              padding: '16px',
+              borderRadius: '16px',
+              border: activeTab === 'checkout' ? '2px solid #1E3A5F' : '1px solid #CBD5E1',
+              background: activeTab === 'checkout' ? '#1E3A5F' : '#FFFFFF',
+              color: activeTab === 'checkout' ? '#FFFFFF' : '#1E3A5F',
+              fontWeight: 900,
+              fontSize: '15px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '10px',
+              boxShadow: activeTab === 'checkout' ? '0 6px 20px rgba(30, 58, 95, 0.25)' : '0 2px 8px rgba(0,0,0,0.04)'
+            }}
+          >
+            <i className="fa-solid fa-clock-rotate-left" style={{ fontSize: '20px', color: activeTab === 'checkout' ? '#F97316' : '#1E3A5F' }}></i>
+            4. Live Sessions & Checkout ({checkoutSessions.length})
           </button>
         </div>
 
@@ -875,6 +900,116 @@ export default function ManagerDashboard({ onLogout, managerName = "AURA Manager
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+        {/* TAB 4: LIVE SESSIONS & CHECKOUT SUPERVISION */}
+        {activeTab === 'checkout' && (
+          <div>
+            {/* Live Session Overview Cards */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+              <div style={{ padding: '18px', borderRadius: '16px', border: '1.5px solid #CBD5E1', background: '#FFFFFF' }}>
+                <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 800, textTransform: 'uppercase' }}>Active Table Sessions</div>
+                <div style={{ fontSize: '28px', fontWeight: 900, color: '#1E3A5F', margin: '4px 0' }}>{tables.filter(t => t.status === 'occupied').length}</div>
+                <div style={{ fontSize: '11px', color: '#3B82F6', fontWeight: 700 }}>Occupied Tables</div>
+              </div>
+
+              <div style={{ padding: '18px', borderRadius: '16px', border: '1.5px solid #FCD34D', background: '#FEF3C7' }}>
+                <div style={{ fontSize: '11px', color: '#92400E', fontWeight: 800, textTransform: 'uppercase' }}>Awaiting Payment</div>
+                <div style={{ fontSize: '28px', fontWeight: 900, color: '#D97706', margin: '4px 0' }}>
+                  {checkoutSessions.filter(s => s.status === 'Awaiting Cash Payment' || s.status === 'Awaiting Demo Online Payment').length}
+                </div>
+                <div style={{ fontSize: '11px', color: '#B45309', fontWeight: 700 }}>Payment Pending</div>
+              </div>
+
+              <div style={{ padding: '18px', borderRadius: '16px', border: '1.5px solid #6EE7B7', background: '#F0FDF4' }}>
+                <div style={{ fontSize: '11px', color: '#065F46', fontWeight: 800, textTransform: 'uppercase' }}>Paid &amp; Vacating</div>
+                <div style={{ fontSize: '28px', fontWeight: 900, color: '#059669', margin: '4px 0' }}>
+                  {checkoutSessions.filter(s => s.paymentStatus === 'paid').length}
+                </div>
+                <div style={{ fontSize: '11px', color: '#047857', fontWeight: 700 }}>5:00 Vacating Timer</div>
+              </div>
+
+              <div style={{ padding: '18px', borderRadius: '16px', border: '2px solid #EF4444', background: '#FEF2F2' }}>
+                <div style={{ fontSize: '11px', color: '#991B1B', fontWeight: 800, textTransform: 'uppercase' }}>Cleaning Pending (Delayed)</div>
+                <div style={{ fontSize: '28px', fontWeight: 900, color: '#DC2626', margin: '4px 0' }}>
+                  {checkoutSessions.filter(s => s.status === 'Cleaning Pending' || (s.paymentStatus === 'paid' && s.vacatingTimerEndAt && new Date(s.vacatingTimerEndAt) < new Date())).length}
+                </div>
+                <div style={{ fontSize: '11px', color: '#B91C1C', fontWeight: 800 }}>⚠️ Highlighted Red</div>
+              </div>
+            </div>
+
+            {/* Live Checkout Table Sessions List */}
+            <div style={{ background: '#FFFFFF', padding: '24px', borderRadius: '18px', border: '1.5px solid #CBD5E1', boxShadow: '0 4px 20px rgba(0,0,0,0.04)' }}>
+              <h3 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: 900, color: '#1E3A5F' }}>
+                Live Table Session &amp; Checkout Control List
+              </h3>
+
+              {checkoutSessions.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '30px', color: '#64748B', fontSize: '13px' }}>
+                  No checkout sessions active right now. All tables vacant or dining normally.
+                </div>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
+                  {checkoutSessions.map((session, idx) => {
+                    const isCleaningPendingDelayed = session.status === 'Cleaning Pending' || (session.paymentStatus === 'paid' && session.vacatingTimerEndAt && new Date(session.vacatingTimerEndAt) < new Date());
+                    const isPaidDemoOnline = session.paymentMethod && session.paymentMethod.startsWith('demo_') && session.paymentStatus === 'paid';
+
+                    return (
+                      <div
+                        key={idx}
+                        style={{
+                          background: isCleaningPendingDelayed ? '#FEF2F2' : isPaidDemoOnline ? '#F0FDF4' : '#F8FAFC',
+                          border: isCleaningPendingDelayed ? '2.5px solid #EF4444' : isPaidDemoOnline ? '2px solid #10B981' : '1.5px solid #CBD5E1',
+                          borderRadius: '16px',
+                          padding: '18px',
+                          boxShadow: isCleaningPendingDelayed ? '0 4px 14px rgba(239, 68, 68, 0.15)' : '0 2px 8px rgba(0,0,0,0.04)'
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                          <span style={{ fontSize: '18px', fontWeight: 900, color: '#1E3A5F' }}>Table #{session.tableNum}</span>
+                          <span style={{
+                            fontSize: '11px',
+                            fontWeight: 900,
+                            padding: '4px 10px',
+                            borderRadius: '8px',
+                            background: isCleaningPendingDelayed ? '#DC2626' : isPaidDemoOnline ? '#10B981' : '#3B82F6',
+                            color: '#FFF'
+                          }}>
+                            {isCleaningPendingDelayed ? '⚠️ CLEANING DELAYED' : isPaidDemoOnline ? 'PAID ONLINE (DEMO)' : session.status}
+                          </span>
+                        </div>
+
+                        <div style={{ fontSize: '13px', color: '#475569', fontWeight: 700, marginBottom: '6px' }}>
+                          👤 {session.customerName || 'Customer'}
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '15px', fontWeight: 900, color: '#0F172A', marginBottom: '14px' }}>
+                          <span>Bill Total:</span>
+                          <span style={{ color: '#F97316' }}>₹{session.grandTotal || 0}</span>
+                        </div>
+
+                        {/* Manager Override Action Buttons */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                          <button
+                            onClick={() => handleReopenSession(session.tableNum)}
+                            style={{ padding: '8px', borderRadius: '8px', border: '1px solid #CBD5E1', background: '#FFFFFF', color: '#1E3A5F', fontWeight: 900, fontSize: '11px', cursor: 'pointer' }}
+                          >
+                            🔓 Reopen Session
+                          </button>
+                          <button
+                            onClick={() => handleForceEndSession(session.tableNum)}
+                            style={{ padding: '8px', borderRadius: '8px', border: 'none', background: '#DC2626', color: '#FFFFFF', fontWeight: 900, fontSize: '11px', cursor: 'pointer' }}
+                          >
+                            ⚡ Force Vacate Table
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
         )}
 
