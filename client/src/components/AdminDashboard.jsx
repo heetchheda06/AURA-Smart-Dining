@@ -114,28 +114,33 @@ export default function AdminDashboard({ onLogout, adminName, formatPrice }) {
   // Top selling dishes (from API)
   const topDishes = analytics?.categorySales || [];
 
-  const tabBtn = (id, label, activeColor) => (
-    <button
-      onClick={() => {
-        setActiveMetricTab(id);
-        if (id === 'ai_reviews' && !aiData) fetchAiAnalysis();
-      }}
-      style={{
-        padding: '8px 14px',
-        borderRadius: '16px',
-        border: 'none',
-        background: activeMetricTab === id ? activeColor : 'transparent',
-        color: activeMetricTab === id ? '#FFF' : 'var(--text-muted)',
-        fontWeight: 800,
-        fontSize: '11px',
-        cursor: 'pointer',
-        transition: 'all 0.2s ease',
-        whiteSpace: 'nowrap'
-      }}
-    >
-      {label}
-    </button>
-  );
+  const tabBtn = (id, label) => {
+    const isSelected = activeMetricTab === id;
+    return (
+      <button
+        key={id}
+        onClick={() => {
+          setActiveMetricTab(id);
+          if (id === 'ai_reviews' && !aiData) fetchAiAnalysis();
+        }}
+        style={{
+          padding: '8px 18px',
+          borderRadius: '16px',
+          border: 'none',
+          background: isSelected ? 'linear-gradient(135deg, #F97316 0%, #EA580C 100%)' : 'transparent',
+          color: isSelected ? '#FFFFFF' : '#94A3B8',
+          fontWeight: 900,
+          fontSize: '12px',
+          cursor: 'pointer',
+          transition: 'all 0.2s ease',
+          boxShadow: isSelected ? '0 4px 14px rgba(249, 115, 22, 0.4)' : 'none',
+          whiteSpace: 'nowrap'
+        }}
+      >
+        {label}
+      </button>
+    );
+  };
 
   return (
     <div className="admin-wrapper" style={{ background: '#F8FAFC', minHeight: '100vh', color: '#111827' }}>
@@ -260,12 +265,12 @@ export default function AdminDashboard({ onLogout, adminName, formatPrice }) {
                   </p>
                 </div>
 
-                <div style={{ display: 'flex', gap: '6px', background: '#F8FAFC', padding: '6px', borderRadius: '20px', border: '1.5px solid #D6EAF8', flexWrap: 'wrap' }}>
-                  {tabBtn('revenue', '📈 Revenue Trend', '#1E3A5F')}
-                  {tabBtn('hourly', '🔥 Peak Traffic Hours', '#F97316')}
-                  {tabBtn('categories', '🍱 Category Revenue Share', '#10B981')}
-                  {tabBtn('payments', '💳 Payment Breakdown', '#1E3A5F')}
-                  {tabBtn('ai_reviews', '🤖 AURA Review Analyzer', '#8B5CF6')}
+                <div style={{ display: 'flex', gap: '6px', background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)', padding: '6px', borderRadius: '20px', border: '1.5px solid #334155', boxShadow: '0 6px 20px rgba(15, 23, 42, 0.15)', flexWrap: 'wrap' }}>
+                  {tabBtn('revenue', 'Revenue Trend')}
+                  {tabBtn('hourly', 'Peak Traffic Hours')}
+                  {tabBtn('categories', 'Category Revenue Share')}
+                  {tabBtn('payments', 'Payment Breakdown')}
+                  {tabBtn('ai_reviews', 'AURA Review Analyzer')}
                 </div>
               </div>
 
